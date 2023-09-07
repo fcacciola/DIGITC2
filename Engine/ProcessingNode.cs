@@ -6,33 +6,65 @@ using System.Threading.Tasks;
 
 namespace DIGITC2_Engine
 {
-  public class ProcessingNode
+  public abstract class ProcessingNodeBase
+  {
+    public string ID {  get; protected set; }
+
+    public abstract Signal Process( Signal aSignal, Carrier aCarrier )  ;
+  }
+
+  public class ProcessingNode : ProcessingNodeBase
   {
     public ProcessingNode( ProcessingTask aTask, string aID ) 
     { 
-      Task = aTask ;
       ID   = aID ;  
+      Task = aTask ;
     }
-
-    public string ID {  get; private set; }
 
     public ProcessingTask Task { get; private set; } 
 
-    public ProcessingNode Link( ProcessingNode aN )
+    public override Signal Process( Signal aSignal, Carrier aCarrier ) 
     {
-      this.Next =  aN;  
-      aN  .Prev  = this ;
-
-      return aN ;
+      return Task.Process(aSignal, this, aCarrier);
     }
 
-    public Signal Process( Signal aSignal ) 
-    {
-      return Task.Process(aSignal, this);
+    public override string ToString() => $"{ID}" ;
+  }
+
+  public class ParallelProcessingNode : ProcessingNodeBase
+  {
+    public ParallelProcessingNode( List<ProcessingNodeBase> aNodes, string aID  ) 
+    { 
+      ID     = aID ;  
+      mNodes = aNodes ;
     }
 
-    public ProcessingNode Next { get ; private set ; } = null ;
-    public ProcessingNode Prev { get ; private set ; } = null ;
+    public override Signal Process( Signal aSignal, Carrier aCarrier ) 
+    {
+      int lC = mNodes.Count ;
+
+      List<Signal> lBranches = aSignal.BranchOut(lC) ;  
+      
+      List<Signal> lResults = new List<Signal> (lC) ;
+
+      for ( int i = 0 ; i < lC ; ++ i )
+      {
+        lResults.Add( mNodes[i].Process( lBranches[i], aCarrier ) ) ; 
+      }
+
+      var rResultArray = new SignalArray(lResults) ;
+
+      return rResultArray ; 
+    }
+
+    public override string ToString()
+    {
+      StringBuilder sb = new StringBuilder() ;
+      mNodes.ForEach( n => sb.Append($"{n.ID}"));
+      return sb.ToString() ;
+    }
+
+    List<ProcessingNodeBase> mNodes = new List<ProcessingNodeBase>(); 
   }
 
 }

@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 namespace DIGITC2_Engine
 {
 
+  public class Carrier
+  {
+  }
 
   public class Processor
   {
@@ -14,39 +17,66 @@ namespace DIGITC2_Engine
     { 
     }
 
-    public ProcessingNode Add( ProcessingTask aTask, ProcessingNode aPrev = null) 
+    public ProcessingNodeBase Add( ProcessingTask aTask) 
     {
-      return Add( new ProcessingNode(aTask,mNodes.Count.ToString())) ;
+      string lID = $"[{mNodes.Count}]" ;
+      var rNode = new ProcessingNode(aTask,lID) ;
+      mNodes.Add( rNode ) ;
+      return rNode ;
+    }
+
+    public ProcessingNodeBase AddParallel( params ProcessingTask[] aTasks) 
+    {
+      string lID = $"[{mNodes.Count}]" ;
+
+      List<ProcessingNodeBase> lArray = new List<ProcessingNodeBase>();
+
+      foreach( var lTask in aTasks )
+      {
+        string lSID = $"[{mNodes.Count}/{lArray.Count}]" ;
+        var lNode = new ProcessingNode(lTask,lSID) ;
+        lArray.Add(lNode ) ;
+      }
+
+      ParallelProcessingNode rNode = new ParallelProcessingNode(lArray, lID);
+      mNodes.Add( rNode ) ;
+
+      return rNode;
+    }
+
+    public Signal Process( Source aSource )
+    {
+      List<Signal> lSlices = aSource.Slice( aSource.GetSignal() ) ;
+      List<Signal> lResults = new List<Signal>();
+
+      foreach( var lSignal in lSlices )
+      {
+        Signal lResult = Process( lSignal ) ;
+
+        lResults.Add( lResult ) ;
+      }
+
+      return aSource.Merge( lResults ) ;
     }
 
     public Signal Process( Signal aSignal )
     {
-      var lCurrNode = Start ;
-      var rSignal   = aSignal ;
+      var rSignal = aSignal ;
+      var lCarrier = new Carrier();
 
-      do
+      foreach( var lNode in mNodes )
       { 
-        rSignal = lCurrNode.Process(rSignal);
-        lCurrNode = lCurrNode.Next;
+        rSignal = lNode.Process(rSignal, lCarrier);
       }
-      while ( lCurrNode != null );
      
       return rSignal ;
     }
 
-    ProcessingNode Add( ProcessingNode aNode, ProcessingNode aPrev = null) 
+    public void Render ( TextSignalRenderer aRenderer ) 
     {
+      mNodes.ForEach( n => aRenderer.Render($"->{n}") ) ;
+    }
 
-      mNodes.Add( aNode );
-
-      aPrev?.Link( aNode ); 
-
-      return aNode ;
-    }   
-
-
-    ProcessingNode Start => mNodes[0];
-
-    List<ProcessingNode> mNodes = new List<ProcessingNode>();
+    List<ProcessingNodeBase> mNodes = new List<ProcessingNodeBase>();
   }
 }

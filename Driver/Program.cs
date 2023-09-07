@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,58 +12,52 @@ namespace Driver
 {
   internal class Program
   {
-    static Processor LinearSample0()
+    static Processor MultiProcessorSample0()
     {
+      Trace.WriteLine("Building Trivial Parallel Processor");
+
       var rProcessor = new Processor();
 
-      var lN0 = rProcessor.Add( new TrivialProcessingTask() );
+      rProcessor.Add( new TrivialProcessingTask("_M0") );
 
-      var lN1 = rProcessor.Add( new TrivialProcessingTask(), lN0 );
+      rProcessor.Add( new TrivialProcessingTask("_M1") );
 
-      var lN2 = rProcessor.Add( new TrivialProcessingTask(), lN1 );
-
-      return rProcessor;
-    }
-
-    static Processor MultiSample0()
-    {
-      var rProcessor = new Processor();
-
-      var lN0 = rProcessor.Add( new TrivialProcessingTask() );
-
-      var lN1 = rProcessor.Add( new TrivialProcessingTask(), lN0 );
-
-    //  var lN2 = rProcessor.Add( new TrivialProcessingTask(), lN0 );
-
-    //  var lN3 = rProcessor.Add( new TrivialProcessingTask(), lN1, lN2 );
-
-    //  var lN4 = rProcessor.Add( new TrivialProcessingTask(), lN3 );
-
-    //  var lN5 = rProcessor.Add( new TrivialProcessingTask(), lN3 );
+      rProcessor.AddParallel( new TrivialProcessingTask("_M2_A"), new TrivialProcessingTask("_M2_B") );
 
       return rProcessor;  
     }
 
     static Signal ProcessSample( Source aSource, Processor aProcessor )
     {
-      return aProcessor.Process( aSource.GetSignal() ) ;
+      return aProcessor.Process( aSource ) ;
     }
 
     static void Main(string[] args)
     {
-      Console.WriteLine("DIGITC 2 Sample Driver");
+      string lLog = "C:\\Users\\User\\Dropbox\\ECB\\ITC\\Digital ITC\\DIGITC2\\Output.txt" ;
+
+      if ( File.Exists( lLog ) ) { File.Delete( lLog ); } 
+
+      Trace.Listeners.Add( new TextWriterTraceListener(lLog) ) ;
+      Trace.IndentSize  = 2 ;
+      Trace.AutoFlush = true ;
+      Trace.WriteLine("DIGITC 2 Sample Driver");
 
       var lS = new SourceA();
 
-      var lP0 = LinearSample0();
-      var lP1 = MultiSample0();
+      var lMPS0 = MultiProcessorSample0();
 
-      var lS0 = ProcessSample(lS, lP0 );
-      var lS1 = ProcessSample(lS, lP1 );
+      Trace.WriteLine("Processing Trivial Parallel Processor");
+      var lRS = ProcessSample(lS, lMPS0 );
 
-      TextSignalRenderer lConsoleRenderer = new TextSignalRenderer();
+      TextSignalRenderer lTraceRenderer = new TextSignalRenderer();
 
-      lConsoleRenderer.Render( lS0 ) ;
+      lTraceRenderer.Render( lMPS0, "Trivial Parallel Processor");
+
+      Trace.WriteLine("");
+
+      lTraceRenderer.Render( lRS, "Trivial Parallel Processor results"  ) ;
+
     }
   }
 }
