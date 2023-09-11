@@ -11,6 +11,7 @@ using DIGITC2;
 
 namespace Driver
 {
+
   public class Sample0
   {
     public void Go(string[] args)
@@ -25,7 +26,12 @@ namespace Driver
 
         var lProcessor = new Processor();
 
-        lProcessor.Add( new Envelope(.1,.1) );
+        lProcessor.Add( new Envelope(.1,.1) )
+                  .Add( new AmplitudeGate(0.65) )
+                  .Add( new ExtractGatedlSymbols( aMinDuration: 0.05, aMergeGap: 0.1 ) )
+                  .Add( new BinarizeByDuration( aThreshold: 0.4 ) )
+                  .Add( new BinaryToBytes(aBitsPerByte:5, aLittleEndian: true))
+                  .Add( new BytesToText( aCharSet: "us-ascii")) ;
 
         lContext.Renderer.Render( lProcessor, lContext.RenderOptions, "Sample Parallel Processor");
 

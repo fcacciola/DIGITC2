@@ -44,12 +44,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmplitudeGate.cs" />
+    <Compile Include="BinarizeByDuration.cs" />
+    <Compile Include="BinaryToBytes.cs" />
+    <Compile Include="BytesToText.cs" />
+    <Compile Include="ExtractGatedSymbols.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="Envelope.cs" />
+    <Compile Include="LexicalSignal.cs" />
+    <Compile Include="WaveSignal.cs" />
     <Compile Include="Signal.cs" />
     <Compile Include="Source.cs" />
     <Compile Include="Utils.cs" />

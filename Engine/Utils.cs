@@ -21,7 +21,7 @@ namespace DIGITC2
     {
       List<string> lStrings = new List<string>();
 
-      const int cMaxSize = 60 ;
+      const int cMaxSize = 30 ;
 
       int lLen = aArray.Length;
       if ( lLen > cMaxSize )

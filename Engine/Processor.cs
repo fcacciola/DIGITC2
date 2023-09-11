@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,11 @@ namespace DIGITC2
     public void Throw ( Exception e )
     {
       throw e ;
+    }
+
+    public void Log( string aText )
+    {
+      Trace.WriteLine( aText ); 
     }
   }
 

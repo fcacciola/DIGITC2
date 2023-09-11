@@ -23,6 +23,8 @@ namespace DIGITC2
 
       mResult = aInput.CopyWith(lES);
 
+      mResult.Name = "Envelope";
+
       return mResult ;
     }
 
