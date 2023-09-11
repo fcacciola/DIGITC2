@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DIGITC2_Engine
+using NWaves.Signals;
+
+namespace DIGITC2
 {
   public abstract class Signal
   {
     public Source Source { get ; set ; }
 
-    public abstract void Render ( TextSignalRenderer aRenderer );
+    public abstract void Render ( TextRenderer aRenderer, RenderOptions aOptions );
 
     public List<Signal> BranchOut ( int aBranchCount )
     {
@@ -23,6 +25,22 @@ namespace DIGITC2_Engine
     }
 
     public abstract Signal Copy() ;
+
+    public void Assign( Signal aRHS )
+    {
+      StepIdx  = aRHS.StepIdx  ;
+      SliceIdx = aRHS.SliceIdx ; 
+      Name     = aRHS.Name ;
+    }
+
+    public override string ToString()
+    {
+      return $"(Name:{Name}. StepIdx:{StepIdx} SliceIdx:{SliceIdx})";
+    }
+
+    public int    StepIdx  = 0 ;
+    public int    SliceIdx = 0 ;
+    public string Name     = "";
   }
 
   public class SignalArray : Signal
@@ -34,9 +52,9 @@ namespace DIGITC2_Engine
       Source = aUnits.First().Source ;
     }
 
-    public override void Render ( TextSignalRenderer aRenderer )
+    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions  )
     {
-      Units.ForEach( u => u.Render ( aRenderer ) );
+      Units.ForEach( u => u.Render ( aRenderer, aOptions ) );
     }
 
     public override Signal Copy()
@@ -51,27 +69,37 @@ namespace DIGITC2_Engine
     public List<Signal> Units = new List<Signal>(); 
   }
 
-  public class TrivialSignal : Signal 
-  { 
-    public TrivialSignal( params string[] aData ) { Data.AddRange(aData) ; }  
-
-    public TrivialSignal( List<string> aData ) { Data = aData ; }  
-
-    public override void Render ( TextSignalRenderer aRenderer ) 
-    {
-      aRenderer.Render ( string.Join( " | ", Data ) ) ;
+  public class WaveSignal : Signal
+  {
+    public WaveSignal( DiscreteSignal aRep ) : base()
+    { 
+      Rep = aRep ;
     }
 
-    public override Signal Copy()
-    {
-      List<string> lDataCopy = new List<string>() ; 
-      Data.ForEach( s => lDataCopy.Add( s ) ) ;
+    public DiscreteSignal Rep ;
+    
+    public double  Duration     => Rep.Duration ;
+    public int     SamplingRate => Rep.SamplingRate ;
+    public float[] Samples      => Rep.Samples ; 
 
-      return new TrivialSignal(lDataCopy) ;
+    public WaveSignal CopyWith( DiscreteSignal aDS )
+    {
+      WaveSignal rCopy = new WaveSignal(aDS);
+      rCopy.Assign(this); 
+      return rCopy ;
     }
 
-    public override string ToString() => string.Join(" | ", Data) ; 
+    public override Signal Copy() => CopyWith(Rep.Copy()); 
+    
+    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions )
+    {
+      aRenderer.Render ( ToString(), aOptions );
+    }
 
-    public List<string> Data = new List<string>() ;
+    public override string ToString()
+    {
+      return $"[{base.ToString()} Duration:{Rep.Duration:F2} seconds. SampleRate:{Rep.SamplingRate} Samples:[{Utils.ToStr(Rep.Samples)}]";
+    }
+
   }
 }

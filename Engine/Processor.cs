@@ -4,11 +4,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DIGITC2_Engine
+namespace DIGITC2
 {
-
-  public class Carrier
+  public class Context
   {
+    public float WindowSizeInSeconds { get ; set ; } = 0f ;
+
+    public RenderOptions RenderOptions { get ; set ; }  = new RenderOptions() ;
+    
+    public Renderer Renderer { get ; set ; } = new TextRenderer();
+
+    public void Throw ( Exception e )
+    {
+      throw e ;
+    }
+  }
+
+  public class Result
+  {
+    public class Pipe
+    {
+      internal Pipe() {}
+
+      public List<Signal> Steps = new List<Signal>();
+    }
+
+    public Result( Signal aInput ) { Input = aInput ; } 
+
+    public Signal Input  { get ; private  set ; }
+    public Signal Output { get ; internal set ; }   
+
+    public List<Pipe> Pipes = new List<Pipe>();
   }
 
   public class Processor
@@ -17,66 +43,91 @@ namespace DIGITC2_Engine
     { 
     }
 
-    public ProcessingNodeBase Add( ProcessingTask aTask) 
+    public Processor Add( Filter aFilter ) 
     {
-      string lID = $"[{mNodes.Count}]" ;
-      var rNode = new ProcessingNode(aTask,lID) ;
-      mNodes.Add( rNode ) ;
-      return rNode ;
+      string lID = $"[{mFilters.Count}]" ;
+      aFilter.ID = lID ;
+      mFilters.Add( aFilter ) ;
+      return this ;
     }
 
-    public ProcessingNodeBase AddParallel( params ProcessingTask[] aTasks) 
+    public Processor AddParallel( params Filter[] aFilters) 
     {
-      string lID = $"[{mNodes.Count}]" ;
+      string lID = $"[{mFilters.Count}]" ;
 
-      List<ProcessingNodeBase> lArray = new List<ProcessingNodeBase>();
-
-      foreach( var lTask in aTasks )
+      foreach( var lTask in aFilters )
       {
-        string lSID = $"[{mNodes.Count}/{lArray.Count}]" ;
-        var lNode = new ProcessingNode(lTask,lSID) ;
-        lArray.Add(lNode ) ;
+        string lSID = $"[{mFilters.Count}/{aFilters.Length}]" ;
+        lTask.ID = lSID ;  
       }
 
-      ParallelProcessingNode rNode = new ParallelProcessingNode(lArray, lID);
-      mNodes.Add( rNode ) ;
+      ParallelFilter lParallelFilter = new ParallelFilter(aFilters);
+      lParallelFilter.ID = lID ;  
+      mFilters.Add( lParallelFilter ) ;
 
-      return rNode;
+      return this;
     }
 
-    public Signal Process( Source aSource )
+    public Result Process( Source aSource, Context aContext = null )
     {
-      List<Signal> lSlices = aSource.Slice( aSource.GetSignal() ) ;
-      List<Signal> lResults = new List<Signal>();
+      Signal lInput = aSource.CreateSignal();
+      lInput.StepIdx = 0 ;
 
-      foreach( var lSignal in lSlices )
+      aContext?.Renderer.Render( lInput, aContext?.RenderOptions, "Input Signal" ); 
+
+      mResult = new Result(lInput) ;
+
+      var lSlices = aSource.Slice( lInput, aContext ) ;
+
+      List<Result.Pipe> lPipes = new List<Result.Pipe>() ;
+
+      foreach( var lSlice in lSlices )
       {
-        Signal lResult = Process( lSignal ) ;
+        Result.Pipe lPipe = new Result.Pipe();
+        lPipes.Add( lPipe ) ;
 
-        lResults.Add( lResult ) ;
+        Process( lSlice, lPipe, aContext ) ;
       }
 
-      return aSource.Merge( lResults ) ;
+      List<Signal> lPipeOutputs = new List<Signal> () ;
+      foreach( var lPipe in lPipes )  
+        lPipeOutputs.Add(lPipe.Steps.Last());
+
+      mResult.Output = aSource.Merge( lPipeOutputs, aContext ) ;
+      mResult.Output.StepIdx = mFilters.Count ;
+
+      aContext?.Renderer.Render( mResult.Output, aContext?.RenderOptions, "Output Signal"  ); 
+
+      return mResult ;  
     }
 
-    public Signal Process( Signal aSignal )
+    void Process( Signal aSignal, Result.Pipe aPipe, Context aContext )
     {
       var rSignal = aSignal ;
-      var lCarrier = new Carrier();
+      var lContext = aContext ?? new Context();
 
-      foreach( var lNode in mNodes )
+      aPipe.Steps.Add( rSignal ) ;
+
+      foreach( var lFilter in mFilters )
       { 
-        rSignal = lNode.Process(rSignal, lCarrier);
+        rSignal = lFilter.Apply(rSignal, lContext);
+
+        rSignal.StepIdx = aPipe.Steps.Count ;
+        aPipe.Steps.Add( rSignal ) ;
+
+        aContext?.Renderer.Render( rSignal, aContext?.RenderOptions, $"Step[{mFilters.IndexOf(lFilter)}] Signal" ); 
       }
-     
-      return rSignal ;
     }
 
-    public void Render ( TextSignalRenderer aRenderer ) 
+    public void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
     {
-      mNodes.ForEach( n => aRenderer.Render($"->{n}") ) ;
+      mFilters.ForEach( n => n.Render(aRenderer, aOptions) ) ;
     }
 
-    List<ProcessingNodeBase> mNodes = new List<ProcessingNodeBase>();
+    List<Filter> mFilters = new List<Filter>();
+
+    Result mResult ;
   }
+
+  
 }

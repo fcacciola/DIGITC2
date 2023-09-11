@@ -3,38 +3,46 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
-using DIGITC2_Engine;
+using DIGITC2;
 
 namespace Driver
 {
+  public class Sample0
+  {
+    public void Go(string[] args)
+    {
+      string lAudioSample0 = @"..\..\Input\AudioSamples\Sample-1_5.wav" ;
+
+      if ( File.Exists( lAudioSample0 ) )
+      {
+        Context lContext = new Context() { WindowSizeInSeconds = 0 } ;
+
+        Trace.WriteLine("Building Sample Parallel Processor");
+
+        var lProcessor = new Processor();
+
+        lProcessor.Add( new Envelope(.1,.1) );
+
+        lContext.Renderer.Render( lProcessor, lContext.RenderOptions, "Sample Parallel Processor");
+
+        var lSource = new WaveSource(lAudioSample0) ;  
+
+        lContext.Renderer.Render(lSource, lContext.RenderOptions, "Source");
+
+        var lResult = lProcessor.Process( lSource, lContext ) ;
+      }
+    }
+  }
+
   internal class Program
   {
-    static Processor MultiProcessorSample0()
-    {
-      Trace.WriteLine("Building Trivial Parallel Processor");
-
-      var rProcessor = new Processor();
-
-      rProcessor.Add( new TrivialProcessingTask("_M0") );
-
-      rProcessor.Add( new TrivialProcessingTask("_M1") );
-
-      rProcessor.AddParallel( new TrivialProcessingTask("_M2_A"), new TrivialProcessingTask("_M2_B") );
-
-      return rProcessor;  
-    }
-
-    static Signal ProcessSample( Source aSource, Processor aProcessor )
-    {
-      return aProcessor.Process( aSource ) ;
-    }
-
     static void Main(string[] args)
     {
-      string lLog = "C:\\Users\\User\\Dropbox\\ECB\\ITC\\Digital ITC\\DIGITC2\\Output.txt" ;
+      string lLog = @"..\..\Output.txt" ;
 
       if ( File.Exists( lLog ) ) { File.Delete( lLog ); } 
 
@@ -43,21 +51,9 @@ namespace Driver
       Trace.AutoFlush = true ;
       Trace.WriteLine("DIGITC 2 Sample Driver");
 
-      var lS = new SourceA();
+      var lS0 = new Sample0();
 
-      var lMPS0 = MultiProcessorSample0();
-
-      Trace.WriteLine("Processing Trivial Parallel Processor");
-      var lRS = ProcessSample(lS, lMPS0 );
-
-      TextSignalRenderer lTraceRenderer = new TextSignalRenderer();
-
-      lTraceRenderer.Render( lMPS0, "Trivial Parallel Processor");
-
-      Trace.WriteLine("");
-
-      lTraceRenderer.Render( lRS, "Trivial Parallel Processor results"  ) ;
-
+      lS0.Go(args);
     }
   }
 }
