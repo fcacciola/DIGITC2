@@ -8,6 +8,10 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  using BitsSignal  = GenericLexicalSignal<BitSymbol>;
+  using BytesSignal = GenericLexicalSignal<ByteSymbol>;
+  using TextSignal  = GenericLexicalSignal<TextSymbol>;
+
   public abstract class Signal
   {
     public Source Source { get ; set ; }
@@ -38,35 +42,40 @@ namespace DIGITC2
       return $"(Name:{Name}. StepIdx:{StepIdx} SliceIdx:{SliceIdx})";
     }
 
+    public virtual List<Signal> Slice( Context aContext = null ) { return new List<Signal>{this} ;}
+
+    public virtual Signal MergeWith( IEnumerable<Signal> aSlices, Context aContext = null ) {  return this ; }
+
     public int    StepIdx  = 0 ;
+
     public int    SliceIdx = 0 ;
     public string Name     = "";
   }
 
-  public class SignalArray : Signal
-  {
-    public SignalArray( IEnumerable<Signal> aUnits )
-    {
-      Units.AddRange( aUnits ) ;
+  //public class SignalArray : Signal
+  //{
+  //  public SignalArray( IEnumerable<Signal> aUnits )
+  //  {
+  //    Units.AddRange( aUnits ) ;
 
-      Source = aUnits.First().Source ;
-    }
+  //    Source = aUnits.First().Source ;
+  //  }
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions  )
-    {
-      Units.ForEach( u => u.Render ( aRenderer, aOptions ) );
-    }
+  //  public override void Render ( TextRenderer aRenderer, RenderOptions aOptions  )
+  //  {
+  //    Units.ForEach( u => u.Render ( aRenderer, aOptions ) );
+  //  }
 
-    public override Signal Copy()
-    {
-      SignalArray rCopy = new SignalArray( Units.Select( u => u.Copy() ) ) ;  
+  //  public override Signal Copy()
+  //  {
+  //    SignalArray rCopy = new SignalArray( Units.Select( u => u.Copy() ) ) ;  
 
-      return rCopy;
-    }
+  //    return rCopy;
+  //  }
 
-    public override string ToString() => $"(Array of {Units.Count} signals)" ; 
+  //  public override string ToString() => $"(Array of {Units.Count} signals)" ; 
 
-    public List<Signal> Units = new List<Signal>(); 
-  }
+  //  public List<Signal> Units = new List<Signal>(); 
+  //}
 
   }

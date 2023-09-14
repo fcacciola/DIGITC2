@@ -9,7 +9,8 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using BitsSignal = GenericLexicalSignal<BitSymbol>;
+  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
+  using BitsSignal         = GenericLexicalSignal<BitSymbol>;
 
   public class BinarizeByDuration : GatedLexicalFilter
   {

@@ -103,53 +103,7 @@ namespace DIGITC2
     public abstract IEnumerable<Symbol> EnumSymbols { get ; }
   }
 
-  public class GatedLexicalSignal : LexicalSignal
-  {
-    public GatedLexicalSignal( IEnumerable<GatedSymbol> aSymbols )
-    {
-      Symbols.AddRange(aSymbols);
-    }
-
-    public override Signal Copy()
-    {
-      return new GatedLexicalSignal( Symbols.ConvertAll( s => s.Clone() as GatedSymbol ) ) ;
-    }
-
-    public static GatedLexicalSignal Merge( List<GatedLexicalSignal> aSegments )
-    { 
-      if ( aSegments.Count == 0 ) return null ; 
-
-      List<GatedSymbol> lAllSymbos = new List<GatedSymbol> ();
-      foreach( GatedLexicalSignal aSegment in aSegments ) 
-        lAllSymbos.AddRange(aSegment.Symbols);
-
-      return new GatedLexicalSignal (lAllSymbos ); 
-    }
-
-    public WaveSignal ConvertToWave()
-    { 
-      List<float> lSamples = new List<float>();  
-      foreach( GatedSymbol lSymbol in Symbols ) 
-        lSymbol.DumpSamples(lSamples);
-     
-      var rSignal = new WaveSignal( new DiscreteSignal( Symbols[0].SamplingRate, lSamples.ToArray()) ) ;
-
-      rSignal.Assign(this);
-
-      return rSignal ;
-    }
-
-    public override IEnumerable<Symbol> EnumSymbols => Symbols ;
-
-    public List<GatedSymbol> Symbols = new List<GatedSymbol>();
-
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions )
-    {
-      aRenderer.Render ( ToString(), aOptions );
-    }
-  }
-
-  public class GenericLexicalSignal<SYM> : LexicalSignal
+  public class GenericLexicalSignal<SYM> : LexicalSignal where SYM : Symbol
   {
     public GenericLexicalSignal( IEnumerable<SYM> aSymbols )
     {
@@ -158,18 +112,26 @@ namespace DIGITC2
 
     public override Signal Copy()
     {
-      return null ; //new GenericLexicalSignal<SYM>( Symbols.ConvertAll( s => s.Clone() as SYM ) ) ;
+      return new GenericLexicalSignal<SYM>( Symbols.ConvertAll( s => s.Clone() ).Cast<SYM>() ) ;
     }
 
-    public static GenericLexicalSignal<SYM> Merge( List<GenericLexicalSignal<SYM>> aSegments )
+    public override Signal MergeWith( IEnumerable<Signal> aSlices, Context aContext )
     { 
-      if ( aSegments.Count == 0 ) return null ; 
+      if ( aSlices.Count() == 0 )
+        return this ; 
 
       List<SYM> lAllSymbos = new List<SYM> ();
-      foreach( GenericLexicalSignal<SYM> aSegment in aSegments ) 
-        lAllSymbos.AddRange(aSegment.Symbols);
 
-      return new GenericLexicalSignal<SYM>(lAllSymbos ); 
+      lAllSymbos.AddRange(Symbols);
+
+      foreach( GenericLexicalSignal<SYM> lSlice in aSlices.Cast<GenericLexicalSignal<SYM>>() ) 
+        lAllSymbos.AddRange(lSlice.Symbols);
+
+      var rS = new GenericLexicalSignal<SYM>(lAllSymbos );  
+
+      rS.Assign( this );
+
+      return rS;  
     }
 
     public override IEnumerable<Symbol> EnumSymbols => Symbols.Cast<Symbol>() ;

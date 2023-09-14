@@ -9,6 +9,8 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
+
   public class ExtractGatedlSymbols : WaveFilter
   {
     public ExtractGatedlSymbols( double aMinDuration, double aMergeGap ) { mMinDuration = aMinDuration ; mMergeGap = aMergeGap ; }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DIGITC2
 {
+  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
   using BitsSignal  = GenericLexicalSignal<BitSymbol>;
   using BytesSignal = GenericLexicalSignal<ByteSymbol>;
 
@@ -28,46 +29,6 @@ namespace DIGITC2
     protected Signal mResult ;
 
   }
-
-  public class ParallelFilter : Filter
-  {
-    public ParallelFilter( IEnumerable<Filter> aFilters ) 
-    { 
-      mFilters.AddRange( aFilters );
-    }
-
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
-    {
-      int lC = mFilters.Count ;
-
-      List<Signal> lBranches = aInput.BranchOut(lC) ;  
-      
-      List<Signal> lResults = new List<Signal> (lC) ;
-
-      for ( int i = 0 ; i < lC ; ++ i )
-      {
-        lResults.Add( mFilters[i].Apply( lBranches[i], aContext ) ) ; 
-      }
-
-      var rResultArray = new SignalArray(lResults) ;
-
-      return rResultArray ; 
-    }
-
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-    }
-
-    public override string ToString()
-    {
-      StringBuilder sb = new StringBuilder() ;
-      mFilters.ForEach( n => sb.Append($"{n.ID}"));
-      return sb.ToString() ;
-    }
-
-    List<Filter> mFilters = new List<Filter>(); 
-  }
-
   public abstract class WaveFilter : Filter
   {
     protected WaveFilter() : base() {}

@@ -24,13 +24,18 @@ namespace DIGITC2
     {
       Trace.WriteLine( aText ); 
     }
+
+    public void Error( string aText )
+    {
+      Trace.WriteLine( "ERROR: " + aText ); 
+    }
   }
 
   public class Result
   {
-    public class Pipe
+    public class Slice
     {
-      internal Pipe() {}
+      internal Slice() {}
 
       public List<Signal> Steps = new List<Signal>();
     }
@@ -40,7 +45,7 @@ namespace DIGITC2
     public Signal Input  { get ; private  set ; }
     public Signal Output { get ; internal set ; }   
 
-    public List<Pipe> Pipes = new List<Pipe>();
+    public List<Slice> Slices = new List<Slice>();
   }
 
   public class Processor
@@ -57,57 +62,41 @@ namespace DIGITC2
       return this ;
     }
 
-    public Processor AddParallel( params Filter[] aFilters) 
-    {
-      string lID = $"[{mFilters.Count}]" ;
-
-      foreach( var lTask in aFilters )
-      {
-        string lSID = $"[{mFilters.Count}/{aFilters.Length}]" ;
-        lTask.ID = lSID ;  
-      }
-
-      ParallelFilter lParallelFilter = new ParallelFilter(aFilters);
-      lParallelFilter.ID = lID ;  
-      mFilters.Add( lParallelFilter ) ;
-
-      return this;
-    }
-
     public Result Process( Source aSource, Context aContext = null )
     {
       Signal lInput = aSource.CreateSignal();
       lInput.StepIdx = 0 ;
 
-      aContext?.Renderer.Render( lInput, aContext?.RenderOptions, "Input Signal" ); 
+      aContext?.Renderer.Render( lInput, aContext?.RenderOptions, "Input" ); 
 
       mResult = new Result(lInput) ;
 
-      var lSlices = aSource.Slice( lInput, aContext ) ;
+      var lSlices = lInput.Slice( aContext ) ;
 
-      List<Result.Pipe> lPipes = new List<Result.Pipe>() ;
+      List<Result.Slice> lPipes = new List<Result.Slice>() ;
 
       foreach( var lSlice in lSlices )
       {
-        Result.Pipe lPipe = new Result.Pipe();
+        Result.Slice lPipe = new Result.Slice();
         lPipes.Add( lPipe ) ;
 
         Process( lSlice, lPipe, aContext ) ;
       }
 
+
       List<Signal> lPipeOutputs = new List<Signal> () ;
       foreach( var lPipe in lPipes )  
         lPipeOutputs.Add(lPipe.Steps.Last());
 
-      mResult.Output = aSource.Merge( lPipeOutputs, aContext ) ;
+      mResult.Output = lPipeOutputs.First().MergeWith( lPipeOutputs.Skip(1), aContext ) ;
       mResult.Output.StepIdx = mFilters.Count ;
 
-      aContext?.Renderer.Render( mResult.Output, aContext?.RenderOptions, "Output Signal"  ); 
+      aContext?.Renderer.Render( mResult.Output, aContext?.RenderOptions, "Output"  ); 
 
       return mResult ;  
     }
 
-    void Process( Signal aSignal, Result.Pipe aPipe, Context aContext )
+    void Process( Signal aSignal, Result.Slice aPipe, Context aContext )
     {
       var rSignal = aSignal ;
       var lContext = aContext ?? new Context();
@@ -121,7 +110,8 @@ namespace DIGITC2
         rSignal.StepIdx = aPipe.Steps.Count ;
         aPipe.Steps.Add( rSignal ) ;
 
-        aContext?.Renderer.Render( rSignal, aContext?.RenderOptions, $"Step[{mFilters.IndexOf(lFilter)}] Signal" ); 
+        if ( mFilters.IndexOf( lFilter ) < mFilters.Count - 1)
+          aContext?.Renderer.Render( rSignal, aContext?.RenderOptions, $"Step[{mFilters.IndexOf(lFilter)}] Result" ); 
       }
     }
 
