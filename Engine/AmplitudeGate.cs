@@ -40,11 +40,8 @@ namespace DIGITC2
       return mResult ;
     }
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-      aRenderer.Render($"AmplitudeGate(Threshold:{mThreshold})", aOptions);
-    }
-
+    public override string ToString() => $"AmplitudeGate(Threshold:{mThreshold})";
+    
     float mThreshold;
 
   }

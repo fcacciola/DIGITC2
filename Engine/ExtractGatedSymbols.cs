@@ -9,7 +9,7 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
+  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
 
   public class ExtractGatedlSymbols : WaveFilter
   {
@@ -51,11 +51,8 @@ namespace DIGITC2
 
       return mResult ;
     }
-
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-      aRenderer.Render($"", aOptions);
-    }
+    
+    public override string ToString() => $"Envelope(MinDuration:{mMinDuration},MergeGap:{mMergeGap})";
 
     void AddSymbol()
     {
@@ -113,6 +110,7 @@ namespace DIGITC2
       mFinal = new List<GatedSymbol> ();
       mMerged.ForEach( s => { if ( s.Duration >= mMinDuration ) mFinal.Add(s); } );
     }
+
 
     double            mMinDuration ;
     double            mMergeGap ;

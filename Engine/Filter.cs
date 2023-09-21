@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
-  using BitsSignal  = GenericLexicalSignal<BitSymbol>;
-  using BytesSignal = GenericLexicalSignal<ByteSymbol>;
+  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
+  using BitsSignal         = LexicalSignal<BitSymbol>;
+  using BytesSignal        = LexicalSignal<ByteSymbol>;
+  using WordSignal         = LexicalSignal<WordSymbol>;
 
   public abstract class Filter
   {
@@ -21,8 +22,6 @@ namespace DIGITC2
 
       return mResult;
     }
-
-    public virtual void Render ( TextRenderer aRenderer, RenderOptions aOptions ) { }
 
     protected abstract Signal DoApply( Signal aInput, Context aContext ) ;
 
@@ -43,23 +42,6 @@ namespace DIGITC2
     }
     
     protected abstract Signal Process ( WaveSignal aInput, Context aContext );  
-
-  }
-
-  public abstract class LexicalFilter : Filter
-  {
-    protected LexicalFilter() : base() {}
-
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
-    {
-      LexicalSignal lLexicalSignal = aInput as LexicalSignal; 
-      if ( lLexicalSignal == null )
-        throw new ArgumentException("Input Signal must be a Lexical Signal.");
-
-      return Process(lLexicalSignal, aContext);
-    }
-    
-    protected abstract Signal Process ( LexicalSignal aInput, Context aContext );  
 
   }
 
@@ -113,4 +95,22 @@ namespace DIGITC2
     protected abstract Signal Process ( BytesSignal aInput, Context aContext );  
 
   }
+
+  public abstract class WordsFilter : Filter
+  {
+    protected WordsFilter() : base() {}
+
+    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    {
+      WordSignal lWordsSignal = aInput as WordSignal; 
+      if ( lWordsSignal == null )
+        throw new ArgumentException("Input Signal must be a Words Lexical Signal.");
+
+      return Process(lWordsSignal, aContext);
+    }
+    
+    protected abstract Signal Process ( WordSignal aInput, Context aContext );  
+
+  }
+
 }

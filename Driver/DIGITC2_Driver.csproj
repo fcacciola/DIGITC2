@@ -79,12 +79,18 @@
     <Content Include="Input\Samples\Sample-9.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Input\Scripts\BitsToText_Sample0.cs">
+    <Compile Include="Input\Scripts\BitsToText_Sample1.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Input\Scripts\WaveToText_Sample0.cs">
+    </Compile>
+    <Compile Include="Input\Scripts\BitsToText_Sample0.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </Compile>
+    <Compile Include="Input\Scripts\WaveToText_Sample0.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Input\Scripts\BitsToTokens_Sample0.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

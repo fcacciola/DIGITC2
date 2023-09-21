@@ -10,8 +10,8 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using BitsSignal  = GenericLexicalSignal<BitSymbol>;
-  using BytesSignal = GenericLexicalSignal<ByteSymbol>;
+  using BitsSignal  = LexicalSignal<BitSymbol>;
+  using BytesSignal = LexicalSignal<ByteSymbol>;
 
   public class BinaryToBytes : BitsFilter
   {
@@ -21,7 +21,9 @@ namespace DIGITC2
     {
       mBitValues  = new List<bool>(); 
 
-      int lLen = aInput.Symbols.Count ;
+      var lString = aInput.String ;
+
+      int lLen = lString.Length ;
       int lByteCount = 0; 
       int i = 0;
 
@@ -37,17 +39,14 @@ namespace DIGITC2
 
         for ( int j = 0 ; i < lLen && j < mBitsPerByte ; j++, i ++ )
         {
-          mDEBUG_ByteString += $"[{(aInput.Symbols[i].One ? "1" : "0")}]";
-          mBitValues.Add( aInput.Symbols[i].One ) ;  
+          mDEBUG_ByteString += $"[{(lString[i].One ? "1" : "0")}]";
+          mBitValues.Add( lString[i].One ) ;  
         }
         
         AddRemainder(lRem);
 
         if ( !mLittleEndian )
           AddPadding();
-
-        if ( aInput.SliceIdx == 0 )
-          aContext.Log(mDEBUG_ByteString+Environment.NewLine);
 
         lByteCount ++ ;
       }
@@ -70,10 +69,7 @@ namespace DIGITC2
       return mResult ;
     }
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-      aRenderer.Render($"", aOptions);
-    }
+    public override string ToString() => $"BinaryToBytes(BitsPerByte:{mBitsPerByte}, LittleEndian:{mLittleEndian})";
 
     void AddPadding()
     {

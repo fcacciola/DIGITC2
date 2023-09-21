@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,10 +12,10 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
-  using BitsSignal  = GenericLexicalSignal<BitSymbol>;
-  using BytesSignal = GenericLexicalSignal<ByteSymbol>;
-  using TextSignal  = GenericLexicalSignal<TextSymbol>;
+  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
+  using BitsSignal  = LexicalSignal<BitSymbol>;
+  using BytesSignal = LexicalSignal<ByteSymbol>;
+  using TextSignal  = LexicalSignal<TextSymbol>;
 
   public abstract class LexicalSource<SYM> : Source
   {
@@ -35,7 +36,14 @@ namespace DIGITC2
       return rSource; 
     }
 
-    public override Signal DoCreateSignal() 
+    public static ByteSymbol GetTextSeparator()
+    {
+      var lSeparatorSource = BytesSource.FromText(" ","us-ascii") ;
+      var lSeparatorBytes = lSeparatorSource.CreateSignal();
+      return ( lSeparatorBytes as LexicalSignal<ByteSymbol>).String.Symbols[0];
+    }
+
+    protected override Signal DoCreateSignal() 
     {
       mSymbols.Clear(); 
       foreach( byte lByte in mBytes )
@@ -71,7 +79,15 @@ namespace DIGITC2
       return rSource; 
     }
 
-    public static BitsSource FromText( string aText, string aCharSet)
+    public static BitsSource FromRandom( int aLen )
+    {
+      var lRNG = RandomNumberGenerator.Create();
+      byte[] lBytes = new byte[aLen]; 
+      lRNG.GetBytes(lBytes);
+      return FromBytes(lBytes); 
+    }
+
+    public static BitsSource FromText( string aText, string aCharSet = "us-ascii")
     {
       Encoding lEncoding = Encoding.GetEncoding(aCharSet);
 
@@ -82,7 +98,7 @@ namespace DIGITC2
       return FromBytes( lBytes );
     }
 
-    public override Signal DoCreateSignal() 
+    protected override Signal DoCreateSignal() 
     {
       mSymbols.Clear(); 
       foreach( bool lBit in mBits )
@@ -120,7 +136,7 @@ namespace DIGITC2
       mParams = aParams ;
     }
 
-    public override Signal DoCreateSignal()
+    protected override Signal DoCreateSignal()
     {
       if ( mSignal == null ) 
       {

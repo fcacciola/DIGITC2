@@ -1,18 +1,17 @@
+using System;
+
 namespace DIGITC2 {
 
-public class BitsToText_Sample0
+public class BitsToText_Sample1
 {
   public static void Run( Context aContext, string[] aCmdLineArgs )
   {
-    aContext.Log("BitsToText from a given known text");
+    aContext.Log("BitsToText from a random binary sequence");
 
     int lBitsPerByteParam = 8 ;
+    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 256 ;
 
-    string lSourceText = "Hello World!";
-
-    aContext.Log("Source text: " + lSourceText );
-
-    var lSource = BitsSource.FromText(lSourceText);  
+    var lSource = BitsSource.FromRandom(lLen);
 
     var lProcessor = new Processor();
 

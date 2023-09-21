@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NWaves, Version=0.9.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NWaves.0.9.6\lib\netstandard2.0\NWaves.dll</HintPath>
     </Reference>
@@ -44,19 +47,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Input\Scripts\BaseScript.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Compile Include="AmplitudeGate.cs" />
     <Compile Include="BinarizeByDuration.cs" />
+    <Compile Include="Tokenize.cs" />
     <Compile Include="BinaryToBytes.cs" />
-    <Compile Include="BytesToText.cs" />
+    <Compile Include="WordsToText.cs" />
     <Compile Include="ExtractGatedSymbols.cs" />
     <Compile Include="Filter.cs" />
-    <Compile Include="Result.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderer.cs" />
     <Compile Include="Envelope.cs" />
     <Compile Include="LexicalSignal.cs" />
     <Compile Include="MockSource.cs" />
@@ -68,6 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Input\Scripts\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

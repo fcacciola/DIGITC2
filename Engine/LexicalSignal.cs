@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,8 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  using Word = SymbolString<ByteSymbol>;
+
   public abstract class Symbol : ICloneable
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
@@ -17,6 +20,27 @@ namespace DIGITC2
     public int Idx ;
 
     public virtual string Meaning => ToString();
+
+    public override bool Equals(object obj) => this.ValueEquals(obj as Symbol);
+
+    public bool ValueEquals(Symbol aRHS)
+    {
+      if (this is null)
+      {
+        if (aRHS is null)
+            return true;
+
+        return false;
+      }
+
+      return string.Compare(Meaning, aRHS.Meaning) == 0;
+    }
+
+    public override int GetHashCode() => Meaning.GetHashCode();
+
+    public static bool operator ==(Symbol lhs, Symbol rhs) => lhs.ValueEquals(rhs);
+    public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
+
   }
 
   public class GatedSymbol : Symbol
@@ -77,6 +101,17 @@ namespace DIGITC2
     public byte Byte ;
   }
 
+  public class WordSymbol : Symbol
+  {
+    public WordSymbol( int aIdx, Word aWord ) : base(aIdx) { Word = aWord ; }
+
+    public override object Clone() { return new WordSymbol( Idx, Word.Copy() ); }  
+
+    public override string ToString() => Word.ToString() ;
+
+    public Word Word ;
+  }
+
   public class TextSymbol : Symbol
   {
     public TextSymbol( int aIdx, string aText ) : base(aIdx) { Text = aText ; }
@@ -88,60 +123,153 @@ namespace DIGITC2
     public string Text ;
   }
 
-  public abstract class LexicalSignal : Signal
+  public class Histogram<SYM> : IEnumerable< KeyValuePair<SYM, int> >  where SYM : Symbol 
   {
-    public override string ToString()
+    public void Add( SYM aSymbol )
     {
-      List<string> lAll = new List<string>();
-
-      foreach( Symbol lSymbol in EnumSymbols )
-        lAll.Add(lSymbol.ToString() );  
-
-      return String.Join( "", lAll );
+      if ( mMap.ContainsKey(aSymbol))
+           mMap[aSymbol] = mMap[aSymbol] + 1  ;
+      else mMap.Add(aSymbol, 1) ;
     }
 
-    public abstract IEnumerable<Symbol> EnumSymbols { get ; }
+    public int Count => mMap.Count; 
+
+    public double ShannonEntropy
+    {
+      get
+      {
+        if ( mShannonEntropy == null )
+          CalculateShannonEntropy();
+        return mShannonEntropy.Value;
+      }
+    }
+
+    public class Bin
+    {
+      public Bin( SYM aS, int aF ) { Symbol = aS ; Frequency = aF; }
+
+      public SYM Symbol ;
+      public int Frequency ;
+    }
+
+    public List<Bin> Sorted
+    {
+      get
+      {
+        if ( mSorted == null )
+          BuildSorted();
+        return mSorted; 
+      }
+    }
+
+    void BuildSorted()
+    {
+      mSorted = new List<Bin>();
+      foreach( var lKV in mMap )
+        mSorted.Add( new Bin(lKV.Key, lKV.Value) );
+
+      mSorted.Sort( (x,y) => x.Frequency.CompareTo(y.Frequency) ) ;
+    }
+
+    void CalculateShannonEntropy()
+    {
+      mShannonEntropy = 0;
+      foreach (var lItem in mMap)
+      {
+        var lF = (double)lItem.Value / Count;
+        mShannonEntropy -= lF * (Math.Log(lF) / Math.Log(2));
+      }
+    }
+
+    public IEnumerator<KeyValuePair<SYM, int>> GetEnumerator()
+    {
+        return mMap.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        //forces use of the non-generic implementation on the Values collection
+        return mMap.GetEnumerator();
+    }
+
+    Dictionary<SYM,int> mMap = new Dictionary<SYM,int>() ;
+
+    double? mShannonEntropy = null;
+    List<Bin> mSorted = null ;
   }
 
-  public class GenericLexicalSignal<SYM> : LexicalSignal where SYM : Symbol
+
+  public class SymbolString<SYM> where SYM : Symbol
   {
-    public GenericLexicalSignal( IEnumerable<SYM> aSymbols )
+    public SymbolString( IEnumerable<SYM> aSymbols )
     {
       Symbols.AddRange(aSymbols);
     }
 
-    public override Signal Copy()
+    public override string ToString()
     {
-      return new GenericLexicalSignal<SYM>( Symbols.ConvertAll( s => s.Clone() ).Cast<SYM>() ) ;
+      List<string> lAll = new List<string>();
+
+      foreach( Symbol lSymbol in Symbols )
+        lAll.Add(lSymbol.ToString() );  
+
+      return "{" + String.Join( "", lAll ) + "}";
     }
 
-    public override Signal MergeWith( IEnumerable<Signal> aSlices, Context aContext )
-    { 
-      if ( aSlices.Count() == 0 )
-        return this ; 
-
-      List<SYM> lAllSymbos = new List<SYM> ();
-
-      lAllSymbos.AddRange(Symbols);
-
-      foreach( GenericLexicalSignal<SYM> lSlice in aSlices.Cast<GenericLexicalSignal<SYM>>() ) 
-        lAllSymbos.AddRange(lSlice.Symbols);
-
-      var rS = new GenericLexicalSignal<SYM>(lAllSymbos );  
-
-      rS.Assign( this );
-
-      return rS;  
+    public SymbolString<SYM> Copy()
+    {
+      return new SymbolString<SYM>( Symbols.ConvertAll( s => s.Clone() ).Cast<SYM>() ) ;
     }
 
-    public override IEnumerable<Symbol> EnumSymbols => Symbols.Cast<Symbol>() ;
+    public Histogram<SYM> Histogram
+    {
+      get
+      {
+        if ( mHistogram == null )
+          BuildHistogram();
+        return mHistogram;  
+      }
+    }
+
+    public int Length => Symbols.Count ;
 
     public List<SYM> Symbols = new List<SYM>();
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions )
+    public SYM this[int aIdx] => Symbols[aIdx];
+
+    void BuildHistogram()
     {
-      aRenderer.Render ( ToString(), aOptions );
+      mHistogram = new Histogram<SYM>(); 
+      Symbols.ForEach( s => mHistogram.Add( s ) );
     }
+
+    Histogram<SYM> mHistogram = null ;
+  }
+
+  public class LexicalSignal<SYM> : Signal where SYM : Symbol
+  {
+    public LexicalSignal( IEnumerable<SYM> aSymbols )
+    {
+      String = new SymbolString<SYM>(aSymbols);
+    }
+
+    public override string ToString() => $"{base.ToString()} {String.ToString()}";
+
+    public override Signal Copy()
+    {
+      return new LexicalSignal<SYM>( String.Copy() ) ;
+    }
+
+    LexicalSignal( SymbolString<SYM> aString )
+    {
+      String = aString ;
+    }
+
+    public SymbolString<SYM> String ;
+
+    public Histogram<SYM> Histogram => String.Histogram ;
+
+
   }
 
 

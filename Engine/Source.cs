@@ -12,10 +12,10 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
-  using BitsSignal         = GenericLexicalSignal<BitSymbol>;
-  using BytesSignal        = GenericLexicalSignal<ByteSymbol>;
-  using TextSignal         = GenericLexicalSignal<TextSymbol>;
+  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
+  using BitsSignal         = LexicalSignal<BitSymbol>;
+  using BytesSignal        = LexicalSignal<ByteSymbol>;
+  using TextSignal         = LexicalSignal<TextSymbol>;
 
   public abstract class Source
   {
@@ -26,9 +26,7 @@ namespace DIGITC2
       return rSignal;
     }
 
-    public abstract Signal DoCreateSignal() ;
-
-    public virtual void Render( TextRenderer aTextRenderer, RenderOptions aOptions ) { }
+    protected abstract Signal DoCreateSignal() ;
   }
   
   public class DirectCopyingSource : Source
@@ -38,17 +36,17 @@ namespace DIGITC2
       mSource = aSource ;
     }
 
-    public override Signal DoCreateSignal() => mSource.Copy();
+    public static DirectCopyingSource From ( Signal aSignal ) { return new DirectCopyingSource ( aSignal ) ; }
+
+    public static DirectCopyingSource From ( Result aResult ) { return new DirectCopyingSource ( aResult.Steps.Last() ) ; }
+    
+    protected override Signal DoCreateSignal() => mSource.Copy();
 
     Signal mSource ;  
   }
 
   public abstract class WaveSource : Source
   {
-    public override void Render( TextRenderer aTextRenderer, RenderOptions aOptions ) 
-    { 
-    }
-
     protected Signal mSignal ; 
   }
 
@@ -59,7 +57,7 @@ namespace DIGITC2
       mFilename = aFilename;
     }
 
-    public override Signal DoCreateSignal()
+    protected override Signal DoCreateSignal()
     {
       if ( mSignal == null ) 
       {

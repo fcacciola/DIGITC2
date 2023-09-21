@@ -28,10 +28,7 @@ namespace DIGITC2
       return mResult ;
     }
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-      aRenderer.Render($"Envelope(AttackTime:{mAttackTime},ReleaseTime:{mReleaseTime})", aOptions);
-    }
+    public override string ToString() => $"Envelope(AttackTime:{mAttackTime},ReleaseTime:{mReleaseTime})";
 
     float mAttackTime ;
     float mReleaseTime;

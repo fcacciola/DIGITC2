@@ -9,8 +9,8 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = GenericLexicalSignal<GatedSymbol>;
-  using BitsSignal         = GenericLexicalSignal<BitSymbol>;
+  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
+  using BitsSignal         = LexicalSignal<BitSymbol>;
 
   public class BinarizeByDuration : GatedLexicalFilter
   {
@@ -20,15 +20,17 @@ namespace DIGITC2
     {
        List<BitSymbol>   lBits     = new List<BitSymbol>   ();
        List<GatedSymbol> lBitViews = new List<GatedSymbol> ();
-             
+
+       var lSymbols = aInput.String.Symbols ;
+       
        double lAccDuration = 0 ;
-       aInput.Symbols.ForEach( s => lAccDuration += s.Duration ) ;
-       double lAvgDuration = lAccDuration / (double)aInput.Symbols.Count ;
+       lSymbols.ForEach( s => lAccDuration += s.Duration ) ;
+       double lAvgDuration = lAccDuration / (double)lSymbols.Count ;
 
        double lMaxDuration = 0 ;
-       aInput.Symbols.ForEach( s => { if ( s.Duration < 3 * lAvgDuration ) lMaxDuration = Math.Max(s.Duration, lMaxDuration) ; } ) ;
+       lSymbols.ForEach( s => { if ( s.Duration < 3 * lAvgDuration ) lMaxDuration = Math.Max(s.Duration, lMaxDuration) ; } ) ;
 
-       foreach ( GatedSymbol lGI in aInput.Symbols ) 
+       foreach ( GatedSymbol lGI in lSymbols ) 
        {
          bool lOne = ( lGI.Duration / lMaxDuration ) > mThreshold ;
 
@@ -47,10 +49,7 @@ namespace DIGITC2
        return mResult ;
     }
 
-    public override void Render ( TextRenderer aRenderer, RenderOptions aOptions ) 
-    { 
-      aRenderer.Render($"", aOptions);
-    }
+    public override string ToString() => $"BinarizeByDuration(Threshold:{mThreshold})";
 
     double mThreshold ;
   }

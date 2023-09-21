@@ -24,17 +24,15 @@ namespace DIGITC2
     {
       Settings.Clear();
 
-      //File.ReadLines(file).ToList().ForEach( l => Trace.WriteLine("[" + l + "]"));
-
       Settings = File.ReadLines(file)
-                      .Where(isValidLine)
-                      .Select(line => line.Split('='))
-                      .ToDictionary(line => line[0], line => line[1]);
+                     .Where(isValidLine)
+                     .Select(line => line.Split('='))
+                     .ToDictionary(line => line[0], line => line[1]);
     }
 
     private bool isValidLine(string line)
     {
-        return !line.StartsWith("#") && line.Contains("=");
+      return !line.StartsWith("#") && line.Contains("=");
     }
 
     public string Get(string aKey) => Settings.ContainsKey(aKey) ? Settings[aKey] : null; 
@@ -44,37 +42,11 @@ namespace DIGITC2
     public bool   GetBool  (string aKey) => Convert.ToBoolean(Get(aKey));
   }
 
-  public abstract class ScriptBase
-  {
-    public void DoRun( Context aContext, string[] aCmdLineArgs )
-    {
-      try
-      { 
-        Context     = aContext;
-        CmdLineArgs = aCmdLineArgs ;
-
-        UserCode();
-      }
-      catch (Exception ex)
-      {
-        aContext.Error(ex.ToString());
-      }
-
-    }
-
-    public abstract void UserCode();
-
-    protected Context  Context     = null ;
-    protected string[] CmdLineArgs = null ;
-
-  }
-
-
   public class ScriptDriver
   {
     public ScriptDriver() {}
 
-    public void Run( string aUserCode, string[] aCmdLineArgs )
+    public void Run( string aScriptName, string aUserCode, string[] aCmdLineArgs )
     {
       using ( CSharpCodeProvider lProvider   = new CSharpCodeProvider() )
       {
@@ -88,16 +60,7 @@ namespace DIGITC2
         lParameters.IncludeDebugInformation = true ;
         lParameters.CompilerOptions = "/unsafe /optimize /langversion:5";
 
-  //Trace.WriteLine("User Code");
-  //Trace.WriteLine(aUserCode);
-
-        string lBaseScript = File.ReadAllText(@".\Input\Scripts\BaseScript.cs");
-        string lScript     = lBaseScript.Replace("//<_USER_CODE_HERE>",aUserCode);
-
-  //Trace.WriteLine("Full User Script");
-  //Trace.WriteLine(lScript);
-
-        var lResults = lProvider.CompileAssemblyFromSource(lParameters,lScript);
+        var lResults = lProvider.CompileAssemblyFromSource(lParameters,aUserCode);
 
         Context lContext = new Context();
 
@@ -109,7 +72,7 @@ namespace DIGITC2
         }
         else
         {
-          var lCVSType = lResults.CompiledAssembly.GetType("DIGITC2.Script",true);
+          var lCVSType = lResults.CompiledAssembly.GetType($"DIGITC2.{aScriptName}",true);
 
           var lCVSRunMethod = lCVSType.GetMethod( "Run" ) ;
 

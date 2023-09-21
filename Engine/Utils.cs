@@ -21,7 +21,7 @@ namespace DIGITC2
     {
       List<string> lStrings = new List<string>();
 
-      const int cMaxSize = 30 ;
+      const int cMaxSize = 16 ;
 
       int lLen = aArray.Length;
       if ( lLen > cMaxSize )
@@ -29,7 +29,7 @@ namespace DIGITC2
         for ( int i = 0; i < cMaxSize/2; i++ )  
           lStrings.Add(ToStr(aArray[i])) ;
 
-       lStrings.Add(".....");
+       lStrings.Add("...");
        
        for ( int i = lLen-(cMaxSize/2); i < lLen; i++ )  
           lStrings.Add(ToStr(aArray[i])) ;
