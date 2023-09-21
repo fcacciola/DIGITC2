@@ -15,7 +15,7 @@ namespace DIGITC2
   using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
   using BitsSignal  = LexicalSignal<BitSymbol>;
   using BytesSignal = LexicalSignal<ByteSymbol>;
-  using TextSignal  = LexicalSignal<TextSymbol>;
+  using TextSignal  = LexicalSignal<WordSymbol>;
 
   public abstract class LexicalSource<SYM> : Source
   {
@@ -32,7 +32,6 @@ namespace DIGITC2
       BytesSource rSource = new BytesSource();
 
       rSource.mBytes = lEncoding.GetBytes(aText);
-
       return rSource; 
     }
 
@@ -108,6 +107,7 @@ namespace DIGITC2
 
       }
       BitsSignal rSignal = new BitsSignal(mSymbols);
+      rSignal.Name="Bits";
       return rSignal; 
     }
 

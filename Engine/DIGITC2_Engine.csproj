@@ -51,7 +51,7 @@
     <Compile Include="BinarizeByDuration.cs" />
     <Compile Include="Tokenize.cs" />
     <Compile Include="BinaryToBytes.cs" />
-    <Compile Include="WordsToText.cs" />
+    <Compile Include="TokensToWords.cs" />
     <Compile Include="ExtractGatedSymbols.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="Processor.cs" />

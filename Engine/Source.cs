@@ -15,7 +15,7 @@ namespace DIGITC2
   using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
   using BitsSignal         = LexicalSignal<BitSymbol>;
   using BytesSignal        = LexicalSignal<ByteSymbol>;
-  using TextSignal         = LexicalSignal<TextSymbol>;
+  using TextSignal         = LexicalSignal<WordSymbol>;
 
   public abstract class Source
   {

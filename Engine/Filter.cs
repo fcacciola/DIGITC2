@@ -9,7 +9,7 @@ namespace DIGITC2
   using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
   using BitsSignal         = LexicalSignal<BitSymbol>;
   using BytesSignal        = LexicalSignal<ByteSymbol>;
-  using WordSignal         = LexicalSignal<WordSymbol>;
+  using ByteStringsSignal  = LexicalSignal<TokenSymbol>;
 
   public abstract class Filter
   {
@@ -96,20 +96,20 @@ namespace DIGITC2
 
   }
 
-  public abstract class WordsFilter : Filter
+  public abstract class ByteStringFilter : Filter
   {
-    protected WordsFilter() : base() {}
+    protected ByteStringFilter() : base() {}
 
     protected override Signal DoApply( Signal aInput, Context aContext ) 
     {
-      WordSignal lWordsSignal = aInput as WordSignal; 
+      ByteStringsSignal lWordsSignal = aInput as ByteStringsSignal; 
       if ( lWordsSignal == null )
         throw new ArgumentException("Input Signal must be a Words Lexical Signal.");
 
       return Process(lWordsSignal, aContext);
     }
     
-    protected abstract Signal Process ( WordSignal aInput, Context aContext );  
+    protected abstract Signal Process ( ByteStringsSignal aInput, Context aContext );  
 
   }
 

@@ -9,7 +9,7 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using Word = SymbolString<ByteSymbol>;
+  using Token = SymbolString<ByteSymbol>;
 
   public abstract class Symbol : ICloneable
   {
@@ -101,26 +101,26 @@ namespace DIGITC2
     public byte Byte ;
   }
 
-  public class WordSymbol : Symbol
+  public class TokenSymbol : Symbol
   {
-    public WordSymbol( int aIdx, Word aWord ) : base(aIdx) { Word = aWord ; }
+    public TokenSymbol( int aIdx, Token aToken ) : base(aIdx) { Token = aToken ; }
 
-    public override object Clone() { return new WordSymbol( Idx, Word.Copy() ); }  
+    public override object Clone() { return new TokenSymbol( Idx, Token.Copy() ); }  
 
-    public override string ToString() => Word.ToString() ;
+    public override string ToString() => Token.ToString() ;
 
-    public Word Word ;
+    public Token Token ;
   }
 
-  public class TextSymbol : Symbol
+  public class WordSymbol : Symbol
   {
-    public TextSymbol( int aIdx, string aText ) : base(aIdx) { Text = aText ; }
+    public WordSymbol( int aIdx, string aText ) : base(aIdx) { Word = aText ; }
 
-    public override object Clone() { return new TextSymbol( Idx, Text ); }  
+    public override object Clone() { return new WordSymbol( Idx, Word ); }  
 
-    public override string ToString() => Text ;
+    public override string ToString() => $"[{Word}]{Environment.NewLine}" ;
 
-    public string Text ;
+    public string Word ;
   }
 
   public class Histogram<SYM> : IEnumerable< KeyValuePair<SYM, int> >  where SYM : Symbol 

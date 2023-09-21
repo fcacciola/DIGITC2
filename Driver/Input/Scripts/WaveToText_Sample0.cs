@@ -45,7 +45,7 @@ public class WaveToText_Sample0
                 .Add( new BinarizeByDuration(lBinarizeByDuration_Threshold) )
                 .Add( new BinaryToBytes(lBinaryToBytes_BitsPerByte, lBinaryToBytes_LittleEndian))
                 .Add( new Tokenizer())
-                .Add( new WordsToText(lBytesToText_CharSet)) ;
+                .Add( new TokensToWords(lBytesToText_CharSet)) ;
 
       var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
 

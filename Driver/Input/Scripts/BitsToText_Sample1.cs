@@ -9,7 +9,7 @@ public class BitsToText_Sample1
     aContext.Log("BitsToText from a random binary sequence");
 
     int lBitsPerByteParam = 8 ;
-    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 256 ;
+    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 1024 ;
 
     var lSource = BitsSource.FromRandom(lLen);
 
@@ -17,7 +17,7 @@ public class BitsToText_Sample1
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
               .Add( new Tokenizer())
-              .Add( new WordsToText()) ;
+              .Add( new TokensToWords()) ;
 
     var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
   }

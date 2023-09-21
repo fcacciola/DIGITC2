@@ -18,7 +18,7 @@ public class BitsToText_Sample0
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
               .Add( new Tokenizer())
-              .Add( new WordsToText()) ;
+              .Add( new TokensToWords()) ;
 
     var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
   }

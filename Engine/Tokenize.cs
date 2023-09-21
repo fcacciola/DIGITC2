@@ -10,9 +10,9 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using Word = SymbolString<ByteSymbol>;
-  using BytesSignal = LexicalSignal<ByteSymbol>;
-  using WordSignal  = LexicalSignal<WordSymbol>;
+  using Token         = SymbolString<ByteSymbol>;
+  using BytesSignal   = LexicalSignal<ByteSymbol>;
+  using TokensSignal  = LexicalSignal<TokenSymbol>;
 
   public class Tokenizer : BytesFilter
   {
@@ -23,36 +23,36 @@ namespace DIGITC2
 
     protected override Signal Process ( BytesSignal aInput, Context aContext )
     {
-      List<ByteSymbol> lCurrStr = new List<ByteSymbol>();
+      List<ByteSymbol> lCurrToken = new List<ByteSymbol>();
 
-      List<WordSymbol> lWords = new List<WordSymbol>(); 
+      List<TokenSymbol> lTokens = new List<TokenSymbol>(); 
 
       foreach( var lByte in aInput.String.Symbols )
       {
         if ( lByte == mSeparator )
         { 
-          if ( lCurrStr.Count > 0 ) 
+          if ( lCurrToken.Count > 0 ) 
           {
-            var lWord = new Word(lCurrStr);
-            lWords.Add( new WordSymbol(lWords.Count,lWord) ); 
+            var lWord = new Token(lCurrToken);
+            lTokens.Add( new TokenSymbol(lTokens.Count,lWord) ); 
           }
 
-          lCurrStr.Clear(); 
+          lCurrToken.Clear(); 
         }
         else
         {
-          lCurrStr.Add( lByte );  
+          lCurrToken.Add( lByte );  
         }
       }
 
-      if ( lCurrStr.Count > 0 ) 
+      if ( lCurrToken.Count > 0 ) 
       {
-        var lWord = new Word(lCurrStr);
-        lWords.Add( new WordSymbol(lWords.Count,lWord) ); 
+        var lToken = new Token(lCurrToken);
+        lTokens.Add( new TokenSymbol(lTokens.Count,lToken) ); 
       }
 
-      mResult = new WordSignal(lWords);
-      mResult.Name = "Words";
+      mResult = new TokensSignal(lTokens);
+      mResult.Name = "Tokens";
 
       return mResult ;
     }
