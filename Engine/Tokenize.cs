@@ -21,7 +21,7 @@ namespace DIGITC2
       mSeparator = aSeparator ?? BytesSource.GetTextSeparator() ; 
     }
 
-    protected override Signal Process ( BytesSignal aInput, Context aContext )
+    protected override Step Process ( BytesSignal aInput, Step aStep )
     {
       List<ByteSymbol> lCurrToken = new List<ByteSymbol>();
 
@@ -51,10 +51,9 @@ namespace DIGITC2
         lTokens.Add( new TokenSymbol(lTokens.Count,lToken) ); 
       }
 
-      mResult = new TokensSignal(lTokens);
-      mResult.Name = "Tokens";
+      mStep = aStep.Next( new TokensSignal(lTokens), "Tokens", this) ;
 
-      return mResult ;
+      return mStep ;
     }
 
     public override string ToString() => $"Tokenize({mSeparator.Meaning})";

@@ -18,7 +18,7 @@ namespace DIGITC2
   {
     public TokensToWords( string aCharSet = "us-ascii", string aFallback = "!" ) : base() { mCharSet = aCharSet ; mFallback = aFallback; }
 
-    protected override Signal Process ( TokensSignal aInput, Context aContext )
+    protected override Step Process ( TokensSignal aInput, Step aStep )
     {
       Encoding lEncoding = Encoding.GetEncoding( mCharSet
                                                , new EncoderReplacementFallback("(unknown)")
@@ -51,11 +51,9 @@ namespace DIGITC2
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      mResult = new WordSignal(lWords);
+      mStep = aStep.Next( new WordSignal(lWords), "Words", this) ;
 
-      mResult.Name = "Words";
-
-      return mResult ;
+      return mStep ;
     }
 
     bool IsValidTextDigit ( string aText )

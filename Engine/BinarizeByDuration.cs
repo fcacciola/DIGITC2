@@ -16,7 +16,7 @@ namespace DIGITC2
   {
     public BinarizeByDuration( double aThreshold ) { mThreshold = aThreshold ; }
 
-    protected override Signal Process ( GatedLexicalSignal aInput, Context aContext )
+    protected override Step Process ( GatedLexicalSignal aInput, Step aStep )
     {
        List<BitSymbol>   lBits     = new List<BitSymbol>   ();
        List<GatedSymbol> lBitViews = new List<GatedSymbol> ();
@@ -42,11 +42,9 @@ namespace DIGITC2
 
        }
    
-       mResult = new BitsSignal(lBits);
+       mStep = aStep.Next( new BitsSignal(lBits), "Duration-based Bits", this) ;
 
-       mResult.Name = "DurationBits";
-
-       return mResult ;
+       return mStep ;
     }
 
     public override string ToString() => $"BinarizeByDuration(Threshold:{mThreshold})";

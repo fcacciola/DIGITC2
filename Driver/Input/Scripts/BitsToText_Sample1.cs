@@ -20,6 +20,14 @@ public class BitsToText_Sample1
               .Add( new TokensToWords()) ;
 
     var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
+
+    foreach( var lStep in lResult.Steps ) 
+    {
+      Plot.Options lOptions = new Plot.Options() { Title = lStep.Label } ;
+      lStep.CreatePlot(lOptions)?.SavePNG($".\\{lStep.Label}.png");
+    }
+
+    
   }
 }
 

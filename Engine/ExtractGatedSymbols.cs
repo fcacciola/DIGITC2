@@ -15,7 +15,7 @@ namespace DIGITC2
   {
     public ExtractGatedlSymbols( double aMinDuration, double aMergeGap ) { mMinDuration = aMinDuration ; mMergeGap = aMergeGap ; }
 
-    protected override Signal Process ( WaveSignal aInput, Context aContext )
+    protected override Step Process ( WaveSignal aInput, Step aStep )
     {
       mInput      = aInput ; 
       mAllSymbols = new List<GatedSymbol>();
@@ -45,11 +45,9 @@ namespace DIGITC2
 
       RemoveShortSymbols();
 
-      mResult = new GatedLexicalSignal(mFinal);
+      mStep = aStep.Next(  new GatedLexicalSignal(mFinal), "Gated Symbols", this) ;
 
-      mResult.Name = "GatedSymbols";
-
-      return mResult ;
+      return mStep ;
     }
     
     public override string ToString() => $"Envelope(MinDuration:{mMinDuration},MergeGap:{mMergeGap})";

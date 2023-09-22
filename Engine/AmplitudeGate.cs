@@ -16,7 +16,7 @@ namespace DIGITC2
       mThreshold = (float)aThreshold;
     }
 
-    protected override Signal Process ( WaveSignal aInput, Context aContext )
+    protected override Step Process ( WaveSignal aInput, Step aStep )
     {
       float lMax = aInput.ComputeMax();
       
@@ -33,11 +33,9 @@ namespace DIGITC2
         rOutput[i] = lOut ;  
       }
 
-      mResult = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, rOutput));
+      mStep = aStep.Next( aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, rOutput)), "AmplitudeGate", this) ;
 
-      mResult.Name = "AmplitudeGate";
-
-      return mResult ;
+      return mStep ;
     }
 
     public override string ToString() => $"AmplitudeGate(Threshold:{mThreshold})";

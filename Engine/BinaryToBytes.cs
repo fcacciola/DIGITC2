@@ -17,7 +17,7 @@ namespace DIGITC2
   {
     public BinaryToBytes( int aBitsPerByte, bool aLittleEndian = true ) : base() { mLittleEndian = aLittleEndian ; mBitsPerByte = aBitsPerByte ; }
 
-    protected override Signal Process ( BitsSignal aInput, Context aContext )
+    protected override Step Process ( BitsSignal aInput, Step aStep )
     {
       mBitValues  = new List<bool>(); 
 
@@ -62,11 +62,9 @@ namespace DIGITC2
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      mResult = new BytesSignal(lByteSymbols);
+      mStep = aStep.Next( new BytesSignal(lByteSymbols), "Bytes", this) ;
 
-      mResult.Name = "Bytes";
-
-      return mResult ;
+      return mStep ;
     }
 
     public override string ToString() => $"BinaryToBytes(BitsPerByte:{mBitsPerByte}, LittleEndian:{mLittleEndian})";

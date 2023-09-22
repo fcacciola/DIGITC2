@@ -38,7 +38,7 @@ namespace DIGITC2
 
     public static DirectCopyingSource From ( Signal aSignal ) { return new DirectCopyingSource ( aSignal ) ; }
 
-    public static DirectCopyingSource From ( Result aResult ) { return new DirectCopyingSource ( aResult.Steps.Last() ) ; }
+    public static DirectCopyingSource From ( Result aResult ) { return new DirectCopyingSource ( aResult.Steps.Last().Signal ) ; }
     
     protected override Signal DoCreateSignal() => mSource.Copy();
 

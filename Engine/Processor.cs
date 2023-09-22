@@ -8,35 +8,6 @@ using System.Threading.Tasks;
 
 namespace DIGITC2
 {
-  public class Context
-  {
-    public float WindowSizeInSeconds { get ; set ; } = 0f ;
-
-    public void Throw ( Exception e )
-    {
-      throw e ;
-    }
-
-    public void Log( string aText )
-    {
-      Trace.WriteLine( aText ); 
-    }
-
-    public void Error( string aText )
-    {
-      Trace.WriteLine( "ERROR: " + aText ); 
-    }
-  }
-
-  public class Result
-  {
-    public Result( Context aContext, IEnumerable<Filter> aFilters ) { Context = aContext ; Filters.AddRange(aFilters) ; }
-
-    public Context      Context { get ; private set ; }
-    public List<Filter> Filters = new List<Filter>();
-    public List<Signal> Steps   = new List<Signal>();
-  }
-
   public class Processor
   {
     public Processor()
@@ -53,29 +24,24 @@ namespace DIGITC2
 
     public Result Process( Signal aInput, Context aContext = null )
     {
-      aInput.StepIdx = 0 ;
+      Result rR = new Result();
 
-      Result rResult = new Result(aContext, mFilters) ;
-
-      var rSignal  = aInput ;
       var lContext = aContext ?? new Context();
 
-      lContext.Log(aInput.ToString());
+      var lStep = rR.AddFirst(aInput, lContext) ;
 
-      rResult.Steps.Add( rSignal ) ;
+      lContext.Log(lStep.ToString());
 
       foreach( var lFilter in mFilters )
       { 
-        lContext.Log(lFilter.ToString());
-        rSignal = lFilter.Apply(rSignal, lContext);
+        lStep = lFilter.Apply(lStep);
 
-        rSignal.StepIdx = rResult.Steps.Count ;
-        rResult.Steps.Add( rSignal ) ;
+        rR.Add( lStep ) ;
 
-        lContext.Log(rSignal.ToString());
+        lContext.Log(lStep.ToString());
       }
 
-      return rResult ;  
+      return rR ;  
     }
 
 

@@ -123,82 +123,6 @@ namespace DIGITC2
     public string Word ;
   }
 
-  public class Histogram<SYM> : IEnumerable< KeyValuePair<SYM, int> >  where SYM : Symbol 
-  {
-    public void Add( SYM aSymbol )
-    {
-      if ( mMap.ContainsKey(aSymbol))
-           mMap[aSymbol] = mMap[aSymbol] + 1  ;
-      else mMap.Add(aSymbol, 1) ;
-    }
-
-    public int Count => mMap.Count; 
-
-    public double ShannonEntropy
-    {
-      get
-      {
-        if ( mShannonEntropy == null )
-          CalculateShannonEntropy();
-        return mShannonEntropy.Value;
-      }
-    }
-
-    public class Bin
-    {
-      public Bin( SYM aS, int aF ) { Symbol = aS ; Frequency = aF; }
-
-      public SYM Symbol ;
-      public int Frequency ;
-    }
-
-    public List<Bin> Sorted
-    {
-      get
-      {
-        if ( mSorted == null )
-          BuildSorted();
-        return mSorted; 
-      }
-    }
-
-    void BuildSorted()
-    {
-      mSorted = new List<Bin>();
-      foreach( var lKV in mMap )
-        mSorted.Add( new Bin(lKV.Key, lKV.Value) );
-
-      mSorted.Sort( (x,y) => x.Frequency.CompareTo(y.Frequency) ) ;
-    }
-
-    void CalculateShannonEntropy()
-    {
-      mShannonEntropy = 0;
-      foreach (var lItem in mMap)
-      {
-        var lF = (double)lItem.Value / Count;
-        mShannonEntropy -= lF * (Math.Log(lF) / Math.Log(2));
-      }
-    }
-
-    public IEnumerator<KeyValuePair<SYM, int>> GetEnumerator()
-    {
-        return mMap.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        //forces use of the non-generic implementation on the Values collection
-        return mMap.GetEnumerator();
-    }
-
-    Dictionary<SYM,int> mMap = new Dictionary<SYM,int>() ;
-
-    double? mShannonEntropy = null;
-    List<Bin> mSorted = null ;
-  }
-
-
   public class SymbolString<SYM> where SYM : Symbol
   {
     public SymbolString( IEnumerable<SYM> aSymbols )
@@ -221,7 +145,7 @@ namespace DIGITC2
       return new SymbolString<SYM>( Symbols.ConvertAll( s => s.Clone() ).Cast<SYM>() ) ;
     }
 
-    public Histogram<SYM> Histogram
+    public Histogram Histogram
     {
       get
       {
@@ -239,11 +163,11 @@ namespace DIGITC2
 
     void BuildHistogram()
     {
-      mHistogram = new Histogram<SYM>(); 
+      mHistogram = new Histogram(); 
       Symbols.ForEach( s => mHistogram.Add( s ) );
     }
 
-    Histogram<SYM> mHistogram = null ;
+    Histogram mHistogram = null ;
   }
 
   public class LexicalSignal<SYM> : Signal where SYM : Symbol
@@ -267,8 +191,12 @@ namespace DIGITC2
 
     public SymbolString<SYM> String ;
 
-    public Histogram<SYM> Histogram => String.Histogram ;
+    public Histogram Histogram => String.Histogram ;
 
+    public override Plot CreatePlot( Plot.Options aOptions ) 
+    {
+      return Histogram.CreatePlot( aOptions ) ;
+    }
 
   }
 

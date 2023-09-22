@@ -17,15 +17,13 @@ namespace DIGITC2
       mReleaseTime = (float)aReleaseTime;  
     }
 
-    protected override Signal Process ( WaveSignal aInput, Context aContext )
+    protected override Step Process ( WaveSignal aInput, Step aStep )
     {
       var lES = Operation.Envelope(aInput.Rep, mAttackTime, mReleaseTime);
 
-      mResult = aInput.CopyWith(lES);
+      mStep = aStep.Next( aInput.CopyWith(lES), "Envelope", this) ;
 
-      mResult.Name = "Envelope";
-
-      return mResult ;
+      return mStep ;
     }
 
     public override string ToString() => $"Envelope(AttackTime:{mAttackTime},ReleaseTime:{mReleaseTime})";

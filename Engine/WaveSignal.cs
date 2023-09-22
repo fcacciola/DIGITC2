@@ -40,6 +40,12 @@ namespace DIGITC2
     //  return CopyWith( new DiscreteSignal(SamplingRate, lTransformedSamples) );
     //}
 
+    public override Plot CreatePlot( Plot.Options aOptions ) 
+    {
+      return null ;
+
+    }
+
     public override string ToString()
     {
       return $"[{base.ToString()} Duration:{Rep.Duration:F2} seconds. SampleRate:{Rep.SamplingRate} Samples:[{Utils.ToStr(Rep.Samples)}]";

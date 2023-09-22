@@ -14,15 +14,14 @@ namespace DIGITC2
 
     public void Assign( Signal aRHS )
     {
-      StepIdx  = aRHS.StepIdx  ;
-      Name     = aRHS.Name ;
+      Name = aRHS.Name ;
     }
 
-    public override string ToString() => $"([{StepIdx}]|{Name})";
+    public override string ToString() => $"({Name})";
     
-    public string Name     = "";
-    public int    StepIdx  = 0 ;
+    public abstract Plot CreatePlot( Plot.Options aOptions ) ;
 
+    public string Name = "";
   }
 
   }

@@ -15,33 +15,35 @@ namespace DIGITC2
   {
     public string ID { get ; set ; }
 
-    public Signal Apply( Signal aInput, Context aContext ) 
+    public Step Apply( Step aInput ) 
     {
-      if ( mResult == null )
-        mResult = DoApply ( aInput, aContext );
+      if ( mStep == null )
+        mStep = DoApply ( aInput );
 
-      return mResult;
+      return mStep;
     }
 
-    protected abstract Signal DoApply( Signal aInput, Context aContext ) ;
+    protected abstract Step DoApply( Step aInput) ;
 
-    protected Signal mResult ;
+    public override string ToString() => "Filter";
 
+    protected Step mStep ;
   }
+
   public abstract class WaveFilter : Filter
   {
     protected WaveFilter() : base() {}
 
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    protected override Step DoApply( Step aInput ) 
     {
-      WaveSignal lWaveSignal = aInput as WaveSignal; 
+      WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
       if ( lWaveSignal == null )
         throw new ArgumentException("Input Signal must be an Audio Signal.");
 
-      return Process(lWaveSignal, aContext);
+      return Process(lWaveSignal, aInput);
     }
     
-    protected abstract Signal Process ( WaveSignal aInput, Context aContext );  
+    protected abstract Step Process ( WaveSignal aInput, Step aInputStep );  
 
   }
 
@@ -49,16 +51,16 @@ namespace DIGITC2
   {
     protected GatedLexicalFilter() : base() {}
 
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    protected override Step DoApply( Step aInput ) 
     {
-      GatedLexicalSignal lLexicalSignal = aInput as GatedLexicalSignal; 
+      GatedLexicalSignal lLexicalSignal = aInput.Signal as GatedLexicalSignal; 
       if ( lLexicalSignal == null )
         throw new ArgumentException("Input Signal must be a gated Lexical Signal.");
 
-      return Process(lLexicalSignal, aContext);
+      return Process(lLexicalSignal, aInput);
     }
     
-    protected abstract Signal Process ( GatedLexicalSignal aInput, Context aContext );  
+    protected abstract Step Process ( GatedLexicalSignal aInput, Step aStep );  
 
   }
 
@@ -66,16 +68,16 @@ namespace DIGITC2
   {
     protected BitsFilter() : base() {}
 
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    protected override Step DoApply( Step aInput ) 
     {
-      BitsSignal lBitsSignal = aInput as BitsSignal; 
+      BitsSignal lBitsSignal = aInput.Signal as BitsSignal; 
       if ( lBitsSignal == null )
         throw new ArgumentException("Input Signal must be a Bits Lexical Signal.");
 
-      return Process(lBitsSignal, aContext);
+      return Process(lBitsSignal, aInput);
     }
     
-    protected abstract Signal Process ( BitsSignal aInput, Context aContext );  
+    protected abstract Step Process ( BitsSignal aInput, Step aStep );  
 
   }
 
@@ -83,16 +85,16 @@ namespace DIGITC2
   {
     protected BytesFilter() : base() {}
 
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    protected override Step DoApply( Step aInput ) 
     {
-      BytesSignal lBytesSignal = aInput as BytesSignal; 
+      BytesSignal lBytesSignal = aInput.Signal as BytesSignal; 
       if ( lBytesSignal == null )
         throw new ArgumentException("Input Signal must be a Bytes Lexical Signal.");
 
-      return Process(lBytesSignal, aContext);
+      return Process(lBytesSignal, aInput);
     }
     
-    protected abstract Signal Process ( BytesSignal aInput, Context aContext );  
+    protected abstract Step Process ( BytesSignal aInput, Step aStep );  
 
   }
 
@@ -100,16 +102,16 @@ namespace DIGITC2
   {
     protected ByteStringFilter() : base() {}
 
-    protected override Signal DoApply( Signal aInput, Context aContext ) 
+    protected override Step DoApply( Step aInput ) 
     {
-      ByteStringsSignal lWordsSignal = aInput as ByteStringsSignal; 
+      ByteStringsSignal lWordsSignal = aInput.Signal as ByteStringsSignal; 
       if ( lWordsSignal == null )
         throw new ArgumentException("Input Signal must be a Words Lexical Signal.");
 
-      return Process(lWordsSignal, aContext);
+      return Process(lWordsSignal, aInput);
     }
     
-    protected abstract Signal Process ( ByteStringsSignal aInput, Context aContext );  
+    protected abstract Step Process ( ByteStringsSignal aInput, Step aStep );  
 
   }
 
