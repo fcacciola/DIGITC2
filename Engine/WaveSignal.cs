@@ -46,9 +46,11 @@ namespace DIGITC2
 
     }
 
-    public override string ToString()
+    protected override void UpdateState( State rS ) 
     {
-      return $"[{base.ToString()} Duration:{Rep.Duration:F2} seconds. SampleRate:{Rep.SamplingRate} Samples:[{Utils.ToStr(Rep.Samples)}]";
+      rS.Add( State.With("Duration"    , Duration));
+      rS.Add( State.With("SamplingRate", SamplingRate));
+      rS.Add( State.With("SamplingRate", Samples));
     }
   }
 }

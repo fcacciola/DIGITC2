@@ -16,8 +16,6 @@ namespace DIGITC2
 
     public Processor Add( Filter aFilter ) 
     {
-      string lID = $"[{mFilters.Count}]" ;
-      aFilter.ID = lID ;
       mFilters.Add( aFilter ) ;
       return this ;
     }
@@ -30,7 +28,7 @@ namespace DIGITC2
 
       var lStep = rR.AddFirst(aInput, lContext) ;
 
-      lContext.Log(lStep.ToString());
+      lContext.Monitor.Watch(lStep) ; 
 
       foreach( var lFilter in mFilters )
       { 
@@ -38,7 +36,7 @@ namespace DIGITC2
 
         rR.Add( lStep ) ;
 
-        lContext.Log(lStep.ToString());
+        lContext.Monitor.Watch(lStep) ; 
       }
 
       return rR ;  

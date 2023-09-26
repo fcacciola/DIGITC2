@@ -11,10 +11,8 @@ namespace DIGITC2
   using BytesSignal        = LexicalSignal<ByteSymbol>;
   using ByteStringsSignal  = LexicalSignal<TokenSymbol>;
 
-  public abstract class Filter
+  public abstract class Filter : IWithState
   {
-    public string ID { get ; set ; }
-
     public Step Apply( Step aInput ) 
     {
       if ( mStep == null )
@@ -25,7 +23,14 @@ namespace DIGITC2
 
     protected abstract Step DoApply( Step aInput) ;
 
-    public override string ToString() => "Filter";
+    public State GetState()
+    {
+      State rS = new State() ;
+      UpdateState(rS) ;
+      return rS ;
+    }
+
+    protected virtual void UpdateState( State rS ) {}
 
     protected Step mStep ;
   }

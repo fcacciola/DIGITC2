@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.TextFormatting;
 
 using NWaves.Signals;
 
@@ -11,15 +12,23 @@ namespace DIGITC2
 {
   using Token = SymbolString<ByteSymbol>;
 
-  public abstract class Symbol : ICloneable
+  public abstract class Symbol : ICloneable, IWithState
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
 
     public abstract object Clone() ;  
 
+    public abstract string Type { get; }
+    public abstract string Meaning { get; }
+
     public int Idx ;
 
-    public virtual string Meaning => ToString();
+    public virtual State GetState()
+    {
+      State rState = new State();
+      rState.Add( State.With($"[{Idx}]",Meaning) ); 
+      return rState;
+    }
 
     public override bool Equals(object obj) => this.ValueEquals(obj as Symbol);
 
@@ -55,7 +64,9 @@ namespace DIGITC2
 
     public double Duration => (double)Length / (double)SamplingRate;
 
-    public override string ToString() => $"[{Duration:F2} at {(double)Pos/(double)SamplingRate:F2})]{Environment.NewLine}" ;
+    public override string Type => "Gated" ;
+
+    public override string Meaning => $"{Duration:F2} at {(double)Pos/(double)SamplingRate:F2}" ;
 
     public override object Clone() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
 
@@ -81,9 +92,11 @@ namespace DIGITC2
   {
     public BitSymbol( int aIdx, bool aOne, GatedSymbol aView ) : base(aIdx) { One = aOne ; View = aView ; }
 
+    public override string Type => "Bit" ;
+
     public override object Clone() { return new BitSymbol( Idx, One, View?.Clone()  as GatedSymbol ); }  
 
-    public override string ToString() => One ? "1" : "0" ;
+    public override string Meaning => One ? "1" : "0" ;
 
     public bool One ;
 
@@ -94,9 +107,11 @@ namespace DIGITC2
   {
     public ByteSymbol( int aIdx, byte aByte ) : base(aIdx) { Byte = aByte ; }
 
+    public override string Type => "Byte" ;
+
     public override object Clone() { return new ByteSymbol( Idx, Byte ); }  
 
-    public override string ToString() => $"[{Byte.ToString():x}]" ;
+    public override string Meaning => $"{Byte.ToString():x}" ;
 
     public byte Byte ;
   }
@@ -105,9 +120,11 @@ namespace DIGITC2
   {
     public TokenSymbol( int aIdx, Token aToken ) : base(aIdx) { Token = aToken ; }
 
+    public override string Type => "Token" ;
+
     public override object Clone() { return new TokenSymbol( Idx, Token.Copy() ); }  
 
-    public override string ToString() => Token.ToString() ;
+    public override string Meaning => Token.ToString() ;
 
     public Token Token ;
   }
@@ -116,29 +133,23 @@ namespace DIGITC2
   {
     public WordSymbol( int aIdx, string aText ) : base(aIdx) { Word = aText ; }
 
+    public override string Type => "Word" ;
+
     public override object Clone() { return new WordSymbol( Idx, Word ); }  
 
-    public override string ToString() => $"[{Word}]{Environment.NewLine}" ;
+    public override string Meaning => Word ;
 
     public string Word ;
   }
 
-  public class SymbolString<SYM> where SYM : Symbol
+  public class SymbolString<SYM> where SYM : Symbol, IWithState
   {
     public SymbolString( IEnumerable<SYM> aSymbols )
     {
       Symbols.AddRange(aSymbols);
     }
 
-    public override string ToString()
-    {
-      List<string> lAll = new List<string>();
-
-      foreach( Symbol lSymbol in Symbols )
-        lAll.Add(lSymbol.ToString() );  
-
-      return "{" + String.Join( "", lAll ) + "}";
-    }
+    public State GetState() => State.From(null, Symbols);
 
     public SymbolString<SYM> Copy()
     {
@@ -177,8 +188,6 @@ namespace DIGITC2
       String = new SymbolString<SYM>(aSymbols);
     }
 
-    public override string ToString() => $"{base.ToString()} {String.ToString()}";
-
     public override Signal Copy()
     {
       return new LexicalSignal<SYM>( String.Copy() ) ;
@@ -196,6 +205,11 @@ namespace DIGITC2
     public override Plot CreatePlot( Plot.Options aOptions ) 
     {
       return Histogram.CreatePlot( aOptions ) ;
+    }
+
+    protected override void UpdateState( State rS ) 
+    {
+      rS.Add( String.GetState() );
     }
 
   }

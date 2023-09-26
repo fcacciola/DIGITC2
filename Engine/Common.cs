@@ -6,6 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
+
 namespace DIGITC2
 {
   public class Context
@@ -26,7 +30,7 @@ namespace DIGITC2
     {
       Trace.WriteLine( "ERROR: " + aText ); 
     }
-  }
 
-  
+    public StateMonitor Monitor { get; set; } = new TraceStateMonitor(); 
+  }
 }

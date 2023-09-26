@@ -13,33 +13,36 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  public class Utils
+  public class Textualizer
   {
-    public static string ToStr<T>( T n ) {  return $"{n:F2}" ;}  
+    public static string Textualize( bool aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
 
-    public static string ToStr<T>( T[] aArray ) 
+    public static string Textualize( int aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
+
+    public static string Textualize( string aN, string aFmt = "F2" ) => aN;  
+
+    public static string Textualize<T>( T aN, string aFmt = "F2" ) => string.Format("{0:" + aFmt + "}", aN );  
+
+    public static string Textualize<T>( T[] aArray, int aMaxSize = 16, string aFmt = "F2" ) 
     {
       List<string> lStrings = new List<string>();
-
-      const int cMaxSize = 16 ;
-
       int lLen = aArray.Length;
-      if ( lLen > cMaxSize )
+      if ( lLen > aMaxSize )
       {
-        for ( int i = 0; i < cMaxSize/2; i++ )  
-          lStrings.Add(ToStr(aArray[i])) ;
+        for ( int i = 0; i < aMaxSize/2; i++ )  
+          lStrings.Add( Textualize(aArray[i],aFmt) ) ;
 
        lStrings.Add("...");
        
-       for ( int i = lLen-(cMaxSize/2); i < lLen; i++ )  
-          lStrings.Add(ToStr(aArray[i])) ;
+       for ( int i = lLen-(aMaxSize/2); i < lLen; i++ )  
+          lStrings.Add( Textualize(aArray[i],aFmt)) ;
       }
       else
       {
         for ( int i = 0; i < lLen; i++ )  
-          lStrings.Add(ToStr(aArray[i])+" ") ;
+          lStrings.Add( Textualize(aArray[i],aFmt)+" ") ;
       }
       return string.Join(",",lStrings);
-    }
+    } 
   }
 }

@@ -5,14 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2
 {
-  public class Step
+  public class Step : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, object aData, Context aContext )
+    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, Context aContext )
     {
       Signal  = aSignal;
       Label   = aLabel ;
@@ -28,23 +29,35 @@ namespace DIGITC2
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public override string ToString() => $"({StepIdx}|{Label}):{Filter}->{Signal}";
-
-    public Step Next( Signal aSignal, string aLabel, Filter aFilter, object aData = null )
+    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
     {
       return new Step(aSignal, aLabel, aFilter, aData, Context);
     }
 
-    public Signal  Signal  ;
-    public string  Label   ;
-    public Filter  Filter  ;
-    public object  Data    ;
-    public Context Context ;
+    public State GetState()
+    {
+      State rS = new State($"STEP {StepIdx}|{Label}") ;
+      if ( Filter != null ) 
+        rS.Add( Filter.GetState() );  
 
-    public int     StepIdx ;
+      rS.Add( Signal.GetState() );  
+
+      if ( Data != null ) 
+        rS.Add( Data.GetState() );  
+
+      return rS ;
+    }
+
+    public Signal     Signal  ;
+    public string     Label   ;
+    public Filter     Filter  ;
+    public IWithState Data    ;
+    public Context    Context ;
+
+    public int       StepIdx ;
   }
 
-  public class Result
+  public class Result : IWithState  
   {
     public Result() {}
 
@@ -59,6 +72,8 @@ namespace DIGITC2
       Steps.Add( aStep ) ;
       return aStep ;
     }
+
+    public State GetState() => State.From(null, Steps );
 
     public List<Step> Steps = new List<Step>();
   }
