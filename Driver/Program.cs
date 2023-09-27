@@ -27,7 +27,7 @@ namespace Driver
       if ( File.Exists( lLog ) ) { File.Delete( lLog ); } 
 
       Trace.Listeners.Add( new TextWriterTraceListener(lLog) ) ;
-      Trace.Listeners.Add( new ConsoleTraceListener() ) ;
+      //Trace.Listeners.Add( new ConsoleTraceListener() ) ;
       Trace.IndentSize  = 2 ;
       Trace.AutoFlush = true ;
       Trace.WriteLine("DIGITC 2");
@@ -52,7 +52,7 @@ namespace Driver
       }
       else
       {
-        BitsToText_Sample0.Run( new Context(), args);
+        BitsToText_Sample1.Run( new Context(), args);
       }
     }
   }

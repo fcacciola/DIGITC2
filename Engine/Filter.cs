@@ -9,7 +9,8 @@ namespace DIGITC2
   using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
   using BitsSignal         = LexicalSignal<BitSymbol>;
   using BytesSignal        = LexicalSignal<ByteSymbol>;
-  using ByteStringsSignal  = LexicalSignal<TokenSymbol>;
+  using TokensSignal       = LexicalSignal<TokenSymbol>;
+  using WordsSignal        = LexicalSignal<WordSymbol>;
 
   public abstract class Filter : IWithState
   {
@@ -103,21 +104,39 @@ namespace DIGITC2
 
   }
 
-  public abstract class ByteStringFilter : Filter
+  public abstract class TokensFilter : Filter
   {
-    protected ByteStringFilter() : base() {}
+    protected TokensFilter() : base() {}
 
     protected override Step DoApply( Step aInput ) 
     {
-      ByteStringsSignal lWordsSignal = aInput.Signal as ByteStringsSignal; 
-      if ( lWordsSignal == null )
-        throw new ArgumentException("Input Signal must be a Words Lexical Signal.");
+      TokensSignal lTokensSignal = aInput.Signal as TokensSignal; 
+      if ( lTokensSignal == null )
+        throw new ArgumentException("Input Signal must be a Tokens Lexical Signal.");
 
-      return Process(lWordsSignal, aInput);
+      return Process(lTokensSignal, aInput);
     }
     
-    protected abstract Step Process ( ByteStringsSignal aInput, Step aStep );  
+    protected abstract Step Process ( TokensSignal aInput, Step aStep );  
 
   }
+
+  public abstract class WordsFilter : Filter
+  {
+    protected WordsFilter() : base() {}
+
+    protected override Step DoApply( Step aInput ) 
+    {
+      WordsSignal lTokensSignal = aInput.Signal as WordsSignal; 
+      if ( lTokensSignal == null )
+        throw new ArgumentException("Input Signal must be a Words Lexical Signal.");
+
+      return Process(lTokensSignal, aInput);
+    }
+    
+    protected abstract Step Process ( WordsSignal aInput, Step aStep );  
+
+  }
+
 
 }

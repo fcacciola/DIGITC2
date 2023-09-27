@@ -31,12 +31,14 @@ namespace DIGITC2
 
     public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
     {
+      aSignal.Name = aLabel ;
       return new Step(aSignal, aLabel, aFilter, aData, Context);
     }
 
     public State GetState()
     {
-      State rS = new State($"STEP {StepIdx}|{Label}") ;
+      //State rS = new State($"STEP {StepIdx}|{Label}") ;
+      State rS = new State($"STEP {StepIdx}") ;
       if ( Filter != null ) 
         rS.Add( Filter.GetState() );  
 
@@ -73,7 +75,7 @@ namespace DIGITC2
       return aStep ;
     }
 
-    public State GetState() => State.From(null, Steps );
+    public State GetState() => State.From(null, Steps, false );
 
     public List<Step> Steps = new List<Step>();
   }

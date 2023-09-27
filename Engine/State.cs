@@ -32,24 +32,28 @@ namespace DIGITC2
 
   public class State
   {
-    public State( string aName = null, StateValue aValue = null ) {  Name = aName ; Value = aValue ; }
+    public State( string aName = null, StateValue aValue = null, bool aIsCompact = false ) {  Name = aName ; Value = aValue ; IsCompact = aIsCompact ; }
 
-    public static State With( string aName, string   aV )                    => new State( aName, StateValue.From(aV) ) ;
-    public static State With( string aName, bool     aV )                    => new State( aName, StateValue.From(aV) ) ;
-    public static State With( string aName, int      aV )                    => new State( aName, StateValue.From(aV) ) ;
-    public static State With( string aName, float    aV, string aFmt = "F2") => new State( aName, StateValue.From(aV, aFmt) ) ;
-    public static State With( string aName, double   aV, string aFmt = "F2") => new State( aName, StateValue.From(aV, aFmt) ) ;
-    public static State With( string aName, float[]  aV, string aFmt = "F2") => new State( aName, StateValue.From(aV, aFmt) ) ;
-    public static State With( string aName, double[] aV, string aFmt = "F2") => new State( aName, StateValue.From(aV, aFmt) ) ;
+    public static State With( string aName, string   aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
+    public static State With( string aName, bool     aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
+    public static State With( string aName, int      aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
+    public static State With( string aName, float    aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
+    public static State With( string aName, double   aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
+    public static State With( string aName, float[]  aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
+    public static State With( string aName, double[] aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
 
     public static State From( IWithState aO ) => aO.GetState() ;
 
-    public static State From( string aName, IEnumerable<IWithState> aL )  
+    public static State From( string aName, IEnumerable<IWithState> aL, bool aUseCompactState = false )  
     {
       State rState = new State(aName);
 
       foreach( var lO in aL )
-        rState.Add( lO.GetState() );
+      {
+        rState.Add(lO.GetState());
+      }
+
+      rState.IsCompact = aUseCompactState;  
 
       return rState;
 
@@ -58,42 +62,11 @@ namespace DIGITC2
     public string Name ;
     public StateValue Value ; 
     public List<State> Children = new List<State>();
+    public bool IsCompact ;
 
     public void Add( State aChild ) { if ( aChild != null) Children.Add( aChild ) ; }
 
     public override string ToString() => $"({Name}:{Value})";
-  }
-
-  public abstract class StateMonitor
-  {
-    public abstract void Watch ( string aName, StateValue aV ) ;
-
-    public abstract void Watch ( State aO ) ;
-
-    public void Watch ( IWithState aO ) => Watch( aO?.GetState() ) ;
-  }
-
-  public class TraceStateMonitor : StateMonitor
-  {
-    public override void Watch ( string aName, StateValue aV ) 
-    {
-      if ( aV != null )
-           Trace.WriteLine( $"{aName}:{aV.Text}");
-      else Trace.WriteLine(aName);
-    }
-
-    public override void Watch ( State aO ) 
-    {
-      if ( aO.Name != null )
-      {
-        Watch(aO.Name,aO.Value) ;
-        Trace.Indent();
-      }
-      aO.Children.ForEach( x => Watch(x));
-
-      if ( aO.Name != null )
-        Trace.Unindent();
-    }
   }
 
   public interface IWithState

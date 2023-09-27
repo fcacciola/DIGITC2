@@ -14,7 +14,7 @@ namespace DIGITC2
   using TokensSignal = LexicalSignal<TokenSymbol>;
   using WordSignal   = LexicalSignal<WordSymbol>;
 
-  public class TokensToWords : ByteStringFilter
+  public class TokensToWords : TokensFilter
   {
     public TokensToWords( string aCharSet = "us-ascii", string aFallback = "!" ) : base() { mCharSet = aCharSet ; mFallback = aFallback; }
 
