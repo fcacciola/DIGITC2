@@ -28,6 +28,7 @@ namespace DIGITC2
       public int    BitmapHeight = 2000 ;
       public double BitmapResolution = 96 ;
 
+      public static Options Default = new Options() ;
     }
 
     public Plot ( Options aOptions)  
@@ -38,16 +39,9 @@ namespace DIGITC2
       mPlot.Axes.Add(new LinearAxis { Position = AxisPosition.Left  , AxislineThickness = 2, AxislineColor = OxyColors.Blue, AxislineStyle = LineStyle.Solid });
     }
 
-    public void AddData( List<Histogram.Bin> aData )
+    public void AddSeries( Series aSeries )
     {
-      var lLS1 = CreateSeries();
-
-      for ( int i = 0; i < aData.Count ; ++ i )
-      {
-        lLS1.Points.Add(new DataPoint(i, aData[i].Frequency));
-      }
-
-      mPlot.Series.Add(lLS1);
+      mPlot.Series.Add(aSeries);
     }
 
     public BitmapSource ToBitmap()
@@ -69,11 +63,6 @@ namespace DIGITC2
     {
       using (var lFileStream = new FileStream(aFilename, FileMode.Create))
         SavePNG( lFileStream );  
-    }
-
-    LineSeries CreateSeries()
-    {
-      return new LineSeries();
     }
 
     Options   mOptions ;

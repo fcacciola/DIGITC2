@@ -9,32 +9,28 @@ using NWaves.Operations;
 using NWaves.Signals;
 
 namespace DIGITC2
-{
-  using Token         = SymbolString<ByteSymbol>;
-  using BytesSignal   = LexicalSignal<ByteSymbol>;
-  using TokensSignal  = LexicalSignal<TokenSymbol>;
+{ 
 
-  public class Tokenizer : BytesFilter
+  public class Tokenizer : LexicalFilter
   {
     public Tokenizer( ByteSymbol aSeparator = null ) : base() 
     {
       mSeparator = aSeparator ?? BytesSource.GetTextSeparator() ; 
     }
 
-    protected override Step Process ( BytesSignal aInput, Step aStep )
+    protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
-      List<ByteSymbol> lCurrToken = new List<ByteSymbol>();
+      List<Symbol> lCurrToken = new List<Symbol>();
 
-      List<TokenSymbol> lTokens = new List<TokenSymbol>(); 
+      List<ArraySymbol> lTokens = new List<ArraySymbol>(); 
 
-      foreach( var lByte in aInput.String.Symbols )
+      foreach( var lByte in aInput.Symbols )
       {
         if ( lByte == mSeparator )
         { 
           if ( lCurrToken.Count > 0 ) 
           {
-            var lWord = new Token(lCurrToken);
-            lTokens.Add( new TokenSymbol(lTokens.Count,lWord) ); 
+            lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
           }
 
           lCurrToken.Clear(); 
@@ -47,11 +43,10 @@ namespace DIGITC2
 
       if ( lCurrToken.Count > 0 ) 
       {
-        var lToken = new Token(lCurrToken);
-        lTokens.Add( new TokenSymbol(lTokens.Count,lToken) ); 
+        lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      mStep = aStep.Next( new TokensSignal(lTokens), "Tokens", this) ;
+      mStep = aStep.Next( new LexicalSignal(lTokens), "Tokens", this) ;
 
       return mStep ;
     }

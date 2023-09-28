@@ -32,6 +32,8 @@ namespace DIGITC2
 
     public float ComputeMax() => Rep.Samples.Max();
 
+    public override List<double> GetSamples() => Samples.ToList().ConvertAll( f => (double)f ) ;
+
     //public WaveSignal Transform( Func<float,float> Transformation ) 
     //{
     //  float[] lTransformedSamples = new float[Samples.Length];

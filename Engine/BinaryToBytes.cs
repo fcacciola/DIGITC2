@@ -10,20 +10,17 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using BitsSignal  = LexicalSignal<BitSymbol>;
-  using BytesSignal = LexicalSignal<ByteSymbol>;
-
-  public class BinaryToBytes : BitsFilter
+  public class BinaryToBytes : LexicalFilter
   {
     public BinaryToBytes( int aBitsPerByte, bool aLittleEndian = true ) : base() { mLittleEndian = aLittleEndian ; mBitsPerByte = aBitsPerByte ; }
 
-    protected override Step Process ( BitsSignal aInput, Step aStep )
+    protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       mBitValues  = new List<bool>(); 
 
-      var lString = aInput.String ;
+      var lSymbols = aInput.GetSymbols<BitSymbol>() ;
 
-      int lLen = lString.Length ;
+      int lLen = aInput.Length ;
       int lByteCount = 0; 
       int i = 0;
 
@@ -39,8 +36,8 @@ namespace DIGITC2
 
         for ( int j = 0 ; i < lLen && j < mBitsPerByte ; j++, i ++ )
         {
-          mDEBUG_ByteString += $"[{(lString[i].One ? "1" : "0")}]";
-          mBitValues.Add( lString[i].One ) ;  
+          mDEBUG_ByteString += $"[{(lSymbols[i].One ? "1" : "0")}]";
+          mBitValues.Add( lSymbols[i].One ) ;  
         }
         
         AddRemainder(lRem);
@@ -62,7 +59,7 @@ namespace DIGITC2
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      mStep = aStep.Next( new BytesSignal(lByteSymbols), "Bytes", this) ;
+      mStep = aStep.Next( new LexicalSignal(lByteSymbols), "Bytes", this) ;
 
       return mStep ;
     }

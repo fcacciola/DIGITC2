@@ -17,17 +17,11 @@ public class BitsToText_Sample1
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
               .Add( new Tokenizer())
+              .Add( new ScoreLexicalSignal())
               .Add( new TokensToWords()) ;
 
     var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
-
-    foreach( var lStep in lResult.Steps ) 
-    {
-      Plot.Options lOptions = new Plot.Options() { Title = lStep.Label } ;
-      lStep.CreatePlot(lOptions)?.SavePNG($".\\{lStep.Label}.png");
-    }
-
-    
+   
   }
 }
 

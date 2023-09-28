@@ -10,75 +10,57 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  public class SymbolString<SYM> where SYM : Symbol, IWithState
+  public class LexicalSignal : Signal 
   {
-    public SymbolString( IEnumerable<SYM> aSymbols )
+    public LexicalSignal( IEnumerable<Symbol> aSymbols )
     {
       Symbols.AddRange(aSymbols);
     }
 
-    public State GetState() => State.From(null, Symbols);
-
-    public SymbolString<SYM> Copy()
+    public override Signal Copy()
     {
-      return new SymbolString<SYM>( Symbols.ConvertAll( s => s.Clone() ).Cast<SYM>() ) ;
+      return new LexicalSignal( Symbols.ConvertAll( s => s.Copy() ) ) ;
+    }
+
+      public override Plot CreatePlot(Plot.Options aOptions)
+    {
+      return Histogram.CreatePlot(aOptions);
+    }
+
+    protected override void UpdateState( State rS ) 
+    {
+      rS.Add( State.From(null, Symbols) );
     }
 
     public Histogram Histogram
     {
       get
       {
-        if ( mHistogram == null )
+        if (mHistogram == null)
           BuildHistogram();
-        return mHistogram;  
+        return mHistogram;
       }
     }
 
     public int Length => Symbols.Count ;
 
-    public List<SYM> Symbols = new List<SYM>();
+    public List<Symbol> Symbols = new List<Symbol>();
 
-    public SYM this[int aIdx] => Symbols[aIdx];
+    public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
+
+    public Symbol this[int aIdx] => Symbols[aIdx];
+
+    public override List<double> GetSamples()
+    {
+      return Symbols.ConvertAll( s => s.Sample ) ;
+    }
 
     void BuildHistogram()
     {
-      mHistogram = new Histogram(); 
-      Symbols.ForEach( s => mHistogram.Add( s ) );
+      mHistogram = new Histogram( GetSamples() );
     }
 
-    Histogram mHistogram = null ;
-  }
-
-  public class LexicalSignal<SYM> : Signal where SYM : Symbol
-  {
-    public LexicalSignal( IEnumerable<SYM> aSymbols )
-    {
-      String = new SymbolString<SYM>(aSymbols);
-    }
-
-    public override Signal Copy()
-    {
-      return new LexicalSignal<SYM>( String.Copy() ) ;
-    }
-
-    LexicalSignal( SymbolString<SYM> aString )
-    {
-      String = aString ;
-    }
-
-    public SymbolString<SYM> String ;
-
-    public Histogram Histogram => String.Histogram ;
-
-    public override Plot CreatePlot( Plot.Options aOptions ) 
-    {
-      return Histogram.CreatePlot( aOptions ) ;
-    }
-
-    protected override void UpdateState( State rS ) 
-    {
-      rS.Add( String.GetState() );
-    }
+    Histogram mHistogram = null;
 
   }
 

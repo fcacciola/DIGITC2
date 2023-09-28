@@ -12,18 +12,12 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using GatedLexicalSignal = LexicalSignal<GatedSymbol>;
-  using BitsSignal  = LexicalSignal<BitSymbol>;
-  using BytesSignal = LexicalSignal<ByteSymbol>;
-  using TextSignal  = LexicalSignal<WordSymbol>;
-
-  public abstract class LexicalSource<SYM> : Source
+  public abstract class LexicalSource : Source
   {
-    protected List<SYM> mSymbols = new List<SYM>();
-
+    protected List<Symbol> mSymbols = new List<Symbol>();
   }
 
-  public class BytesSource : LexicalSource<ByteSymbol>
+  public class BytesSource : LexicalSource
   {
     public static BytesSource FromText( string aText, string aCharSet)
     {
@@ -39,7 +33,7 @@ namespace DIGITC2
     {
       var lSeparatorSource = BytesSource.FromText(" ","us-ascii") ;
       var lSeparatorBytes = lSeparatorSource.CreateSignal();
-      return ( lSeparatorBytes as LexicalSignal<ByteSymbol>).String.Symbols[0];
+      return ( lSeparatorBytes as LexicalSignal).Symbols[0] as ByteSymbol;
     }
 
     protected override Signal DoCreateSignal() 
@@ -51,14 +45,14 @@ namespace DIGITC2
         mSymbols.Add(lBS);
 
       }
-      BytesSignal rSignal = new BytesSignal(mSymbols);
+      LexicalSignal rSignal = new LexicalSignal(mSymbols);
       return rSignal; 
     }
 
     byte[] mBytes ;
   }
 
-  public class BitsSource : LexicalSource<BitSymbol>
+  public class BitsSource : LexicalSource
   {
     public static BitsSource FromBytes( IEnumerable<byte> aBytes)
     {
@@ -106,7 +100,7 @@ namespace DIGITC2
         mSymbols.Add(lBS);
 
       }
-      BitsSignal rSignal = new BitsSignal(mSymbols);
+      LexicalSignal rSignal = new LexicalSignal(mSymbols);
       rSignal.Name="Bits";
       return rSignal; 
     }

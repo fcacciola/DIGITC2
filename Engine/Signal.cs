@@ -28,7 +28,9 @@ namespace DIGITC2
 
     public override string ToString() => GetState().ToString();
     
-    public abstract Plot CreatePlot( Plot.Options aOptions ) ;
+    public virtual Plot CreatePlot( Plot.Options aOptions ) => null ;
+
+    public abstract List<double> GetSamples() ;
 
     public string Name = "";
   }

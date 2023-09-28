@@ -10,17 +10,19 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using Token = SymbolString<ByteSymbol>;
-
-  public abstract class Symbol : ICloneable, IWithState
+  public abstract class Symbol : IWithState
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
 
-    public abstract object Clone() ;  
+    public abstract Symbol Copy();
 
-    public abstract string Type { get; }
-    public abstract string Meaning { get; }
+    public abstract string Type            { get; }
+    public abstract string Meaning         { get; }
     public abstract bool   UseCompactState { get; }
+    public abstract int    Size            { get; }
+    public abstract double Sample          { get; }
+
+    public virtual string Key => $"{Idx}" ;
 
     public int Idx ;
 
@@ -29,9 +31,7 @@ namespace DIGITC2
       return State.With($"[{Idx}]",Meaning,UseCompactState) ; 
     }
 
-    public override bool Equals(object obj) => this.ValueEquals(obj as Symbol);
-
-    public bool ValueEquals(Symbol aRHS)
+    public override bool Equals( object aRHS)
     {
       if (this is null)
       {
@@ -41,14 +41,15 @@ namespace DIGITC2
         return false;
       }
 
-      return string.Compare(Meaning, aRHS.Meaning) == 0;
+      return ValueEquals(aRHS as Symbol) ; 
     }
+
+    protected virtual bool ValueEquals( Symbol aRHS ) => string.Compare(Meaning, aRHS.Meaning) == 0;
 
     public override int GetHashCode() => Meaning.GetHashCode();
 
     public static bool operator ==(Symbol lhs, Symbol rhs) => lhs.ValueEquals(rhs);
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
-
   }
 
   public class GatedSymbol : Symbol
@@ -67,9 +68,13 @@ namespace DIGITC2
 
     public override string Meaning => $"{Duration:F2} at {(double)Pos/(double)SamplingRate:F2}" ;
 
+    public override int  Size => Length ;
+
     public override bool UseCompactState => false ;
 
-    public override object Clone() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
+    public override double Sample => Amplitude ;
+
+    public override Symbol Copy() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
 
     public bool IsGap => Amplitude == 0 ;
 
@@ -95,11 +100,15 @@ namespace DIGITC2
 
     public override string Type => "Bit" ;
 
-    public override object Clone() { return new BitSymbol( Idx, One, View?.Clone()  as GatedSymbol ); }  
+    public override Symbol Copy() { return new BitSymbol( Idx, One, View?.Copy()  as GatedSymbol ); }  
 
     public override string Meaning => One ? "1" : "0" ;
 
     public override bool UseCompactState => true ;
+
+    public override int  Size => 1 ;
+
+    public override double Sample => One ? 1.0 : 0.0 ;
 
     public bool One ;
 
@@ -112,35 +121,46 @@ namespace DIGITC2
 
     public override string Type => "Byte" ;
 
-    public override object Clone() { return new ByteSymbol( Idx, Byte ); }  
+    public override Symbol Copy () { return new ByteSymbol( Idx, Byte ); }  
 
     public override string Meaning => $"[{Byte.ToString():x}]" ;
 
     public override bool UseCompactState => true ;
 
+    public override int  Size => 1 ;
+
+    public override double Sample => Convert.ToDouble(Byte);
+
     public byte Byte ;
   }
 
-  public class TokenSymbol : Symbol
+  public class ArraySymbol : Symbol
   {
-    public TokenSymbol( int aIdx, Token aToken ) : base(aIdx) { Token = aToken ; }
+    public ArraySymbol( int aIdx, List<Symbol> aSymbols ) : base(aIdx) { Symbols = aSymbols ; }
 
     public override string Type => "Token" ;
 
-    public override object Clone() { return new TokenSymbol( Idx, Token.Copy() ); }  
+    public override Symbol Copy() { return new ArraySymbol( Idx, Symbols.ConvertAll( s => s.Copy() ) ); }  
 
     public override string Meaning => GetState().ToString() ;
 
     public override bool UseCompactState => false ;
 
+    public override int  Size => Symbols.Count ;
+
+    public override double Sample => Size ;
+
     public override State GetState()
     {
       State rState = new State($"[{Idx}]");
-      rState.Add( Token.GetState() );
+      rState.Add( State.From("Tokens", Symbols) );
       return rState;
     }
 
-    public Token Token ;
+    public List<Symbol> Symbols ;
+
+    public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
+
   }
 
   public class WordSymbol : Symbol
@@ -149,11 +169,15 @@ namespace DIGITC2
 
     public override string Type => "Word" ;
 
-    public override object Clone() { return new WordSymbol( Idx, Word ); }  
+    public override Symbol Copy() { return new WordSymbol( Idx, Word ); }  
 
     public override string Meaning => $"[{Word}]" ;
 
     public override bool UseCompactState => false ;
+
+    public override int  Size => Word.Length ;
+
+    public override double Sample => Size ;
 
     public string Word ;
   }

@@ -13,13 +13,14 @@ namespace DIGITC2
 {
   public class Step : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, Context aContext )
+    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, bool aNoNewSignal, Context aContext )
     {
-      Signal  = aSignal;
-      Label   = aLabel ;
-      Context = aContext;
-      Filter  = aFilter; 
-      Data    = aData;
+      Signal      = aSignal;
+      Label       = aLabel ;
+      Context     = aContext;
+      Filter      = aFilter; 
+      Data        = aData;
+      NoNewSignal = aNoNewSignal ;
     }
 
     public Plot CreatePlot( Plot.Options aOptions ) 
@@ -29,20 +30,20 @@ namespace DIGITC2
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
+    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null, bool aNoNewSignal = false )
     {
       aSignal.Name = aLabel ;
-      return new Step(aSignal, aLabel, aFilter, aData, Context);
+      return new Step(aSignal, aLabel, aFilter, aData, aNoNewSignal, Context);
     }
 
     public State GetState()
     {
-      //State rS = new State($"STEP {StepIdx}|{Label}") ;
       State rS = new State($"STEP {StepIdx}") ;
       if ( Filter != null ) 
         rS.Add( Filter.GetState() );  
 
-      rS.Add( Signal.GetState() );  
+      if ( ! NoNewSignal )
+        rS.Add( Signal.GetState() );  
 
       if ( Data != null ) 
         rS.Add( Data.GetState() );  
@@ -54,6 +55,7 @@ namespace DIGITC2
     public string     Label   ;
     public Filter     Filter  ;
     public IWithState Data    ;
+    public bool       NoNewSignal ;
     public Context    Context ;
 
     public int       StepIdx ;
@@ -65,7 +67,7 @@ namespace DIGITC2
 
     public Step AddFirst( Signal aInput, Context aContext)
     {
-      return Add( new Step(aInput, "Start", null, null, aContext) ) ;
+      return Add( new Step(aInput, "Start", null, null, false, aContext) ) ;
     }
 
     public Step Add( Step aStep )

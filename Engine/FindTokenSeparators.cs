@@ -10,17 +10,13 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using Token         = SymbolString<ByteSymbol>;
-  using BytesSignal   = LexicalSignal<ByteSymbol>;
-  using TokensSignal  = LexicalSignal<TokenSymbol>;
-
-  public class FindTokenSeparators : BytesFilter
+  public class FindTokenSeparators : LexicalFilter
   {
     public FindTokenSeparators() : base() 
     {
     }
 
-    protected override Step Process ( BytesSignal aInput, Step aStep )
+    protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       mStep = aStep.Next( aInput, "Token Separatos", this) ;
 

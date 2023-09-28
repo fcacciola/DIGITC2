@@ -11,14 +11,11 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  using TokensSignal = LexicalSignal<TokenSymbol>;
-  using WordSignal   = LexicalSignal<WordSymbol>;
-
-  public class TokensToWords : TokensFilter
+  public class TokensToWords : LexicalFilter
   {
     public TokensToWords( string aCharSet = "us-ascii", string aFallback = "!" ) : base() { mCharSet = aCharSet ; mFallback = aFallback; }
 
-    protected override Step Process ( TokensSignal aInput, Step aStep )
+    protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       Encoding lEncoding = Encoding.GetEncoding( mCharSet
                                                , new EncoderReplacementFallback("(unknown)")
@@ -28,13 +25,13 @@ namespace DIGITC2
 
       StringBuilder lSB = new StringBuilder ();
 
-      foreach( var lToken in aInput.String.Symbols )
+      foreach( var lToken in aInput.GetSymbols<ArraySymbol>() )
       {
         lSB.Clear();
 
         byte[] lBuffer = new byte[1];
 
-        foreach( var lByteSymbol in lToken.Token.Symbols )
+        foreach( var lByteSymbol in lToken.GetSymbols<ByteSymbol>() )
         {
           lBuffer[0] = lByteSymbol.Byte; 
           string lDigit = lEncoding.GetString(lBuffer);
@@ -51,7 +48,7 @@ namespace DIGITC2
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      mStep = aStep.Next( new WordSignal(lWords), "Words", this) ;
+      mStep = aStep.Next( new LexicalSignal(lWords), "Words", this) ;
 
       return mStep ;
     }
