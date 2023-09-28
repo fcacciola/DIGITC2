@@ -33,7 +33,7 @@ namespace DIGITC2
             lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
           }
 
-          lCurrToken.Clear(); 
+          lCurrToken = new List<Symbol> ();
         }
         else
         {

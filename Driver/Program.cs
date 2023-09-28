@@ -52,7 +52,7 @@ namespace Driver
       }
       else
       {
-        BitsToText_Sample1.Run( new Context(), args);
+        BitsToText_Sample0.Run( new Context(), args);
       }
     }
   }

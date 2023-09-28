@@ -16,6 +16,7 @@ public class BitsToText_Sample1
     var lProcessor = new Processor();
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
+              .Add( new ScoreLexicalSignal())
               .Add( new Tokenizer())
               .Add( new ScoreLexicalSignal())
               .Add( new TokensToWords()) ;
