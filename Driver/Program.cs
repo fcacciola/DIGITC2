@@ -10,6 +10,8 @@ using System.Windows.Media.Imaging;
 
 using DIGITC2;
 
+using MathNet.Numerics.Distributions;
+
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
@@ -19,19 +21,24 @@ namespace Driver
 {
   internal class Program
   {
+    static void Plots()
+    {
+      var lD = new Zipf(3.0,255);
+
+      var lY = new Samples( lD.Samples().Take(10000).Select( s => (double)s ) );
+
+      var lH = new Histogram2(lY, new Histogram2.Params(256,0,255));
+
+      var lT0 = lH.Table;
+
+      lT0.CreatePlot().SavePNG("./Zipf.png");
+
+      lT0.ToLog().CreatePlot().SavePNG("./Zipf_Log.png");
+    }
+
     [STAThread]
     static void Main(string[] args)
     {
-      string lLog = @".\DIGITC2_Output.txt" ;
-
-      if ( File.Exists( lLog ) ) { File.Delete( lLog ); } 
-
-      Trace.Listeners.Add( new TextWriterTraceListener(lLog) ) ;
-      //Trace.Listeners.Add( new ConsoleTraceListener() ) ;
-      Trace.IndentSize  = 2 ;
-      Trace.AutoFlush = true ;
-      Trace.WriteLine("DIGITC 2");
-
       string lScriptFile = args.Length > 0 ? args[0] : "" ;
 
       if ( File.Exists(lScriptFile) ) 
@@ -47,12 +54,13 @@ namespace Driver
         }
         catch( Exception e ) 
         {
-          Trace.WriteLine(e.ToString() ); 
+          Console.WriteLine(e.ToString() ); 
         }
       }
       else
       {
-        BitsToText_Sample0.Run( new Context(), args);
+        //Plots();
+        BitsToText_Sample1.Run( args);
       }
     }
   }

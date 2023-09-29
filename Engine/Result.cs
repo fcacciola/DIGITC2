@@ -13,27 +13,22 @@ namespace DIGITC2
 {
   public class Step : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, bool aNoNewSignal, Context aContext )
+    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, bool aNoNewSignal, Score aScore )
     {
       Signal      = aSignal;
       Label       = aLabel ;
-      Context     = aContext;
       Filter      = aFilter; 
       Data        = aData;
       NoNewSignal = aNoNewSignal ;
-    }
-
-    public Plot CreatePlot( Plot.Options aOptions ) 
-    {
-      return Signal.CreatePlot(aOptions);
+      Score       = aScore;
     }
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null, bool aNoNewSignal = false )
+    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null, bool aNoNewSignal = false, Score aScore = null )
     {
       aSignal.Name = aLabel ;
-      return new Step(aSignal, aLabel, aFilter, aData, aNoNewSignal, Context);
+      return new Step(aSignal, aLabel, aFilter, aData, aNoNewSignal, aScore);
     }
 
     public State GetState()
@@ -48,6 +43,9 @@ namespace DIGITC2
       if ( Data != null ) 
         rS.Add( Data.GetState() );  
 
+      if ( Score != null ) 
+        rS.Add( Score.GetState() );  
+
       return rS ;
     }
 
@@ -56,7 +54,7 @@ namespace DIGITC2
     public Filter     Filter  ;
     public IWithState Data    ;
     public bool       NoNewSignal ;
-    public Context    Context ;
+    public Score      Score ;
 
     public int       StepIdx ;
   }
@@ -65,9 +63,9 @@ namespace DIGITC2
   {
     public Result() {}
 
-    public Step AddFirst( Signal aInput, Context aContext)
+    public Step AddFirst( Signal aInput)
     {
-      return Add( new Step(aInput, "Start", null, null, false, aContext) ) ;
+      return Add( new Step(aInput, "Start", null, null, false, null) ) ;
     }
 
     public Step Add( Step aStep )

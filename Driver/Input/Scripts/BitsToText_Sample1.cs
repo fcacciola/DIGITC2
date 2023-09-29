@@ -4,25 +4,29 @@ namespace DIGITC2 {
 
 public class BitsToText_Sample1
 {
-  public static void Run( Context aContext, string[] aCmdLineArgs )
+  public static void Run( string[] aCmdLineArgs )
   {
-    aContext.Log("BitsToText from a random binary sequence");
+    Context.Setup( @".\DIGITC2_Output.txt") ;
+
+    Context.WriteLine("BitsToText from a random binary sequence");
 
     int lBitsPerByteParam = 8 ;
-    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 1024 ;
+    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 5120 ;
 
     var lSource = BitsSource.FromRandom(lLen);
 
     var lProcessor = new Processor();
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
-              .Add( new ScoreLexicalSignal())
+              .Add( new ScoreBytesAsLanguageDigits())
               .Add( new Tokenizer())
-              .Add( new ScoreLexicalSignal())
-              .Add( new TokensToWords()) ;
+              .Add( new ScoreTokenLengthDistribution())
+              .Add( new TokensToWords()) 
+              .Add( new ScoreWordLengthDistribution());
 
-    var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
+    var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
    
+    Context.Shutdown(); 
   }
 }
 

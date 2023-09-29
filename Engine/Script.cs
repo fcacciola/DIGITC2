@@ -62,13 +62,11 @@ namespace DIGITC2
 
         var lResults = lProvider.CompileAssemblyFromSource(lParameters,aUserCode);
 
-        Context lContext = new Context();
-
         if ( lResults.Errors.Count > 0 )
         {
           Trace.WriteLine("SCRIPT FAILED TO COMPILED.");
           foreach( var lError in lResults.Errors )
-            lContext.Error(lError.ToString());
+            Context.Error(lError.ToString());
         }
         else
         {
@@ -79,7 +77,7 @@ namespace DIGITC2
           Trace.WriteLine("SCRIPT COMPILED.");
           Trace.WriteLine("RUNNING SCRIPT.");
           Trace.WriteLine(" ");
-          lCVSRunMethod.Invoke( null, new object[]{lContext, aCmdLineArgs} ) ;
+          lCVSRunMethod.Invoke( null, new object[]{aCmdLineArgs} ) ;
         }
 
       }

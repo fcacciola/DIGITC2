@@ -9,21 +9,23 @@ namespace DIGITC2 {
 
 public class BitsToText_Sample0
 {
-  public static void Run( Context aContext, string[] aCmdLineArgs )
+  public static void Run( string[] aCmdLineArgs )
   {
-    aContext.Log("BitsToText from a given known text");
+    Context.Setup( @".\DIGITC2_Output.txt") ;
+
+    Context.WriteLine("BitsToText from a given known text");
 
     int lBitsPerByteParam = 8 ;
 
     var lHugeWordList = File.ReadAllLines("./Input/Samples/words.txt");
 
-    int lCount = 1000 ;
+    int lCount = 20000 ;
 
     List<string> lSublist = new List<string>();
 
     var lRNG = new Random();
 
-    for( int c = 0 ; c < lCount ; ++ c )
+    for( int c = 0 ; c < Math.Min(lCount,lHugeWordList.Length) ; ++ c )
     { 
       int lIdx = lRNG.Next(0, lHugeWordList.Length) ;
       
@@ -33,19 +35,22 @@ public class BitsToText_Sample0
 
     string lSourceText = string.Join(" ", lSublist.ToArray() );
 
-    aContext.Log("Source text: " + lSourceText );
+    Context.WriteLine("Source text: " + lSourceText );
 
     var lSource = BitsSource.FromText(lSourceText);  
 
     var lProcessor = new Processor();
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
-              .Add( new ScoreLexicalSignal())
+              .Add( new ScoreBytesAsLanguageDigits())
               .Add( new Tokenizer())
-              .Add( new ScoreLexicalSignal())
-              .Add( new TokensToWords()) ;
+              .Add( new ScoreTokenLengthDistribution())
+              .Add( new TokensToWords()) 
+              .Add( new ScoreWordLengthDistribution());
 
-    var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
+    var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
+
+    Context.Shutdown(); 
   }
 }
 

@@ -20,15 +20,13 @@ namespace DIGITC2
       return this ;
     }
 
-    public Result Process( Signal aInput, Context aContext = null )
+    public Result Process( Signal aInput )
     {
       Result rR = new Result();
 
-      var lContext = aContext ?? new Context();
+      var lStep = rR.AddFirst(aInput) ;
 
-      var lStep = rR.AddFirst(aInput, lContext) ;
-
-      lContext.Monitor.Watch(lStep) ; 
+      Context.Watch(lStep) ; 
 
       foreach( var lFilter in mFilters )
       { 
@@ -36,7 +34,7 @@ namespace DIGITC2
 
         rR.Add( lStep ) ;
 
-        lContext.Monitor.Watch(lStep) ; 
+        Context.Watch(lStep) ; 
       }
 
       return rR ;  

@@ -32,7 +32,7 @@ namespace DIGITC2
 
     public float ComputeMax() => Rep.Samples.Max();
 
-    public override List<double> GetSamples() => Samples.ToList().ConvertAll( f => (double)f ) ;
+    public override Samples GetSamples() => new Samples(Samples.ToList().ConvertAll( f => (double)f ) );
 
     //public WaveSignal Transform( Func<float,float> Transformation ) 
     //{
@@ -42,12 +42,7 @@ namespace DIGITC2
     //  return CopyWith( new DiscreteSignal(SamplingRate, lTransformedSamples) );
     //}
 
-    public override Plot CreatePlot( Plot.Options aOptions ) 
-    {
-      return null ;
-
-    }
-
+ 
     protected override void UpdateState( State rS ) 
     {
       rS.Add( State.With("Duration"    , Duration));

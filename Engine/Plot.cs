@@ -31,9 +31,9 @@ namespace DIGITC2
       public static Options Default = new Options() ;
     }
 
-    public Plot ( Options aOptions)  
+    public Plot ( Options aOptions = null )  
     {
-      mOptions = aOptions; 
+      mOptions = aOptions ?? Options.Default; 
       mPlot = new PlotModel { Title = mOptions.Title, Subtitle = mOptions.Subtitle, PlotAreaBorderThickness = new OxyThickness(0), Background = OxyColor.FromRgb(255,255,255) };
       mPlot.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, AxislineThickness = 2, AxislineColor = OxyColors.Blue, AxislineStyle = LineStyle.Solid });
       mPlot.Axes.Add(new LinearAxis { Position = AxisPosition.Left  , AxislineThickness = 2, AxislineColor = OxyColors.Blue, AxislineStyle = LineStyle.Solid });

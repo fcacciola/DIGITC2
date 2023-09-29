@@ -2,8 +2,10 @@ namespace DIGITC2 {
 
 public class WaveToText_Sample0 
 {
-  public static void Run( Context aContext, string[] aCmdLineArgs )
+  public static void Run( string[] aCmdLineArgs )
   {
+    Context.Setup( @".\DIGITC2_Output.txt") ;
+
     string lAudioSample0 = aCmdLineArgs[1] ;
 
     if ( System.IO.File.Exists( lAudioSample0 ) )
@@ -12,9 +14,9 @@ public class WaveToText_Sample0
 
       var lSource = new WaveFileSource(lAudioSample0) ;  
 
-      aContext.WindowSizeInSeconds = 250 ;
+      Context.WindowSizeInSeconds = 250 ;
 
-      aContext.Log("Wave To Text Sample0");
+      Context.WriteLine("Wave To Text Sample0");
 
       double lEnvelop_AttackTime              = lSettings.GetDouble("Envelop_AttackTime");
       double lEnvelope_ReleaseTime            = lSettings.GetDouble("Envelope_ReleaseTime");
@@ -26,16 +28,16 @@ public class WaveToText_Sample0
       bool   lBinaryToBytes_LittleEndian      = lSettings.GetBool  ("BinaryToBytes_LittleEndian");
       string lBytesToText_CharSet             = lSettings.Get      ("BytesToText_CharSet");
 
-      aContext.Log("Parameters") ; 
-      aContext.Log("Envelop_AttackTime              =" + lEnvelop_AttackTime               ) ; 
-      aContext.Log("Envelope_ReleaseTime            =" + lEnvelope_ReleaseTime             ) ; 
-      aContext.Log("AmplitudeGate_Threshold         =" + lAmplitudeGate_Threshold          ) ; 
-      aContext.Log("ExtractGatedlSymbols_MinDuration=" + lExtractGatedlSymbols_MinDuration ) ; 
-      aContext.Log("ExtractGatedlSymbols_MergeGap   =" + lExtractGatedlSymbols_MergeGap    ) ; 
-      aContext.Log("BinarizeByDuration_Threshold    =" + lBinarizeByDuration_Threshold     ) ; 
-      aContext.Log("BinaryToBytes_BitsPerByte       =" + lBinaryToBytes_BitsPerByte        ) ; 
-      aContext.Log("BinaryToBytes_LittleEndian      =" + lBinaryToBytes_LittleEndian       ) ; 
-      aContext.Log("BytesToText_CharSet             =" + lBytesToText_CharSet              ) ; 
+      Context.WriteLine("Parameters") ; 
+      Context.WriteLine("Envelop_AttackTime              =" + lEnvelop_AttackTime               ) ; 
+      Context.WriteLine("Envelope_ReleaseTime            =" + lEnvelope_ReleaseTime             ) ; 
+      Context.WriteLine("AmplitudeGate_Threshold         =" + lAmplitudeGate_Threshold          ) ; 
+      Context.WriteLine("ExtractGatedlSymbols_MinDuration=" + lExtractGatedlSymbols_MinDuration ) ; 
+      Context.WriteLine("ExtractGatedlSymbols_MergeGap   =" + lExtractGatedlSymbols_MergeGap    ) ; 
+      Context.WriteLine("BinarizeByDuration_Threshold    =" + lBinarizeByDuration_Threshold     ) ; 
+      Context.WriteLine("BinaryToBytes_BitsPerByte       =" + lBinaryToBytes_BitsPerByte        ) ; 
+      Context.WriteLine("BinaryToBytes_LittleEndian      =" + lBinaryToBytes_LittleEndian       ) ; 
+      Context.WriteLine("BytesToText_CharSet             =" + lBytesToText_CharSet              ) ; 
 
       var lProcessor = new Processor();
 
@@ -47,9 +49,11 @@ public class WaveToText_Sample0
                 .Add( new Tokenizer())
                 .Add( new TokensToWords(lBytesToText_CharSet)) ;
 
-      var lResult = lProcessor.Process( lSource.CreateSignal(), aContext ) ;
+      var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
 
     }
+
+    Context.Shutdown(); 
   }
 }
 }

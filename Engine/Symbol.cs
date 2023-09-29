@@ -19,10 +19,7 @@ namespace DIGITC2
     public abstract string Type            { get; }
     public abstract string Meaning         { get; }
     public abstract bool   UseCompactState { get; }
-    public abstract int    Size            { get; }
-    public abstract double Sample          { get; }
-
-    public virtual string Key => $"{Idx}" ;
+    public abstract double Value           { get; }
 
     public int Idx ;
 
@@ -31,25 +28,31 @@ namespace DIGITC2
       return State.With($"[{Idx}]",Meaning,UseCompactState) ; 
     }
 
-    public override bool Equals( object aRHS)
+    public static bool Equals( Symbol aLHS, Symbol aRHS)
     {
-      if (this is null)
+      if (aLHS is null)
       {
         if (aRHS is null)
             return true;
 
         return false;
       }
-
-      return ValueEquals(aRHS as Symbol) ; 
+      else
+      {
+        if (aRHS is null)
+             return false;
+        else return aLHS.Meaning == aRHS.Meaning ; 
+      }
     }
-
-    protected virtual bool ValueEquals( Symbol aRHS ) => string.Compare(Meaning, aRHS.Meaning) == 0;
 
     public override int GetHashCode() => Meaning.GetHashCode();
 
-    public static bool operator ==(Symbol lhs, Symbol rhs) => lhs.ValueEquals(rhs);
+    public override bool Equals( object aRHS) => Equals( this, aRHS as Symbol ); 
+
+    public static bool operator ==(Symbol lhs, Symbol rhs) => Equals(lhs,rhs) ;
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
+
+    public override string ToString() => Meaning ;
   }
 
   public class GatedSymbol : Symbol
@@ -68,11 +71,9 @@ namespace DIGITC2
 
     public override string Meaning => $"{Duration:F2} at {(double)Pos/(double)SamplingRate:F2}" ;
 
-    public override int  Size => Length ;
-
     public override bool UseCompactState => false ;
 
-    public override double Sample => Amplitude ;
+    public override double Value => Amplitude ;
 
     public override Symbol Copy() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
 
@@ -106,9 +107,7 @@ namespace DIGITC2
 
     public override bool UseCompactState => true ;
 
-    public override int  Size => 1 ;
-
-    public override double Sample => One ? 1.0 : 0.0 ;
+    public override double Value => One ? 1.0 : 0.0 ;
 
     public bool One ;
 
@@ -127,9 +126,7 @@ namespace DIGITC2
 
     public override bool UseCompactState => true ;
 
-    public override int  Size => 1 ;
-
-    public override double Sample => Convert.ToDouble(Byte);
+    public override double Value => Convert.ToDouble(Byte);
 
     public byte Byte ;
   }
@@ -146,9 +143,9 @@ namespace DIGITC2
 
     public override bool UseCompactState => false ;
 
-    public override int  Size => Symbols.Count ;
+    public int UpperBound => Math.Max(Symbols.Count,Context.MaxWordLength) ;
 
-    public override double Sample => Size ;
+    public override double Value => Symbols.Count ;
 
     public override State GetState()
     {
@@ -175,9 +172,9 @@ namespace DIGITC2
 
     public override bool UseCompactState => false ;
 
-    public override int  Size => Word.Length ;
+    public int UpperBound => Math.Max(Word.Length,Context.MaxWordLength) ;
 
-    public override double Sample => Size ;
+    public override double Value => Word.Length ;
 
     public string Word ;
   }

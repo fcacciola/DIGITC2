@@ -22,25 +22,20 @@ namespace DIGITC2
       return new LexicalSignal( Symbols.ConvertAll( s => s.Copy() ) ) ;
     }
 
-      public override Plot CreatePlot(Plot.Options aOptions)
-    {
-      return Histogram.CreatePlot(aOptions);
-    }
-
     protected override void UpdateState( State rS ) 
     {
       rS.Add( State.From(null, Symbols) );
     }
 
-    public Histogram Histogram
-    {
-      get
-      {
-        if (mHistogram == null)
-          BuildHistogram();
-        return mHistogram;
-      }
-    }
+    //public Histogram Histogram
+    //{
+    //  get
+    //  {
+    //    if (mHistogram == null)
+    //      BuildHistogram();
+    //    return mHistogram;
+    //  }
+    //}
 
     public int Length => Symbols.Count ;
 
@@ -50,17 +45,19 @@ namespace DIGITC2
 
     public Symbol this[int aIdx] => Symbols[aIdx];
 
-    public override List<double> GetSamples()
+    public override Samples GetSamples()
     {
-      return Symbols.ConvertAll( s => s.Sample ) ;
+      return new Samples(Symbols.ConvertAll( s => s.Value )) ;
     }
 
-    void BuildHistogram()
-    {
-      mHistogram = new Histogram( GetSamples() );
-    }
+    //public Histogram.Params HistogramParams => Symbols[0].HistogramParams ;
 
-    Histogram mHistogram = null;
+    //void BuildHistogram()
+    //{
+    //  mHistogram = new Histogram( GetSamples(), HistogramParams );
+    //}
+
+    //Histogram mHistogram = null;
 
   }
 
