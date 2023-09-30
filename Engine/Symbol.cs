@@ -143,7 +143,7 @@ namespace DIGITC2
 
     public override bool UseCompactState => false ;
 
-    public int UpperBound => Math.Max(Symbols.Count,Context.MaxWordLength) ;
+    public int UpperBound => Math.Max(Symbols.Count,Context.Session.Params.MaxWordLength) ;
 
     public override double Value => Symbols.Count ;
 
@@ -172,7 +172,7 @@ namespace DIGITC2
 
     public override bool UseCompactState => false ;
 
-    public int UpperBound => Math.Max(Word.Length,Context.MaxWordLength) ;
+    public int UpperBound => Math.Max(Word.Length,Context.Session.Params.MaxWordLength) ;
 
     public override double Value => Word.Length ;
 

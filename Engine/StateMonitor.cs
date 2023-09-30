@@ -29,12 +29,8 @@ namespace DIGITC2
 
   }
 
-  public class LogStateMonitor : StateMonitor
+  public abstract class TextOutputStateMonitor : StateMonitor
   {
-    public LogStateMonitor()
-    {
-    }
-
     public void Open( string aFile )
     {
       mStream = new FileStream(aFile, FileMode.Create, FileAccess.Write);
@@ -59,6 +55,30 @@ namespace DIGITC2
     {
       mWriter?.WriteLine( aS );
       mWriter?.Flush();
+    }
+
+    protected void Indent()
+    {
+      if ( mWriter != null )  
+        mWriter.Indent++;
+    }
+
+    protected void Unindent()
+    {
+      if ( mWriter != null )  
+        mWriter.Indent--;
+
+    }
+
+    FileStream         mStream ;
+    TextWriter         mBaseWriter ;
+    IndentedTextWriter mWriter ;
+  }
+
+  public class LogStateMonitor : TextOutputStateMonitor
+  {
+    public LogStateMonitor()
+    {
     }
 
     public override void Watch ( string aName, StateValue aV, bool aCompact ) 
@@ -91,26 +111,49 @@ namespace DIGITC2
       if ( aO.Name != null )
         Unindent();
     }
+  }
 
-
-    void Indent()
+  public class ReportStateMonitor : TextOutputStateMonitor
+  {
+    public ReportStateMonitor()
     {
-      if ( mWriter != null )  
-        mWriter.Indent++;
     }
 
-    void Unindent()
+    public override void Watch ( string aName, StateValue aV, bool aCompact) 
     {
-      if ( mWriter != null )  
-        mWriter.Indent--;
+      if ( aCompact )
+      {
+        Write( aV.Text ?? aName);
+      }
+      else
+      {
+        if ( aV != null )
+             WriteLine( $"{aName}:{aV.Text}");
+        else WriteLine(aName);
+      }
+    }
 
+    public override void Watch ( State aO )
+    {
+      if ( aO.Name != null )
+      {
+        Watch(aO.Name,aO.Value,aO.IsCompact) ;
+        Indent();
+      }
+
+      aO.Children.ForEach( x => Watch(x) );
+
+      if ( !aO.IsCompact && aO.Children.Count > 0 && aO.Children.Last().IsCompact )
+        WriteLine("");
+
+      if ( aO.Name != null )
+        Unindent();
     }
 
     FileStream         mStream ;
     TextWriter         mBaseWriter ;
     IndentedTextWriter mWriter ;
   }
-
 
 
 }

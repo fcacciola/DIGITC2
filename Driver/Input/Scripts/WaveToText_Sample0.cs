@@ -4,7 +4,7 @@ public class WaveToText_Sample0
 {
   public static void Run( string[] aCmdLineArgs )
   {
-    Context.Setup( @".\DIGITC2_Output.txt") ;
+    Context.Setup( new Session("WaveToText_Sample0") ) ;
 
     string lAudioSample0 = aCmdLineArgs[1] ;
 
@@ -14,7 +14,7 @@ public class WaveToText_Sample0
 
       var lSource = new WaveFileSource(lAudioSample0) ;  
 
-      Context.WindowSizeInSeconds = 250 ;
+      Context.Session.Params.WindowSizeInSeconds = 250 ;
 
       Context.WriteLine("Wave To Text Sample0");
 

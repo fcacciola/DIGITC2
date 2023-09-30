@@ -6,12 +6,12 @@ public class BitsToText_Sample1
 {
   public static void Run( string[] aCmdLineArgs )
   {
-    Context.Setup( @".\DIGITC2_Output.txt") ;
+    Context.Setup( new Session("BitsToText_Sample1") ) ;
 
     Context.WriteLine("BitsToText from a random binary sequence");
 
     int lBitsPerByteParam = 8 ;
-    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 5120 ;
+    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 256000 ;
 
     var lSource = BitsSource.FromRandom(lLen);
 
@@ -22,7 +22,7 @@ public class BitsToText_Sample1
               .Add( new Tokenizer())
               .Add( new ScoreTokenLengthDistribution())
               .Add( new TokensToWords()) 
-              .Add( new ScoreWordLengthDistribution());
+              .Add( new ScoreWordFrequencyDistribution());
 
     var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
    

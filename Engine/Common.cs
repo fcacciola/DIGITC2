@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,40 @@ using DocumentFormat.OpenXml.Vml.Spreadsheet;
 
 namespace DIGITC2
 {
+  public class Params
+  {
+    public float WindowSizeInSeconds = 0;
+    public int   MaxWordLength      = 35;
+  }
+
+  public class Session
+  {
+    public Session( string aName, string aInputFolder = "./Input", string aOutputFolder = "./Output" )
+    {
+      Name         = aName;
+      InputFolder  = aInputFolder; 
+      OutputFolder = aOutputFolder; 
+
+      if ( ! Directory.Exists( OutputFolder ) ) 
+      {
+        Directory.CreateDirectory( OutputFolder );  
+      }
+    }  
+
+    public string Name ;
+    public string InputFolder ;
+    public string OutputFolder ;
+
+    public string SampleFile ( string aFilename ) => $"{InputFolder}/Samples/{aFilename}";
+    public string InFile     ( string aFilename ) => $"{InputFolder}/{aFilename}";
+    public string OutFile    ( string aTail     ) => $"{OutputFolder}/{Name}{aTail}";
+
+    public string LogFile    => OutFile("_log.txt");
+    public string ReportFile => OutFile("_report.txt");
+
+    public Params Params = new Params();
+  }
+
   public class Context
   {
     static Context mInstance = null ;
@@ -30,24 +65,35 @@ namespace DIGITC2
     {
     }
 
-    void Setup_( string aLogFile )
+    Session mSession = null ; 
+
+    void Setup_( Session aSession )
     {
-      if ( File.Exists( aLogFile ) )
-       File.Delete( aLogFile );  
+      mSession = aSession ; 
+
+      if ( File.Exists( mSession.LogFile ) )
+       File.Delete( mSession.LogFile );  
+
+      if ( File.Exists( mSession.ReportFile ) )
+       File.Delete( mSession.ReportFile );  
 
       var lLogger = new LogStateMonitor();
-      lLogger.Open(aLogFile);
+      lLogger.Open(mSession.LogFile);
       mMonitors.Add( lLogger ) ;
+
+      var lReporter = new ReportStateMonitor();
+      lReporter.Open(mSession.ReportFile);
+      mMonitors.Add( lReporter ) ;
 
       WriteLine_("DIGITC 2");
 
-      mWindowSizeInSeconds = 0f ;
-      mMaxWordLength = 20 ;
+
     }
 
     void Shutdown_()
     {
       mMonitors.ForEach( m => m.Close()  );
+      mMonitors.Clear();
     }
 
     void Write_( string aS )
@@ -76,15 +122,12 @@ namespace DIGITC2
       throw e ;
     }
 
-    float mWindowSizeInSeconds ;
-    int mMaxWordLength ;
 
     List<StateMonitor> mMonitors = new List<StateMonitor> ();
 
-    static public float        WindowSizeInSeconds { get { return Instance.mWindowSizeInSeconds ; } set { Instance.mWindowSizeInSeconds = value ; } }
-    static public int          MaxWordLength       { get { return  Instance.mMaxWordLength ; } set { Instance.mMaxWordLength = value ; } }
+    static public Session Session => Instance.mSession ;
 
-    static public void Setup( string aLogFile )                { Instance.Setup_(aLogFile) ; } 
+    static public void Setup( Session aSession )               { Instance.Setup_(aSession) ; } 
     static public void Shutdown()                              { Instance.Shutdown_() ; } 
     static public void Throw( Exception e )                    { Instance.Throw_(e);}
     static public void Error( string aText )                   { Instance.Error_(aText);}

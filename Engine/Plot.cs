@@ -28,7 +28,16 @@ namespace DIGITC2
       public int    BitmapHeight = 2000 ;
       public double BitmapResolution = 96 ;
 
-      public static Options Default = new Options() ;
+      public static Options Default = new Options(TypeE.Lines) ;
+
+      public enum TypeE { Lines, Bars }
+
+      public TypeE Type = TypeE.Lines ;
+
+      public Options( TypeE aType ) { Type = aType ; }  
+
+      public static Options Lines => new Options(TypeE.Lines) ;
+      public static Options Bars  => new Options(TypeE.Bars) ;
     }
 
     public Plot ( Options aOptions = null )  

@@ -1,45 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-using Microsoft.SqlServer.Server;
-
 namespace DIGITC2 {
 
-
-public class BitsToText_Sample0
+public class BitsToText_Sample0_B
 {
   public static void Run( string[] aCmdLineArgs )
   {
-    Context.Setup( new Session("BitsToText_Sample0") ) ;
+    Context.Setup( new Session("BitsToText_Sample0_B") ) ;
 
     Context.WriteLine("BitsToText from a given known text");
 
     int lBitsPerByteParam = 8 ;
 
-    string lData = "dracula.txt" ;
+    int lBaseSize = 10000 ;
+    int lSize     = lBaseSize ;
 
-    var lHugeWordList = File.ReadAllLines( Context.Session.SampleFile(lData) );
+    int lR = 2 ;
 
-    int lCount = lHugeWordList.Length ;
-
-    List<string> lSublist = new List<string>();
-
-    var lRNG = new Random();
-
-    for( int c = 0 ; c < Math.Min(lCount,lHugeWordList.Length) ; ++ c )
+    List<string> lAll = new List<string>() ;
+    do
     { 
-      int lIdx = lRNG.Next(0, lHugeWordList.Length) ;
-      
-      lSublist.Add( lHugeWordList[lIdx] );
+       string lWord = $"{lSize}";      
+       for ( int c = 0 ; c < lSize ; ++ c )  
+       {
+         lAll.Add( lWord ) ;
+       }
+
+       lSize = lBaseSize / lR ;
+       lR ++ ;
     }
-
-
-    string lSourceText = string.Join(" ", lSublist.ToArray() );
+    while ( lSize > 1 ) ;
+    
+    string lSourceText = string.Join(" ", lAll.ToArray() );
 
     Context.WriteLine("Source text: " + lSourceText );
 
@@ -59,7 +56,5 @@ public class BitsToText_Sample0
     Context.Shutdown(); 
   }
 }
-
-
 }
       

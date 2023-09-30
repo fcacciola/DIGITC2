@@ -59,8 +59,9 @@ namespace Driver
       }
       else
       {
-        //Plots();
-        BitsToText_Sample1.Run( args);
+        //BitsToTokens_Sample0.Run( args);
+        //BitsToText_Sample0  .Run( args);
+        BitsToText_Sample1  .Run( args);
       }
     }
   }

@@ -51,8 +51,8 @@ namespace DIGITC2
     {
       Plot rPlot = new Plot(aOptions);
 
-      var lSeries = new LineSeries();
-
+      DataPointSeries lSeries = ( aOptions.Type == Plot.Options.TypeE.Lines ? new LineSeries() as DataPointSeries : new LinearBarSeries() as DataPointSeries ) ;
+      
       for( int i = 0; i < X.Count ; ++ i )
         lSeries.Points.Add(new DataPoint(X[i], Y[i]));
             

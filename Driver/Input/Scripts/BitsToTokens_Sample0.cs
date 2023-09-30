@@ -4,12 +4,12 @@ public class BitsToTokens_Sample0
 {
   public static void Run( string[] aCmdLineArgs )
   {
-    Context.Setup( @".\DIGITC2_Output.txt") ;
+    Context.Setup( new Session("BitsToTokens_Sample0") ) ;
 
     Context.WriteLine("BitsToTokens Sample 0 ");
 
     int lBitsPerByteParam = 8 ;
-    var lSourceText = "This are separate words";
+    var lSourceText = "These are separate words";
 
     Context.WriteLine("Source text: " + lSourceText);
 
@@ -18,7 +18,9 @@ public class BitsToTokens_Sample0
     var lProcessor = new Processor();
 
     lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
-              .Add( new Tokenizer()) ;
+              .Add( new ScoreBytesAsLanguageDigits())
+              .Add( new Tokenizer())
+              .Add( new ScoreTokenLengthDistribution());
 
     var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
 
