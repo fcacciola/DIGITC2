@@ -19,8 +19,6 @@ namespace DIGITC2
 
     public abstract void WriteLine( string aS ) ;
 
-    public abstract void Watch ( string aName, StateValue aV, bool aCompact ) ;
-
     public abstract void Watch ( State aO ) ;
 
     public abstract void Close();
@@ -81,36 +79,54 @@ namespace DIGITC2
     {
     }
 
-    public override void Watch ( string aName, StateValue aV, bool aCompact ) 
+    void WatchAtomicArrayElement ( State aO, int aIdx )
     {
-      if ( aCompact )
-      {
-        Write( aV.Text ?? aName);
-      }
-      else
-      {
-        if ( aV != null )
-             WriteLine( $"{aName}:{aV.Text}");
-        else WriteLine(aName);
-      }
+      WriteLine( $"[{aIdx}]: {aO.Value.Text}");
+    }
+
+    void WatchCompactAtomicArrayElement ( State aO, bool aIsLast )
+    {
+      Write( aO.Value.Text);
+      if ( aIsLast )
+        WriteLine("");
     }
 
     public override void Watch ( State aO )
     {
-      if ( aO.Name != null )
+      if ( aO.Value != null )
+            WriteLine( $"{aO.Name}: {aO.Value.Text}");
+      else if ( aO.Type != null || aO.Name != null)
+            WriteLine( $"{aO.Type}: {aO.Name}");
+
+      if ( aO.Children.Count > 0 )
       {
-        Watch(aO.Name,aO.Value,aO.IsCompact) ;
         Indent();
-      }
 
-      aO.Children.ForEach( x => Watch(x) );
+        if ( aO.IsArray )
+        {
+          for( int i = 0; i < aO.Children.Count; ++ i )
+          {
+            var lChild = aO.Children[i];
+            if ( lChild.Children.Count == 0 )
+            {
+              if ( UseCompactFormat(lChild) )
+                   WatchCompactAtomicArrayElement( lChild, i == aO.Children.Count - 1 );
+              else WatchAtomicArrayElement       ( lChild, i );
+            }
+            else Watch(lChild);
+          }
+        }
+        else
+        {
+          aO.Children.ForEach( x => Watch(x) );
+        }
 
-      if ( !aO.IsCompact && aO.Children.Count > 0 && aO.Children.Last().IsCompact )
-        WriteLine("");
-
-      if ( aO.Name != null )
         Unindent();
+
+      }
     }
+
+    bool UseCompactFormat(State aO) => aO.Type =="Bit" || aO.Type == "Byte";
   }
 
   public class ReportStateMonitor : TextOutputStateMonitor
@@ -118,36 +134,24 @@ namespace DIGITC2
     public ReportStateMonitor()
     {
     }
-
-    public override void Watch ( string aName, StateValue aV, bool aCompact) 
+        
+    public override void Watch ( State aO )
     {
-      if ( aCompact )
+      if ( aO.Value != null )
+           WriteLine( $"{aO.Name}: {aO.Value.Text}");
+      else if ( aO.Type != null || aO.Name != null)
+           WriteLine( $"{aO.Type}: {aO.Name}");
+
+      if ( !aO.IsArray )
       {
-        Write( aV.Text ?? aName);
+        Indent();
+        aO.Children.ForEach( x => Watch(x) );
+        Unindent();
       }
       else
       {
-        if ( aV != null )
-             WriteLine( $"{aName}:{aV.Text}");
-        else WriteLine(aName);
+        WriteLine( $"{aO.Children.Count} elements.");
       }
-    }
-
-    public override void Watch ( State aO )
-    {
-      if ( aO.Name != null )
-      {
-        Watch(aO.Name,aO.Value,aO.IsCompact) ;
-        Indent();
-      }
-
-      aO.Children.ForEach( x => Watch(x) );
-
-      if ( !aO.IsCompact && aO.Children.Count > 0 && aO.Children.Last().IsCompact )
-        WriteLine("");
-
-      if ( aO.Name != null )
-        Unindent();
     }
 
     FileStream         mStream ;

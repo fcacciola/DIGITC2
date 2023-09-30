@@ -15,8 +15,17 @@ namespace DIGITC2
 {
   public class Params
   {
-    public float WindowSizeInSeconds = 0;
-    public int   MaxWordLength      = 35;
+    public float  WindowSizeInSeconds             = 0;
+    public int    MaxWordLength                   = 35;
+    public int    BitsPerByte                     = 8 ;
+    public bool   LittleEndian                    = true ;
+    public double Envelop_AttackTime              = 0.1;
+    public double Envelope_ReleaseTime            = 0.1;
+    public double AmplitudeGate_Threshold         = 0.65;
+    public double ExtractGatedlSymbols_MinDuration= 0.05;
+    public double ExtractGatedlSymbols_MergeGap   = 0.1;
+    public double BinarizeByDuration_Threshold    = 0.4;
+    public string CharSet                         = "us-ascii";
   }
 
   public class Session
@@ -39,10 +48,10 @@ namespace DIGITC2
 
     public string SampleFile ( string aFilename ) => $"{InputFolder}/Samples/{aFilename}";
     public string InFile     ( string aFilename ) => $"{InputFolder}/{aFilename}";
-    public string OutFile    ( string aTail     ) => $"{OutputFolder}/{Name}{aTail}";
+    public string OutFile    ( string aTail     ) => $"{OutputFolder}/{Name}_{aTail}";
 
-    public string LogFile    => OutFile("_log.txt");
-    public string ReportFile => OutFile("_report.txt");
+    public string LogFile    => OutFile("log.txt");
+    public string ReportFile => OutFile("report.txt");
 
     public Params Params = new Params();
   }

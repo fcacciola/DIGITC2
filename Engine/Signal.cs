@@ -19,7 +19,7 @@ namespace DIGITC2
 
     public State GetState()
     {
-      State rS = new State(Name) ;
+      State rS = new State("Signal",Name) ;
       UpdateState(rS) ;
       return rS ;
     }

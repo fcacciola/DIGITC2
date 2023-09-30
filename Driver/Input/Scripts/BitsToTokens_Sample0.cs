@@ -8,7 +8,6 @@ public class BitsToTokens_Sample0
 
     Context.WriteLine("BitsToTokens Sample 0 ");
 
-    int lBitsPerByteParam = 8 ;
     var lSourceText = "These are separate words";
 
     Context.WriteLine("Source text: " + lSourceText);
@@ -17,12 +16,7 @@ public class BitsToTokens_Sample0
 
     var lProcessor = new Processor();
 
-    lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
-              .Add( new ScoreBytesAsLanguageDigits())
-              .Add( new Tokenizer())
-              .Add( new ScoreTokenLengthDistribution());
-
-    var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
+    var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
 
     Context.Shutdown(); 
   }

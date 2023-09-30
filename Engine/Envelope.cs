@@ -11,10 +11,10 @@ namespace DIGITC2
 {
   public class Envelope : WaveFilter
   {
-    public Envelope( double aAttackTime, double aReleaseTime ) 
+    public Envelope() 
     { 
-      mAttackTime  = (float)aAttackTime;  
-      mReleaseTime = (float)aReleaseTime;  
+      mAttackTime  = (float)Context.Session.Params.Envelop_AttackTime;  
+      mReleaseTime = (float)Context.Session.Params.Envelope_ReleaseTime;  
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
@@ -26,7 +26,7 @@ namespace DIGITC2
       return mStep ;
     }
 
-    public override string ToString() => $"Envelope(AttackTime:{mAttackTime},ReleaseTime:{mReleaseTime})";
+    protected override string Name => "Envelope" ;
 
     float mAttackTime ;
     float mReleaseTime;

@@ -123,7 +123,7 @@ namespace DIGITC2
 
     public override State GetState() 
     {
-      State rS = new State() ;
+      State rS = new State("Score") ;
 
       rS.Add( State.With("Zipf_Likelihood"  , Zipf_Likelihood  ) ) ;
       rS.Add( State.With("Kurtosis"         , Kurtosis         ) ) ;
@@ -180,6 +180,8 @@ namespace DIGITC2
 
       return mStep ;
     }
+
+    protected override string Name => "ScoreBytesAsLanguageDigits" ;
   }
 
   public class ScoreTokenLengthDistribution : LexicalFilter
@@ -191,9 +193,6 @@ namespace DIGITC2
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       List<Histogram.Entry> lEntries = new List<Histogram.Entry>() ;
-
-      //for( int i = 0 ; i < Context.MaxWordLength  ; ++ i )
-      // lEntries.Add( new Histogram.Entry(null, $"{i}", i) ) ;
 
       foreach( var lSymbol in aInput.GetSymbols<ArraySymbol>() )
       {
@@ -209,6 +208,8 @@ namespace DIGITC2
       return mStep ;
     }
 
+    protected override string Name => "ScoreTokenLengthDistribution" ;
+
   }
 
 
@@ -221,9 +222,6 @@ namespace DIGITC2
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       List<Histogram.Entry> lEntries = new List<Histogram.Entry>() ;
-
-      //for( int i = 0 ; i < Context.MaxWordLength ; ++ i )
-      // lEntries.Add( new Histogram.Entry(null, $"{i}", i) ) ;
 
       foreach( var lSymbol in aInput.GetSymbols<WordSymbol>() )
       {
@@ -238,6 +236,8 @@ namespace DIGITC2
 
       return mStep ;
     }
+
+    protected override string Name => "ScoreWordLengthDistribution" ;
 
   }
 
@@ -264,6 +264,8 @@ namespace DIGITC2
 
       return mStep ;
     }
+
+    protected override string Name => "ScoreWordFrequencyDistribution" ;
 
   }
 

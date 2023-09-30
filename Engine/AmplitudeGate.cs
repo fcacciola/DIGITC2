@@ -11,9 +11,9 @@ namespace DIGITC2
 {
   public class AmplitudeGate : WaveFilter
   {
-    public AmplitudeGate( double aThreshold ) 
+    public AmplitudeGate() 
     { 
-      mThreshold = (float)aThreshold;
+      mThreshold = (float)Context.Session.Params.AmplitudeGate_Threshold;
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
@@ -38,8 +38,8 @@ namespace DIGITC2
       return mStep ;
     }
 
-    public override string ToString() => $"AmplitudeGate(Threshold:{mThreshold})";
-    
+    protected override string Name => "AmplitudeGate" ;
+
     float mThreshold;
 
   }

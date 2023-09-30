@@ -20,6 +20,12 @@ namespace DIGITC2
       return this ;
     }
 
+    public Processor Then ( Processor aNext )
+    {
+      aNext.mFilters.ForEach( f => Add( f ) ) ;
+      return this ;
+    }
+
     public Result Process( Signal aInput )
     {
       Result rR = new Result();
@@ -40,6 +46,31 @@ namespace DIGITC2
       return rR ;  
     }
 
+    public static Processor FromAudioToBits_ByPulseDuration()
+    {
+      var rProcessor = new Processor();
+
+      rProcessor.Add( new Envelope() )
+                .Add( new AmplitudeGate() )
+                .Add( new ExtractGatedlSymbols() )
+                .Add( new BinarizeByDuration() ) ;
+
+      return rProcessor ;
+    }
+
+    public static Processor FromBits()
+    {
+      var rProcessor = new Processor();
+
+      rProcessor.Add( new BinaryToBytes())
+                .Add( new ScoreBytesAsLanguageDigits())
+                .Add( new Tokenizer())
+                .Add( new ScoreTokenLengthDistribution())
+                .Add( new TokensToWords()) 
+                .Add( new ScoreWordFrequencyDistribution());
+
+      return rProcessor ;
+    }
 
     List<Filter> mFilters = new List<Filter>();
   }

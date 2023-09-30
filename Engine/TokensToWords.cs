@@ -67,7 +67,7 @@ namespace DIGITC2
             ;
     }
 
-    public override string ToString() => $"BytesToText(CharSet:{mCharSet})";
+    protected override string Name => "TokenToWords" ;
 
     string mCharSet ;
     string mFallback ; 

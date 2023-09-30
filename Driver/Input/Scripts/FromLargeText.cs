@@ -11,15 +11,13 @@ using Microsoft.SqlServer.Server;
 namespace DIGITC2 {
 
 
-public class BitsToText_Sample0
+public class FromLargeText
 {
   public static void Run( string[] aCmdLineArgs )
   {
-    Context.Setup( new Session("BitsToText_Sample0") ) ;
+    Context.Setup( new Session("FromLargeText") ) ;
 
-    Context.WriteLine("BitsToText from a given known text");
-
-    int lBitsPerByteParam = 8 ;
+    Context.WriteLine("From large text");
 
     string lData = "dracula.txt" ;
 
@@ -38,23 +36,13 @@ public class BitsToText_Sample0
       lSublist.Add( lHugeWordList[lIdx] );
     }
 
-
     string lSourceText = string.Join(" ", lSublist.ToArray() );
 
     Context.WriteLine("Source text: " + lSourceText );
 
     var lSource = BitsSource.FromText(lSourceText);  
 
-    var lProcessor = new Processor();
-
-    lProcessor.Add( new BinaryToBytes( lBitsPerByteParam, true))
-              .Add( new ScoreBytesAsLanguageDigits())
-              .Add( new Tokenizer())
-              .Add( new ScoreTokenLengthDistribution())
-              .Add( new TokensToWords()) 
-              .Add( new ScoreWordFrequencyDistribution());
-
-    var lResult = lProcessor.Process( lSource.CreateSignal() ) ;
+    var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
 
     Context.Shutdown(); 
   }

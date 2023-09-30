@@ -33,7 +33,7 @@ namespace DIGITC2
 
     public State GetState()
     {
-      State rS = new State($"STEP {StepIdx}") ;
+      State rS = new State("Step",$"{StepIdx}") ;
       if ( Filter != null ) 
         rS.Add( Filter.GetState() );  
 
@@ -75,7 +75,7 @@ namespace DIGITC2
       return aStep ;
     }
 
-    public State GetState() => State.From(null, Steps, false );
+    public State GetState() => State.From("Result",null, Steps );
 
     public List<Step> Steps = new List<Step>();
   }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,41 +33,46 @@ namespace DIGITC2
 
   public class State
   {
-    public State( string aName = null, StateValue aValue = null, bool aIsCompact = false ) {  Name = aName ; Value = aValue ; IsCompact = aIsCompact ; }
+    public State( string aType, string aName = null, StateValue aValue = null )
+    { 
+      Type  = aType;
+      Name  = aName ; 
+      Value = aValue ; 
+    }
 
-    public static State With( string aName, string   aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
-    public static State With( string aName, bool     aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
-    public static State With( string aName, int      aV                    , bool aUseCompactState = false ) => new State( aName, StateValue.From(aV)       , aUseCompactState ) ;
-    public static State With( string aName, float    aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
-    public static State With( string aName, double   aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
-    public static State With( string aName, float[]  aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
-    public static State With( string aName, double[] aV, string aFmt = "F2", bool aUseCompactState = false ) => new State( aName, StateValue.From(aV, aFmt) , aUseCompactState ) ;
+    public static State With( string aName, string   aV                    ) => new State(null, aName, StateValue.From(aV)       ) ;
+    public static State With( string aName, bool     aV                    ) => new State(null, aName, StateValue.From(aV)       ) ;
+    public static State With( string aName, int      aV                    ) => new State(null, aName, StateValue.From(aV)       ) ;
+    public static State With( string aName, float    aV, string aFmt = "F2") => new State(null, aName, StateValue.From(aV, aFmt) ) ;
+    public static State With( string aName, double   aV, string aFmt = "F2") => new State(null, aName, StateValue.From(aV, aFmt) ) ;
+    public static State With( string aName, float[]  aV, string aFmt = "F2") => new State(null, aName, StateValue.From(aV, aFmt) ) ;
+    public static State With( string aName, double[] aV, string aFmt = "F2") => new State(null, aName, StateValue.From(aV, aFmt) ) ;
 
     public static State From( IWithState aO ) => aO.GetState() ;
 
-    public static State From( string aName, IEnumerable<IWithState> aL, bool aUseCompactState = false )  
+    public static State From( string aType, string aName, IEnumerable<IWithState> aL )  
     {
-      State rState = new State(aName);
+      State rState = new State(aType,aName);
 
       foreach( var lO in aL )
       {
         rState.Add(lO.GetState());
       }
 
-      rState.IsCompact = aUseCompactState;  
+      rState.IsArray = true ;
 
       return rState;
+   }
 
-    }
-
-    public string Name ;
-    public StateValue Value ; 
+    public string      Type ;
+    public string      Name ;
+    public StateValue  Value ; 
+    public bool        IsArray ;
     public List<State> Children = new List<State>();
-    public bool IsCompact ;
 
     public void Add( State aChild ) { if ( aChild != null) Children.Add( aChild ) ; }
 
-    public override string ToString() => $"({Name}:{Value})";
+    public override string ToString() => $"({Type}|{Name}:{Value})";
   }
 
   public interface IWithState

@@ -51,7 +51,7 @@ namespace DIGITC2
       return mStep ;
     }
 
-    public override string ToString() => $"Tokenize({mSeparator.Meaning})";
+    protected override string Name => "Tokenize" ;
 
     ByteSymbol mSeparator ;
 

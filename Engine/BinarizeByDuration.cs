@@ -12,7 +12,10 @@ namespace DIGITC2
 
   public class BinarizeByDuration : LexicalFilter
   {
-    public BinarizeByDuration( double aThreshold ) { mThreshold = aThreshold ; }
+    public BinarizeByDuration() 
+    { 
+      mThreshold = Context.Session.Params.BinarizeByDuration_Threshold ; 
+    }
 
     protected override Step Process (LexicalSignal aInput, Step aStep )
     {
@@ -45,7 +48,7 @@ namespace DIGITC2
        return mStep ;
     }
 
-    public override string ToString() => $"BinarizeByDuration(Threshold:{mThreshold})";
+    protected override string Name => "BinarizeByDuration" ;
 
     double mThreshold ;
   }

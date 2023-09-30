@@ -61,7 +61,7 @@ namespace Driver
       {
         //BitsToTokens_Sample0.Run( args);
         //BitsToText_Sample0  .Run( args);
-        BitsToText_Sample1  .Run( args);
+        FromRandomBits.Run( args);
       }
     }
   }

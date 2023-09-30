@@ -11,7 +11,11 @@ namespace DIGITC2
 {
   public class ExtractGatedlSymbols : WaveFilter
   {
-    public ExtractGatedlSymbols( double aMinDuration, double aMergeGap ) { mMinDuration = aMinDuration ; mMergeGap = aMergeGap ; }
+    public ExtractGatedlSymbols() 
+    { 
+      mMinDuration = Context.Session.Params.ExtractGatedlSymbols_MinDuration ;
+      mMergeGap    = Context.Session.Params.ExtractGatedlSymbols_MergeGap ; 
+    }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
     {
@@ -48,7 +52,7 @@ namespace DIGITC2
       return mStep ;
     }
     
-    public override string ToString() => $"Envelope(MinDuration:{mMinDuration},MergeGap:{mMergeGap})";
+    protected override string Name => "ExtractGatedSymbols" ;
 
     void AddSymbol()
     {

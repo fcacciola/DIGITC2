@@ -110,16 +110,16 @@
     <Content Include="Input\Samples\Sample-9.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Input\Scripts\BitsToText_Sample0_B.cs">
+    <Compile Include="Input\Scripts\ZipfWordDistribution.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Scripts\BitsToText_Sample1.cs">
+    <Compile Include="Input\Scripts\FromRandomBits.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Scripts\BitsToText_Sample0.cs">
+    <Compile Include="Input\Scripts\FromLargeText.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Scripts\WaveToText_Sample0.cs">
+    <Compile Include="Input\Scripts\FromAudio_ByDuration.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Input\Scripts\BitsToTokens_Sample0.cs">
@@ -128,6 +128,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Input\Samples\words.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Input\Scripts\WaveToTextParams_0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

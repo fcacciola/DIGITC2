@@ -16,16 +16,15 @@ namespace DIGITC2
 
     public abstract Symbol Copy();
 
-    public abstract string Type            { get; }
-    public abstract string Meaning         { get; }
-    public abstract bool   UseCompactState { get; }
-    public abstract double Value           { get; }
+    public abstract string Type   { get; }
+    public abstract string Meaning{ get; }
+    public abstract double Value  { get; }
 
     public int Idx ;
 
     public virtual State GetState()
     {
-      return State.With($"[{Idx}]",Meaning,UseCompactState) ; 
+      return new State( Type, $"[{Idx}]", StateValue.From(Meaning) ) ;
     }
 
     public static bool Equals( Symbol aLHS, Symbol aRHS)
@@ -71,8 +70,6 @@ namespace DIGITC2
 
     public override string Meaning => $"{Duration:F2} at {(double)Pos/(double)SamplingRate:F2}" ;
 
-    public override bool UseCompactState => false ;
-
     public override double Value => Amplitude ;
 
     public override Symbol Copy() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
@@ -105,8 +102,6 @@ namespace DIGITC2
 
     public override string Meaning => One ? "1" : "0" ;
 
-    public override bool UseCompactState => true ;
-
     public override double Value => One ? 1.0 : 0.0 ;
 
     public bool One ;
@@ -124,8 +119,6 @@ namespace DIGITC2
 
     public override string Meaning => $"[{Byte.ToString():x}]" ;
 
-    public override bool UseCompactState => true ;
-
     public override double Value => Convert.ToDouble(Byte);
 
     public byte Byte ;
@@ -141,16 +134,14 @@ namespace DIGITC2
 
     public override string Meaning => GetState().ToString() ;
 
-    public override bool UseCompactState => false ;
-
     public int UpperBound => Math.Max(Symbols.Count,Context.Session.Params.MaxWordLength) ;
 
     public override double Value => Symbols.Count ;
 
     public override State GetState()
     {
-      State rState = new State($"[{Idx}]");
-      rState.Add( State.From("Tokens", Symbols) );
+      State rState = new State("Token",$"[{Idx}]");
+      rState.Add( State.From(null, null, Symbols) );
       return rState;
     }
 
@@ -169,8 +160,6 @@ namespace DIGITC2
     public override Symbol Copy() { return new WordSymbol( Idx, Word ); }  
 
     public override string Meaning => $"[{Word}]" ;
-
-    public override bool UseCompactState => false ;
 
     public int UpperBound => Math.Max(Word.Length,Context.Session.Params.MaxWordLength) ;
 

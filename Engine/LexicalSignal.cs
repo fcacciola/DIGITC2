@@ -24,7 +24,7 @@ namespace DIGITC2
 
     protected override void UpdateState( State rS ) 
     {
-      rS.Add( State.From(null, Symbols) );
+      rS.Add( State.From(null,null, Symbols) );
     }
 
     //public Histogram Histogram

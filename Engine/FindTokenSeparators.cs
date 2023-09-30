@@ -23,7 +23,7 @@ namespace DIGITC2
       return mStep ;
     }
 
-    public override string ToString() => $"FindTokenSeparators()";
+    protected override string Name => "FindTokenSeparators" ;
 
 
 

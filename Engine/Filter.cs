@@ -20,12 +20,16 @@ namespace DIGITC2
 
     public State GetState()
     {
-      State rS = new State() ;
+      State rS = new State("Filter",Name) ;
       UpdateState(rS) ;
       return rS ;
     }
 
     protected virtual void UpdateState( State rS ) {}
+
+    protected abstract string Name { get; } 
+
+    public override string ToString() => Name ;
 
     protected Step mStep ;
   }

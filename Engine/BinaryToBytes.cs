@@ -12,7 +12,11 @@ namespace DIGITC2
 {
   public class BinaryToBytes : LexicalFilter
   {
-    public BinaryToBytes( int aBitsPerByte, bool aLittleEndian = true ) : base() { mLittleEndian = aLittleEndian ; mBitsPerByte = aBitsPerByte ; }
+    public BinaryToBytes() : base() 
+    { 
+      mLittleEndian = Context.Session.Params.LittleEndian ; 
+      mBitsPerByte  = Context.Session.Params.BitsPerByte ; 
+    }
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
@@ -64,7 +68,7 @@ namespace DIGITC2
       return mStep ;
     }
 
-    public override string ToString() => $"BinaryToBytes(BitsPerByte:{mBitsPerByte}, LittleEndian:{mLittleEndian})";
+    protected override string Name => "BinaryToBytes" ;
 
     void AddPadding()
     {
