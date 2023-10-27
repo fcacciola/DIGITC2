@@ -28,7 +28,7 @@ namespace DIGITC2
 
     public override string ToString() => GetState().ToString();
     
-    public abstract Samples GetSamples() ;
+    public abstract Distribution GetDistribution() ;
 
     public string Name = "";
   }

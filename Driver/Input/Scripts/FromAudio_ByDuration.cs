@@ -2,27 +2,25 @@ namespace DIGITC2 {
 
 public class FromAudio_ByDuration 
 {
-  public static void Run( string[] aCmdLineArgs )
+  public static void Run( Args aArgs  )
   {
     Context.Setup( new Session("FromAudio") ) ;
 
-    string lAudioSample0 = aCmdLineArgs[1] ;
+    string lAudioSample0 = aArgs.Get("Audio" ) ;
 
     if ( System.IO.File.Exists( lAudioSample0 ) )
     {
-      var lSettings = new SimpleSettings(aCmdLineArgs[2]);
-
       var lSource = new WaveFileSource(lAudioSample0) ;  
 
       Context.WriteLine("Wave To Text Sample");
 
-      Context.Session.Params.WindowSizeInSeconds             = 250 ;
-      Context.Session.Params.Envelop_AttackTime              = lSettings.GetDouble("Envelop_AttackTime");
-      Context.Session.Params.Envelope_ReleaseTime            = lSettings.GetDouble("Envelope_ReleaseTime");
-      Context.Session.Params.AmplitudeGate_Threshold         = lSettings.GetDouble("AmplitudeGate_Threshold");
-      Context.Session.Params.ExtractGatedlSymbols_MinDuration= lSettings.GetDouble("ExtractGatedlSymbols_MinDuration");
-      Context.Session.Params.ExtractGatedlSymbols_MergeGap   = lSettings.GetDouble("ExtractGatedlSymbols_MergeGap");
-      Context.Session.Params.BinarizeByDuration_Threshold    = lSettings.GetDouble("BinarizeByDuration_Threshold");
+      Context.Session.Params.WindowSizeInSeconds             = aArgs.GetOptionalInt("WindowSizeInSeconds") ?? 250;
+      Context.Session.Params.Envelop_AttackTime              = aArgs.GetOptionalDouble("Envelop_AttackTime") ?? 0.0;
+      Context.Session.Params.Envelope_ReleaseTime            = aArgs.GetOptionalDouble("Envelope_ReleaseTime") ?? 0.0 ;
+      Context.Session.Params.AmplitudeGate_Threshold         = aArgs.GetOptionalDouble("AmplitudeGate_Threshold") ?? 0.0;
+      Context.Session.Params.ExtractGatedlSymbols_MinDuration= aArgs.GetOptionalDouble("ExtractGatedlSymbols_MinDuration") ?? 0.0;
+      Context.Session.Params.ExtractGatedlSymbols_MergeGap   = aArgs.GetOptionalDouble("ExtractGatedlSymbols_MergeGap") ?? 0.0;  
+      Context.Session.Params.BinarizeByDuration_Threshold    = aArgs.GetOptionalDouble("BinarizeByDuration_Threshold") ?? 0.0;
 
       Context.WriteLine("Parameters") ; 
       Context.WriteLine("Envelop_AttackTime              =" + Context.Session.Params.Envelop_AttackTime               ) ; 

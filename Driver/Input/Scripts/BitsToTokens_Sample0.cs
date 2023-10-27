@@ -2,7 +2,7 @@ namespace DIGITC2 {
 
 public class BitsToTokens_Sample0 
 {
-  public static void Run( string[] aCmdLineArgs )
+  public static void Run( Args aArgs )
   {
     Context.Setup( new Session("BitsToTokens_Sample0") ) ;
 

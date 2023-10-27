@@ -4,13 +4,13 @@ namespace DIGITC2 {
 
 public class FromRandomBits
 {
-  public static void Run( string[] aCmdLineArgs )
+  public static void Run( Args aArgs )
   {
     Context.Setup( new Session("FromRandomBits") ) ;
 
     Context.WriteLine("Random binary sequence");
 
-    int lLen = aCmdLineArgs.Length > 1 ? Convert.ToInt32(aCmdLineArgs[1]) : 2560 ;
+    int lLen = aArgs.GetOptionalInt("Len") ?? 512 ;
 
     var lSource = BitsSource.FromRandom(lLen);
 

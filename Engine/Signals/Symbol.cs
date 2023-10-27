@@ -52,6 +52,8 @@ namespace DIGITC2
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
 
     public override string ToString() => Meaning ;
+
+    public virtual Sample ToSample() => new Sample( new SymbolSampleSource(this, Meaning), Value)  ;
   }
 
   public class GatedSymbol : Symbol
@@ -149,6 +151,8 @@ namespace DIGITC2
 
     public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
 
+    public override Sample ToSample() => new Sample( new SymbolSampleSource(this,  $"{Symbols.Count}"), Symbols.Count) ;
+
   }
 
   public class WordSymbol : Symbol
@@ -166,6 +170,8 @@ namespace DIGITC2
     public override double Value => Word.Length ;
 
     public string Word ;
+
+    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Word}"), Idx) ;
   }
 
 

@@ -9,7 +9,7 @@ namespace DIGITC2 {
 
 public class ZipfWordDistribution
 {
-  public static void Run( string[] aCmdLineArgs )
+  public static void Run( Args aArgs )
   {
     Context.Setup( new Session("ZipfWordDistribution") ) ;
 

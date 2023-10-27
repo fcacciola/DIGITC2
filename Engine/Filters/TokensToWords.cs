@@ -60,9 +60,9 @@ namespace DIGITC2
 
       char lChar = aText[0];
 
-      return char.IsLetterOrDigit(lChar) 
+      return    char.IsLetterOrDigit(lChar) 
+             || char.IsPunctuation(lChar) 
             //|| char.IsWhiteSpace(lChar) 
-            //|| char.IsPunctuation(lChar) 
             //|| char.IsSeparator(lChar) 
             ;
     }

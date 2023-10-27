@@ -23,23 +23,25 @@ namespace Driver
   {
     static void Plots()
     {
-      var lD = new Zipf(3.0,255);
+      //var lD = new Zipf(3.0,255);
 
-      var lY = new Samples( lD.Samples().Take(10000).Select( s => (double)s ) );
+      //var lY = new Samples( lD.Samples().Take(10000).Select( s => (double)s ) );
 
-      var lH = new Histogram2(lY, new Histogram2.Params(256,0,255));
+      //var lH = new Histogram2(lY, new Histogram2.Params(256,0,255));
 
-      var lT0 = lH.Table;
+      //var lT0 = lH.Table;
 
-      lT0.CreatePlot().SavePNG("./Zipf.png");
+      //lT0.CreatePlot().SavePNG("./Zipf.png");
 
-      lT0.ToLog().CreatePlot().SavePNG("./Zipf_Log.png");
+      //lT0.ToLog().CreatePlot().SavePNG("./Zipf_Log.png");
     }
 
     [STAThread]
     static void Main(string[] args)
     {
-      string lScriptFile = args.Length > 0 ? args[0] : "" ;
+      Args lArgs = Args.FromCmdLine(args);
+
+      string lScriptFile = lArgs.Get("File0") ;
 
       if ( File.Exists(lScriptFile) ) 
       {
@@ -50,7 +52,7 @@ namespace Driver
         try
         {
           ScriptDriver lScriptDriver = new ScriptDriver();
-          lScriptDriver.Run( Path.GetFileNameWithoutExtension(lScriptFile),lUserScript, args);
+          lScriptDriver.Run( Path.GetFileNameWithoutExtension(lScriptFile),lUserScript, lArgs);
         }
         catch( Exception e ) 
         {
@@ -59,9 +61,11 @@ namespace Driver
       }
       else
       {
-        //BitsToTokens_Sample0.Run( args);
-        //BitsToText_Sample0  .Run( args);
-        FromRandomBits.Run( args);
+        if ( lArgs.GetBool("FromRandomBits") )
+          FromRandomBits.Run(lArgs);
+
+        if ( lArgs.GetBool("FromLargeText") )
+          FromLargeText .Run(lArgs);
       }
     }
   }

@@ -13,7 +13,7 @@ namespace DIGITC2 {
 
 public class FromLargeText
 {
-  public static void Run( string[] aCmdLineArgs )
+  public static void Run( Args aArgs )
   {
     Context.Setup( new Session("FromLargeText") ) ;
 
@@ -21,19 +21,21 @@ public class FromLargeText
 
     string lData = "dracula.txt" ;
 
-    var lHugeWordList = File.ReadAllLines( Context.Session.SampleFile(lData) );
+    var lHugeWordList = File.ReadAllText( Context.Session.SampleFile(lData) ).Split('\n','\r',' ');
 
-    int lCount = lHugeWordList.Length ;
+    int lCount = aArgs.GetOptionalInt("Len") ?? lHugeWordList.Length ;
 
     List<string> lSublist = new List<string>();
 
     var lRNG = new Random();
 
-    for( int c = 0 ; c < Math.Min(lCount,lHugeWordList.Length) ; ++ c )
+    while ( lSublist.Count < Math.Min(lCount,lHugeWordList.Length) )  
     { 
       int lIdx = lRNG.Next(0, lHugeWordList.Length) ;
       
-      lSublist.Add( lHugeWordList[lIdx] );
+      string lWord = lHugeWordList[lIdx]; 
+      if ( !string.IsNullOrEmpty(lWord) )
+        lSublist.Add(lWord  );
     }
 
     string lSourceText = string.Join(" ", lSublist.ToArray() );

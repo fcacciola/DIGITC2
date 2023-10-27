@@ -27,16 +27,6 @@ namespace DIGITC2
       rS.Add( State.From(null,null, Symbols) );
     }
 
-    //public Histogram Histogram
-    //{
-    //  get
-    //  {
-    //    if (mHistogram == null)
-    //      BuildHistogram();
-    //    return mHistogram;
-    //  }
-    //}
-
     public int Length => Symbols.Count ;
 
     public List<Symbol> Symbols = new List<Symbol>();
@@ -45,20 +35,7 @@ namespace DIGITC2
 
     public Symbol this[int aIdx] => Symbols[aIdx];
 
-    public override Samples GetSamples()
-    {
-      return new Samples(Symbols.ConvertAll( s => s.Value )) ;
-    }
-
-    //public Histogram.Params HistogramParams => Symbols[0].HistogramParams ;
-
-    //void BuildHistogram()
-    //{
-    //  mHistogram = new Histogram( GetSamples(), HistogramParams );
-    //}
-
-    //Histogram mHistogram = null;
-
+    public override Distribution GetDistribution() => new Distribution( Symbols.ConvertAll( s => s.ToSample() ) ) ;
   }
 
 
