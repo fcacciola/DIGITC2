@@ -11,7 +11,7 @@ public class ZipfWordDistribution
 {
   public static void Run( Args aArgs )
   {
-    Context.Setup( new Session("ZipfWordDistribution") ) ;
+    Context.Setup( new Session("ZipfWordDistribution", aArgs) ) ;
 
     Context.WriteLine("Zipf Word Distribution");
 

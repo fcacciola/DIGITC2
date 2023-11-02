@@ -34,10 +34,10 @@ namespace DIGITC2
 
     public override Distribution GetDistribution()
     {
-      Distribution rR = new Distribution();
+      List<Sample> lSamples = new List<Sample>();
       for (int i = 0; i < Samples.Length; ++i)
-        rR.Add( new Sample( new WaveValueSampleSource(i), Samples[i]) ) ;
-      return rR;
+        lSamples.Add( new Sample( new WaveValueSampleSource(i), Samples[i]) ) ;
+      return new Distribution(lSamples);
     }
 
     //public WaveSignal Transform( Func<float,float> Transformation ) 

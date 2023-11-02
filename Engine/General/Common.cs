@@ -30,9 +30,10 @@ namespace DIGITC2
 
   public class Session
   {
-    public Session( string aName, string aInputFolder = "./Input", string aOutputFolder = "./Output" )
+    public Session( string aName, Args aArgs, string aInputFolder = "./Input", string aOutputFolder = "./Output" )
     {
       Name         = aName;
+      Args         = aArgs;
       InputFolder  = aInputFolder; 
       OutputFolder = aOutputFolder; 
 
@@ -43,12 +44,14 @@ namespace DIGITC2
     }  
 
     public string Name ;
+    public Args   Args ;
     public string InputFolder ;
     public string OutputFolder ;
 
-    public string SampleFile ( string aFilename ) => $"{InputFolder}/Samples/{aFilename}";
-    public string InFile     ( string aFilename ) => $"{InputFolder}/{aFilename}";
-    public string OutFile    ( string aTail     ) => $"{OutputFolder}/{Name}_{aTail}";
+    public string SampleFile    ( string aFilename ) => $"{InputFolder}/Samples/{aFilename}";
+    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
+    public string InFile        ( string aFilename ) => $"{InputFolder}/{aFilename}";
+    public string OutFile       ( string aTail     ) => $"{OutputFolder}/{Name}_{aTail}";
 
     public string LogFile    => OutFile("log.txt");
     public string ReportFile => OutFile("report.txt");

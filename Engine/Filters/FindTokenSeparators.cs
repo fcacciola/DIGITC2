@@ -18,7 +18,7 @@ namespace DIGITC2
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
-      mStep = aStep.Next( aInput, "Token Separatos", this) ;
+      mStep = aStep.Next( "Token Separatos", this) ;
 
       return mStep ;
     }

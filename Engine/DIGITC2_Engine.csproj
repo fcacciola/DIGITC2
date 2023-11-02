@@ -106,9 +106,12 @@
     <Compile Include="Filters\Scoring\ScoreBytesAsLanguageDigits.cs" />
     <Compile Include="Filters\Scoring\Scoring.cs" />
     <Compile Include="General\StateMonitor.cs" />
+    <Compile Include="Processor\Step.cs" />
     <Compile Include="Signals\Symbol.cs" />
     <Compile Include="Signals\State.cs" />
-    <Compile Include="Filters\Scoring\Histogram.cs" />
+    <Compile Include="Statistics\DTable.cs" />
+    <Compile Include="Statistics\Distribution.cs" />
+    <Compile Include="Statistics\Histogram.cs" />
     <Compile Include="General\Plot.cs" />
     <Compile Include="General\Common.cs" />
     <Compile Include="Processor\Result.cs" />
@@ -131,6 +134,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <Content Include="Input\References\EnglishText_Bytes_Histogram.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

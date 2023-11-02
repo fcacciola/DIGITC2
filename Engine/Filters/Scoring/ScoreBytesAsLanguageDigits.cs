@@ -6,7 +6,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using MathNet.Numerics;
 using MathNet.Numerics.Statistics;
+
+using Microsoft.SqlServer.Server;
 
 using NWaves.Operations;
 using NWaves.Signals;
@@ -17,36 +20,61 @@ namespace DIGITC2
   {
     public ScoreBytesAsLanguageDigits() : base() 
     {
+      mReferenceHistogram = DTable.FromFile( Context.Session.ReferenceFile("EnglishText_Bytes_Histogram.json") )  ;
     }
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
       var lDist = aInput.GetDistribution();
 
-      var lHistogram = new Histogram(lDist) ;
+      List<Sample> lSamples = new List<Sample>();
 
-      lHistogram.Table.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aInput.Name +"_Histogram.png"));
+      for( int i = 0; i < 256; i++ )  
+        lSamples.Add( new Sample( new FakeSampleSource( new ByteSymbol(-1,(byte)i).Meaning),i));
 
-      var lRankSize = lHistogram.Table.ToRankSize();
+      lSamples.AddRange(lDist.Samples);
 
-      lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aInput.Name +"_RanSize.png"));
+      var lRawHistogram = new Histogram(lSamples) ;
 
+      var lFullRangeHistogram = lRawHistogram.Table ;
 
-      Context.WriteLine("RankSize");
+      var lHistogram = lFullRangeHistogram.Normalized();
 
-      foreach( var lPoint in lRankSize.Points )
+      if ( mReferenceHistogram.YValues.Count == lHistogram.YValues.Count )
       {
-        Context.WriteLine(lPoint.ToString());
+        var a = GoodnessOfFit.RSquared(mReferenceHistogram.YValues, lHistogram.YValues) ; 
+        var b = GoodnessOfFit.StandardError(mReferenceHistogram.YValues, lHistogram.YValues, 1) ; 
+        var c = GoodnessOfFit.CoefficientOfDetermination(mReferenceHistogram.YValues, lHistogram.YValues) ; 
       }
+
+
+      var lRankSize = lHistogram.ToRankSize();
 
       Score lScore = null ;
       
-      mStep = aStep.Next( aInput, "Byte distribution score for language digits.", this, null, true, lScore) ;
+      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore) ;
+
+      bool lSaveReference = Context.Session.Args.GetBool("SaveReference") ;
+      if ( lSaveReference )
+      {
+        string lDistFile = Context.Session.OutFile( aStep.Label + "_Histogram.json");
+        string lRSFile   = Context.Session.OutFile( aStep.Label + "_RankSize.json");
+
+        lHistogram.Save(lDistFile);  
+        lRankSize .Save(lRSFile);  
+      }
+
+      lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
+      lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_RankSize.png"));
+
 
       return mStep ;
     }
 
     protected override string Name => "ScoreBytesAsLanguageDigits" ;
+
+    DTable mReferenceHistogram = null ;
   }
 
 }
+

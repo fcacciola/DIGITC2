@@ -4,7 +4,7 @@ public class BitsToTokens_Sample0
 {
   public static void Run( Args aArgs )
   {
-    Context.Setup( new Session("BitsToTokens_Sample0") ) ;
+    Context.Setup( new Session("BitsToTokens_Sample0", aArgs) ) ;
 
     Context.WriteLine("BitsToTokens Sample 0 ");
 

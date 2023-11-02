@@ -1,0 +1,1688 @@
+{
+  "$type": "DIGITC2.DTable, DIGITC2_Engine",
+  "Points": {
+    "$type": "System.Collections.Generic.List`1[[DIGITC2.DPoint, DIGITC2_Engine]], mscorlib",
+    "$values": [
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 32,
+              "Idx": 2,
+              "Type": "Byte",
+              "Meaning": "[32]",
+              "Value": 32.0
+            },
+            "Key": "[32]"
+          },
+          "Value": 0.0
+        },
+        "Y": 184384.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 101,
+              "Idx": 12,
+              "Type": "Byte",
+              "Meaning": "[101]",
+              "Value": 101.0
+            },
+            "Key": "[101]"
+          },
+          "Value": 1.0
+        },
+        "Y": 92037.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 116,
+              "Idx": 0,
+              "Type": "Byte",
+              "Meaning": "[116]",
+              "Value": 116.0
+            },
+            "Key": "[116]"
+          },
+          "Value": 2.0
+        },
+        "Y": 65785.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 97,
+              "Idx": 30,
+              "Type": "Byte",
+              "Meaning": "[97]",
+              "Value": 97.0
+            },
+            "Key": "[97]"
+          },
+          "Value": 3.0
+        },
+        "Y": 59142.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 111,
+              "Idx": 1,
+              "Type": "Byte",
+              "Meaning": "[111]",
+              "Value": 111.0
+            },
+            "Key": "[111]"
+          },
+          "Value": 4.0
+        },
+        "Y": 58001.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 110,
+              "Idx": 17,
+              "Type": "Byte",
+              "Meaning": "[110]",
+              "Value": 110.0
+            },
+            "Key": "[110]"
+          },
+          "Value": 5.0
+        },
+        "Y": 50318.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 104,
+              "Idx": 4,
+              "Type": "Byte",
+              "Meaning": "[104]",
+              "Value": 104.0
+            },
+            "Key": "[104]"
+          },
+          "Value": 6.0
+        },
+        "Y": 47801.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 115,
+              "Idx": 3,
+              "Type": "Byte",
+              "Meaning": "[115]",
+              "Value": 115.0
+            },
+            "Key": "[115]"
+          },
+          "Value": 7.0
+        },
+        "Y": 44766.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 105,
+              "Idx": 25,
+              "Type": "Byte",
+              "Meaning": "[105]",
+              "Value": 105.0
+            },
+            "Key": "[105]"
+          },
+          "Value": 8.0
+        },
+        "Y": 43253.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 114,
+              "Idx": 22,
+              "Type": "Byte",
+              "Meaning": "[114]",
+              "Value": 114.0
+            },
+            "Key": "[114]"
+          },
+          "Value": 9.0
+        },
+        "Y": 40645.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 100,
+              "Idx": 18,
+              "Type": "Byte",
+              "Meaning": "[100]",
+              "Value": 100.0
+            },
+            "Key": "[100]"
+          },
+          "Value": 10.0
+        },
+        "Y": 32408.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 108,
+              "Idx": 33,
+              "Type": "Byte",
+              "Meaning": "[108]",
+              "Value": 108.0
+            },
+            "Key": "[108]"
+          },
+          "Value": 11.0
+        },
+        "Y": 29210.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 117,
+              "Idx": 16,
+              "Type": "Byte",
+              "Meaning": "[117]",
+              "Value": 117.0
+            },
+            "Key": "[117]"
+          },
+          "Value": 12.0
+        },
+        "Y": 20824.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 119,
+              "Idx": 36,
+              "Type": "Byte",
+              "Meaning": "[119]",
+              "Value": 119.0
+            },
+            "Key": "[119]"
+          },
+          "Value": 13.0
+        },
+        "Y": 19547.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 109,
+              "Idx": 11,
+              "Type": "Byte",
+              "Meaning": "[109]",
+              "Value": 109.0
+            },
+            "Key": "[109]"
+          },
+          "Value": 14.0
+        },
+        "Y": 19430.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 102,
+              "Idx": 14,
+              "Type": "Byte",
+              "Meaning": "[102]",
+              "Value": 102.0
+            },
+            "Key": "[102]"
+          },
+          "Value": 15.0
+        },
+        "Y": 15891.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 99,
+              "Idx": 9,
+              "Type": "Byte",
+              "Meaning": "[99]",
+              "Value": 99.0
+            },
+            "Key": "[99]"
+          },
+          "Value": 16.0
+        },
+        "Y": 15305.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 121,
+              "Idx": 74,
+              "Type": "Byte",
+              "Meaning": "[121]",
+              "Value": 121.0
+            },
+            "Key": "[121]"
+          },
+          "Value": 17.0
+        },
+        "Y": 14313.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 103,
+              "Idx": 55,
+              "Type": "Byte",
+              "Meaning": "[103]",
+              "Value": 103.0
+            },
+            "Key": "[103]"
+          },
+          "Value": 18.0
+        },
+        "Y": 14197.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 44,
+              "Idx": 126,
+              "Type": "Byte",
+              "Meaning": "[44]",
+              "Value": 44.0
+            },
+            "Key": "[44]"
+          },
+          "Value": 19.0
+        },
+        "Y": 12802.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 112,
+              "Idx": 32,
+              "Type": "Byte",
+              "Meaning": "[112]",
+              "Value": 112.0
+            },
+            "Key": "[112]"
+          },
+          "Value": 20.0
+        },
+        "Y": 10427.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 98,
+              "Idx": 48,
+              "Type": "Byte",
+              "Meaning": "[98]",
+              "Value": 98.0
+            },
+            "Key": "[98]"
+          },
+          "Value": 21.0
+        },
+        "Y": 10036.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 46,
+              "Idx": 101,
+              "Type": "Byte",
+              "Meaning": "[46]",
+              "Value": 46.0
+            },
+            "Key": "[46]"
+          },
+          "Value": 22.0
+        },
+        "Y": 9845.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 107,
+              "Idx": 7,
+              "Type": "Byte",
+              "Meaning": "[107]",
+              "Value": 107.0
+            },
+            "Key": "[107]"
+          },
+          "Value": 23.0
+        },
+        "Y": 7016.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 73,
+              "Idx": 41,
+              "Type": "Byte",
+              "Meaning": "[73]",
+              "Value": 73.0
+            },
+            "Key": "[73]"
+          },
+          "Value": 24.0
+        },
+        "Y": 6399.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 118,
+              "Idx": 59,
+              "Type": "Byte",
+              "Meaning": "[118]",
+              "Value": 118.0
+            },
+            "Key": "[118]"
+          },
+          "Value": 25.0
+        },
+        "Y": 6340.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 63,
+              "Idx": 590,
+              "Type": "Byte",
+              "Meaning": "[63]",
+              "Value": 63.0
+            },
+            "Key": "[63]"
+          },
+          "Value": 26.0
+        },
+        "Y": 5930.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 45,
+              "Idx": 97,
+              "Type": "Byte",
+              "Meaning": "[45]",
+              "Value": 45.0
+            },
+            "Key": "[45]"
+          },
+          "Value": 27.0
+        },
+        "Y": 4471.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 84,
+              "Idx": 454,
+              "Type": "Byte",
+              "Meaning": "[84]",
+              "Value": 84.0
+            },
+            "Key": "[84]"
+          },
+          "Value": 28.0
+        },
+        "Y": 2023.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 59,
+              "Idx": 761,
+              "Type": "Byte",
+              "Meaning": "[59]",
+              "Value": 59.0
+            },
+            "Key": "[59]"
+          },
+          "Value": 29.0
+        },
+        "Y": 1900.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 72,
+              "Idx": 1263,
+              "Type": "Byte",
+              "Meaning": "[72]",
+              "Value": 72.0
+            },
+            "Key": "[72]"
+          },
+          "Value": 30.0
+        },
+        "Y": 1813.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 65,
+              "Idx": 577,
+              "Type": "Byte",
+              "Meaning": "[65]",
+              "Value": 65.0
+            },
+            "Key": "[65]"
+          },
+          "Value": 31.0
+        },
+        "Y": 1308.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 95,
+              "Idx": 823,
+              "Type": "Byte",
+              "Meaning": "[95]",
+              "Value": 95.0
+            },
+            "Key": "[95]"
+          },
+          "Value": 32.0
+        },
+        "Y": 1124.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 77,
+              "Idx": 1069,
+              "Type": "Byte",
+              "Meaning": "[77]",
+              "Value": 77.0
+            },
+            "Key": "[77]"
+          },
+          "Value": 33.0
+        },
+        "Y": 1112.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 87,
+              "Idx": 142,
+              "Type": "Byte",
+              "Meaning": "[87]",
+              "Value": 87.0
+            },
+            "Key": "[87]"
+          },
+          "Value": 34.0
+        },
+        "Y": 1104.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 83,
+              "Idx": 1229,
+              "Type": "Byte",
+              "Meaning": "[83]",
+              "Value": 83.0
+            },
+            "Key": "[83]"
+          },
+          "Value": 35.0
+        },
+        "Y": 1086.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 120,
+              "Idx": 29,
+              "Type": "Byte",
+              "Meaning": "[120]",
+              "Value": 120.0
+            },
+            "Key": "[120]"
+          },
+          "Value": 36.0
+        },
+        "Y": 884.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 33,
+              "Idx": 200,
+              "Type": "Byte",
+              "Meaning": "[33]",
+              "Value": 33.0
+            },
+            "Key": "[33]"
+          },
+          "Value": 37.0
+        },
+        "Y": 845.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 76,
+              "Idx": 840,
+              "Type": "Byte",
+              "Meaning": "[76]",
+              "Value": 76.0
+            },
+            "Key": "[76]"
+          },
+          "Value": 38.0
+        },
+        "Y": 771.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 58,
+              "Idx": 96,
+              "Type": "Byte",
+              "Meaning": "[58]",
+              "Value": 58.0
+            },
+            "Key": "[58]"
+          },
+          "Value": 39.0
+        },
+        "Y": 723.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 71,
+              "Idx": 3647,
+              "Type": "Byte",
+              "Meaning": "[71]",
+              "Value": 71.0
+            },
+            "Key": "[71]"
+          },
+          "Value": 40.0
+        },
+        "Y": 627.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 68,
+              "Idx": 1615,
+              "Type": "Byte",
+              "Meaning": "[68]",
+              "Value": 68.0
+            },
+            "Key": "[68]"
+          },
+          "Value": 41.0
+        },
+        "Y": 624.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 113,
+              "Idx": 460,
+              "Type": "Byte",
+              "Meaning": "[113]",
+              "Value": 113.0
+            },
+            "Key": "[113]"
+          },
+          "Value": 42.0
+        },
+        "Y": 624.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 67,
+              "Idx": 751,
+              "Type": "Byte",
+              "Meaning": "[67]",
+              "Value": 67.0
+            },
+            "Key": "[67]"
+          },
+          "Value": 43.0
+        },
+        "Y": 592.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 80,
+              "Idx": 960,
+              "Type": "Byte",
+              "Meaning": "[80]",
+              "Value": 80.0
+            },
+            "Key": "[80]"
+          },
+          "Value": 44.0
+        },
+        "Y": 592.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 106,
+              "Idx": 196,
+              "Type": "Byte",
+              "Meaning": "[106]",
+              "Value": 106.0
+            },
+            "Key": "[106]"
+          },
+          "Value": 45.0
+        },
+        "Y": 569.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 66,
+              "Idx": 2029,
+              "Type": "Byte",
+              "Meaning": "[66]",
+              "Value": 66.0
+            },
+            "Key": "[66]"
+          },
+          "Value": 46.0
+        },
+        "Y": 526.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 74,
+              "Idx": 2953,
+              "Type": "Byte",
+              "Meaning": "[74]",
+              "Value": 74.0
+            },
+            "Key": "[74]"
+          },
+          "Value": 47.0
+        },
+        "Y": 519.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 86,
+              "Idx": 263,
+              "Type": "Byte",
+              "Meaning": "[86]",
+              "Value": 86.0
+            },
+            "Key": "[86]"
+          },
+          "Value": 48.0
+        },
+        "Y": 517.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 79,
+              "Idx": 1506,
+              "Type": "Byte",
+              "Meaning": "[79]",
+              "Value": 79.0
+            },
+            "Key": "[79]"
+          },
+          "Value": 49.0
+        },
+        "Y": 395.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 78,
+              "Idx": 7290,
+              "Type": "Byte",
+              "Meaning": "[78]",
+              "Value": 78.0
+            },
+            "Key": "[78]"
+          },
+          "Value": 50.0
+        },
+        "Y": 364.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 89,
+              "Idx": 7554,
+              "Type": "Byte",
+              "Meaning": "[89]",
+              "Value": 89.0
+            },
+            "Key": "[89]"
+          },
+          "Value": 51.0
+        },
+        "Y": 349.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 69,
+              "Idx": 2615,
+              "Type": "Byte",
+              "Meaning": "[69]",
+              "Value": 69.0
+            },
+            "Key": "[69]"
+          },
+          "Value": 52.0
+        },
+        "Y": 340.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 122,
+              "Idx": 9831,
+              "Type": "Byte",
+              "Meaning": "[122]",
+              "Value": 122.0
+            },
+            "Key": "[122]"
+          },
+          "Value": 53.0
+        },
+        "Y": 330.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 70,
+              "Idx": 14713,
+              "Type": "Byte",
+              "Meaning": "[70]",
+              "Value": 70.0
+            },
+            "Key": "[70]"
+          },
+          "Value": 54.0
+        },
+        "Y": 281.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 82,
+              "Idx": 1305,
+              "Type": "Byte",
+              "Meaning": "[82]",
+              "Value": 82.0
+            },
+            "Key": "[82]"
+          },
+          "Value": 55.0
+        },
+        "Y": 260.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 47,
+              "Idx": 5646,
+              "Type": "Byte",
+              "Meaning": "[47]",
+              "Value": 47.0
+            },
+            "Key": "[47]"
+          },
+          "Value": 56.0
+        },
+        "Y": 223.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 49,
+              "Idx": 18249,
+              "Type": "Byte",
+              "Meaning": "[49]",
+              "Value": 49.0
+            },
+            "Key": "[49]"
+          },
+          "Value": 57.0
+        },
+        "Y": 193.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 50,
+              "Idx": 824,
+              "Type": "Byte",
+              "Meaning": "[50]",
+              "Value": 50.0
+            },
+            "Key": "[50]"
+          },
+          "Value": 58.0
+        },
+        "Y": 131.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 81,
+              "Idx": 3150,
+              "Type": "Byte",
+              "Meaning": "[81]",
+              "Value": 81.0
+            },
+            "Key": "[81]"
+          },
+          "Value": 59.0
+        },
+        "Y": 130.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 85,
+              "Idx": 14714,
+              "Type": "Byte",
+              "Meaning": "[85]",
+              "Value": 85.0
+            },
+            "Key": "[85]"
+          },
+          "Value": 60.0
+        },
+        "Y": 117.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 51,
+              "Idx": 2806,
+              "Type": "Byte",
+              "Meaning": "[51]",
+              "Value": 51.0
+            },
+            "Key": "[51]"
+          },
+          "Value": 61.0
+        },
+        "Y": 98.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 42,
+              "Idx": 976,
+              "Type": "Byte",
+              "Meaning": "[42]",
+              "Value": 42.0
+            },
+            "Key": "[42]"
+          },
+          "Value": 62.0
+        },
+        "Y": 94.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 88,
+              "Idx": 262,
+              "Type": "Byte",
+              "Meaning": "[88]",
+              "Value": 88.0
+            },
+            "Key": "[88]"
+          },
+          "Value": 63.0
+        },
+        "Y": 80.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 48,
+              "Idx": 17603,
+              "Type": "Byte",
+              "Meaning": "[48]",
+              "Value": 48.0
+            },
+            "Key": "[48]"
+          },
+          "Value": 64.0
+        },
+        "Y": 76.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 35,
+              "Idx": 6269,
+              "Type": "Byte",
+              "Meaning": "[35]",
+              "Value": 35.0
+            },
+            "Key": "[35]"
+          },
+          "Value": 65.0
+        },
+        "Y": 75.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 52,
+              "Idx": 13222,
+              "Type": "Byte",
+              "Meaning": "[52]",
+              "Value": 52.0
+            },
+            "Key": "[52]"
+          },
+          "Value": 66.0
+        },
+        "Y": 75.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 53,
+              "Idx": 17602,
+              "Type": "Byte",
+              "Meaning": "[53]",
+              "Value": 53.0
+            },
+            "Key": "[53]"
+          },
+          "Value": 67.0
+        },
+        "Y": 70.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 41,
+              "Idx": 9922,
+              "Type": "Byte",
+              "Meaning": "[41]",
+              "Value": 41.0
+            },
+            "Key": "[41]"
+          },
+          "Value": 68.0
+        },
+        "Y": 65.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 57,
+              "Idx": 18251,
+              "Type": "Byte",
+              "Meaning": "[57]",
+              "Value": 57.0
+            },
+            "Key": "[57]"
+          },
+          "Value": 69.0
+        },
+        "Y": 65.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 56,
+              "Idx": 18250,
+              "Type": "Byte",
+              "Meaning": "[56]",
+              "Value": 56.0
+            },
+            "Key": "[56]"
+          },
+          "Value": 70.0
+        },
+        "Y": 61.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 75,
+              "Idx": 4699,
+              "Type": "Byte",
+              "Meaning": "[75]",
+              "Value": 75.0
+            },
+            "Key": "[75]"
+          },
+          "Value": 71.0
+        },
+        "Y": 59.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 40,
+              "Idx": 18777,
+              "Type": "Byte",
+              "Meaning": "[40]",
+              "Value": 40.0
+            },
+            "Key": "[40]"
+          },
+          "Value": 72.0
+        },
+        "Y": 57.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 54,
+              "Idx": 42790,
+              "Type": "Byte",
+              "Meaning": "[54]",
+              "Value": 54.0
+            },
+            "Key": "[54]"
+          },
+          "Value": 73.0
+        },
+        "Y": 40.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 55,
+              "Idx": 825,
+              "Type": "Byte",
+              "Meaning": "[55]",
+              "Value": 55.0
+            },
+            "Key": "[55]"
+          },
+          "Value": 74.0
+        },
+        "Y": 39.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 34,
+              "Idx": 138013,
+              "Type": "Byte",
+              "Meaning": "[34]",
+              "Value": 34.0
+            },
+            "Key": "[34]"
+          },
+          "Value": 75.0
+        },
+        "Y": 19.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 38,
+              "Idx": 10832,
+              "Type": "Byte",
+              "Meaning": "[38]",
+              "Value": 38.0
+            },
+            "Key": "[38]"
+          },
+          "Value": 76.0
+        },
+        "Y": 16.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 39,
+              "Idx": 273047,
+              "Type": "Byte",
+              "Meaning": "[39]",
+              "Value": 39.0
+            },
+            "Key": "[39]"
+          },
+          "Value": 77.0
+        },
+        "Y": 6.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 90,
+              "Idx": 253670,
+              "Type": "Byte",
+              "Meaning": "[90]",
+              "Value": 90.0
+            },
+            "Key": "[90]"
+          },
+          "Value": 78.0
+        },
+        "Y": 6.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 36,
+              "Idx": 202511,
+              "Type": "Byte",
+              "Meaning": "[36]",
+              "Value": 36.0
+            },
+            "Key": "[36]"
+          },
+          "Value": 79.0
+        },
+        "Y": 2.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 93,
+              "Idx": 60558,
+              "Type": "Byte",
+              "Meaning": "[93]",
+              "Value": 93.0
+            },
+            "Key": "[93]"
+          },
+          "Value": 80.0
+        },
+        "Y": 2.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 64,
+              "Idx": 572769,
+              "Type": "Byte",
+              "Meaning": "[64]",
+              "Value": 64.0
+            },
+            "Key": "[64]"
+          },
+          "Value": 81.0
+        },
+        "Y": 1.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 123,
+              "Idx": 833127,
+              "Type": "Byte",
+              "Meaning": "[123]",
+              "Value": 123.0
+            },
+            "Key": "[123]"
+          },
+          "Value": 82.0
+        },
+        "Y": 1.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.SymbolSampleSource, DIGITC2_Engine",
+            "Symbol": {
+              "$type": "DIGITC2.ByteSymbol, DIGITC2_Engine",
+              "Byte": 125,
+              "Idx": 833129,
+              "Type": "Byte",
+              "Meaning": "[125]",
+              "Value": 125.0
+            },
+            "Key": "[125]"
+          },
+          "Value": 83.0
+        },
+        "Y": 1.0
+      }
+    ]
+  }
+}

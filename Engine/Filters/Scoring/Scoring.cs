@@ -22,6 +22,7 @@ namespace DIGITC2
     public double Likelihood = 0 ;
   }
 
+
   public class ZipfDistribtionEstimator
   {
     public ZipfDistribtionEstimator( Distribution aSamples )

@@ -4,7 +4,7 @@ public class FromAudio_ByDuration
 {
   public static void Run( Args aArgs  )
   {
-    Context.Setup( new Session("FromAudio") ) ;
+    Context.Setup( new Session("FromAudio", aArgs) ) ;
 
     string lAudioSample0 = aArgs.Get("Audio" ) ;
 

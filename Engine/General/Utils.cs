@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 using NWaves.Audio;
 using NWaves.Operations;
 using NWaves.Signals;
@@ -45,4 +47,42 @@ namespace DIGITC2
       return string.Join(",",lStrings);
     } 
   }
+
+  public interface IToJSON
+  {
+    string ToJSON();
+  }
+
+  public static class JsonExtensions
+  {
+    public static string ToJSON<T> ( this T aModel )
+    {
+      string rJ = "" ;
+
+      IToJSON lTJ = aModel as IToJSON ;
+      if ( lTJ != null )
+      {
+        rJ = lTJ.ToJSON();
+      }
+      else
+      {
+        try
+        {
+          var lSWriter = new StringWriter();
+          var lWriter = new JsonTextWriter(lSWriter);
+          lWriter.Formatting = Formatting.Indented; 
+          var lSer = JsonSerializer.Create(new JsonSerializerSettings(){ TypeNameHandling = TypeNameHandling.All });
+          lSer.Serialize(lWriter, aModel);
+          lWriter.Flush();
+          rJ = lSWriter.ToString();
+        }
+        catch
+        {
+        }
+      }
+
+      return rJ ;
+    }
+  }
+    
 }

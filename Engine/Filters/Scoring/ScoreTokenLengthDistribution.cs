@@ -27,7 +27,7 @@ namespace DIGITC2
 
       Score lScore = null ; //new StatisticalScore(aInput, aInput.GetSamples(), lHistogram, 0) ;
 
-      mStep = aStep.Next( aInput, "Word-length distribution score", this, null, true, lScore) ;
+      mStep = aStep.Next(  "Word-length distribution score", this, lScore) ;
 
       return mStep ;
     }
@@ -51,7 +51,7 @@ namespace DIGITC2
 
       Score lScore = null ; //new StatisticalScore(aInput, aInput.GetSamples(), lHistogram, 0) ;
 
-      mStep = aStep.Next( aInput, "Word-length distribution score", this, null, true, lScore) ;
+      mStep = aStep.Next( "Word-length distribution score", this, lScore) ;
 
       return mStep ;
     }

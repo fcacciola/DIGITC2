@@ -6,11 +6,11 @@ public class FromRandomBits
 {
   public static void Run( Args aArgs )
   {
-    Context.Setup( new Session("FromRandomBits") ) ;
+    Context.Setup( new Session("FromRandomBits", aArgs) ) ;
 
     Context.WriteLine("Random binary sequence");
 
-    int lLen = aArgs.GetOptionalInt("Len") ?? 512 ;
+    int lLen = aArgs.GetOptionalInt("BitsCount") ?? 512 ;
 
     var lSource = BitsSource.FromRandom(lLen);
 

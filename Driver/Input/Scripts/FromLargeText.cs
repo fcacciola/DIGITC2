@@ -15,7 +15,7 @@ public class FromLargeText
 {
   public static void Run( Args aArgs )
   {
-    Context.Setup( new Session("FromLargeText") ) ;
+    Context.Setup( new Session("FromLargeText", aArgs) ) ;
 
     Context.WriteLine("From large text");
 
@@ -23,7 +23,7 @@ public class FromLargeText
 
     var lHugeWordList = File.ReadAllText( Context.Session.SampleFile(lData) ).Split('\n','\r',' ');
 
-    int lCount = aArgs.GetOptionalInt("Len") ?? lHugeWordList.Length ;
+    int lCount = aArgs.GetOptionalInt("TextSlice") ?? lHugeWordList.Length ;
 
     List<string> lSublist = new List<string>();
 
