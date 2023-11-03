@@ -101,10 +101,11 @@
   <ItemGroup>
     <Compile Include="Filters\AmplitudeGate.cs" />
     <Compile Include="Filters\BinarizeByDuration.cs" />
-    <Compile Include="Filters\Scoring\ScoreWordFrequencyDistribution.cs" />
-    <Compile Include="Filters\Scoring\ScoreTokenLengthDistribution.cs" />
-    <Compile Include="Filters\Scoring\ScoreBytesAsLanguageDigits.cs" />
-    <Compile Include="Filters\Scoring\Scoring.cs" />
+    <Compile Include="Scoring\ScoreWordFrequencyDistribution.cs" />
+    <Compile Include="Scoring\ScoreTokenLengthDistribution.cs" />
+    <Compile Include="Scoring\ScoreBytesAsLanguageDigits.cs" />
+    <Compile Include="Scoring\Scoring.cs" />
+    <Compile Include="Filters\WordsToText.cs" />
     <Compile Include="General\StateMonitor.cs" />
     <Compile Include="Processor\Step.cs" />
     <Compile Include="Signals\Symbol.cs" />
@@ -135,6 +136,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <Content Include="Input\References\EnglishText_Bytes_Histogram.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Input\References\EnglishText_Tokens_RankSize.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />

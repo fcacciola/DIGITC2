@@ -13,9 +13,9 @@ namespace DIGITC2
 
   public class Tokenizer : LexicalFilter
   {
-    public Tokenizer( ByteSymbol aSeparator = null ) : base() 
+    public Tokenizer() : base() 
     {
-      mSeparator = aSeparator ?? BytesSource.GetTextSeparator() ; 
+      mSeparators = BytesSource.GetWordSeparators() ; 
     }
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
@@ -26,7 +26,7 @@ namespace DIGITC2
 
       foreach( var lByte in aInput.Symbols )
       {
-        if ( lByte == mSeparator )
+        if ( IsSeparator(lByte) )
         { 
           if ( lCurrToken.Count > 0 ) 
           {
@@ -51,9 +51,18 @@ namespace DIGITC2
       return mStep ;
     }
 
+    bool IsSeparator( Symbol aS )
+    {
+      foreach( var lSeparator in mSeparators )
+        if ( lSeparator == aS ) 
+          return true ;
+
+      return false ;
+    }
+
     protected override string Name => "Tokenize" ;
 
-    ByteSymbol mSeparator ;
+    List<Symbol> mSeparators = new List<Symbol>() ;
 
 
   }

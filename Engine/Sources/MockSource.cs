@@ -29,11 +29,13 @@ namespace DIGITC2
       return rSource; 
     }
 
-    public static ByteSymbol GetTextSeparator()
+    public static List<Symbol> GetWordSeparators()
     {
-      var lSeparatorSource = BytesSource.FromText(" ","us-ascii") ;
+      List<Symbol> rS = new List<Symbol>();
+      var lSeparatorSource = BytesSource.FromText(" ,;.:-!¡¿?()[]{}/$%&#@*=+\\\"'","us-ascii") ;
       var lSeparatorBytes = lSeparatorSource.CreateSignal();
-      return ( lSeparatorBytes as LexicalSignal).Symbols[0] as ByteSymbol;
+      rS.AddRange((lSeparatorBytes as LexicalSignal).Symbols);
+      return rS;
     }
 
     protected override Signal DoCreateSignal() 

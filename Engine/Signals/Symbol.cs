@@ -157,7 +157,7 @@ namespace DIGITC2
 
   public class WordSymbol : Symbol
   {
-    public WordSymbol( int aIdx, string aText ) : base(aIdx) { Word = aText ; }
+    public WordSymbol( int aIdx, string aWord ) : base(aIdx) { Word = aWord ; }
 
     public override string Type => "Word" ;
 
@@ -171,8 +171,24 @@ namespace DIGITC2
 
     public string Word ;
 
-    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Word}"), Idx) ;
+    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, Word), Idx) ;
   }
 
+  public class TextSymbol : Symbol
+  {
+    public TextSymbol( int aIdx, string aText ) : base(aIdx) { Text = aText ; }
+
+    public override string Type => "Text" ;
+
+    public override Symbol Copy() { return new WordSymbol( Idx, Text ); }  
+
+    public override string Meaning => Text ;
+
+    public override double Value => Text.Length ;
+
+    public string Text ;
+
+    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, Text), Idx) ;
+  }
 
 }

@@ -73,7 +73,8 @@ namespace DIGITC2
                 .Add( new Tokenizer())
                 .Add( new ScoreTokenLengthDistribution())
                 .Add( new TokensToWords()) 
-                .Add( new ScoreWordFrequencyDistribution());
+                .Add( new ScoreWordFrequencyDistribution())
+                .Add( new WordsToText()) ;
 
       return rProcessor ;
     }
