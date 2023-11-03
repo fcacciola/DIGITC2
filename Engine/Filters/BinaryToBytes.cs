@@ -14,8 +14,8 @@ namespace DIGITC2
   {
     public BinaryToBytes() : base() 
     { 
-      mLittleEndian = Context.Session.Params.LittleEndian ; 
-      mBitsPerByte  = Context.Session.Params.BitsPerByte ; 
+      mLittleEndian = Context.Session.Args.GetBool("BinaryToBytes_LittleEndian") ; 
+      mBitsPerByte  = Context.Session.Args.GetInt("BinaryToBytes_BitsPerByte") ; 
     }
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )

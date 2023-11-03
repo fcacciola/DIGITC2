@@ -15,9 +15,20 @@ namespace DIGITC2
 {
   public abstract class Score : IWithState
   {
-    public abstract State GetState() ;
+    public virtual State GetState() 
+    {
+      State rState = new State("Score"); 
+
+      rState.Add( State.With("Likelihood" ,Likelihood));
+      rState.Add( State.With("Passed"     ,Passed));
+      rState.Add( State.With("QuitProcess",QuitProcess));
+
+      return rState;
+    }
 
     public bool QuitProcess = false ;
+
+    public bool Passed = false ;
 
     public double Likelihood = 0 ;
   }

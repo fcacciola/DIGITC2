@@ -90,26 +90,16 @@ namespace DIGITC2
       return new Distribution( Samples.Select( s => s.Transformed(f)));
     }
 
-    //public void FillBaseStats()
-    //{
-    //  var lDescriptiveStatistics = new DescriptiveStatistics(this);
+    public Distribution ExtendedWithBaseline( double aLower, double aHigher, double aStep, Func<double,string> CreateKey )
+    {
+      List<Sample> lSamples = new List<Sample>();
+      for( double v = aLower; v < aHigher; v += aStep )  
+        lSamples.Add( new Sample( new FakeSampleSource( CreateKey(v) ) ,v));
 
-    //  Stats.Kurtosis          = lDescriptiveStatistics.Kurtosis;
-    //  Stats.Maximum           = lDescriptiveStatistics.Maximum;
-    //  Stats.Minimum           = lDescriptiveStatistics.Minimum;
-    //  Stats.Mean              = lDescriptiveStatistics.Mean;
-    //  Stats.Variance          = lDescriptiveStatistics.Variance;
-    //  Stats.StandardDeviation = lDescriptiveStatistics.StandardDeviation;
-    //  Stats.Skewness          = lDescriptiveStatistics.Skewness;
-    //}
+      lSamples.AddRange(Samples);
 
-    //public Stats Stats = new Stats();
-
-    //public enum SortStateE { Unsorted, Ascending, Descending } ;
-
-    //public SortStateE SortState = SortStateE.Unsorted ;
-
-
+      return new Distribution( lSamples );
+    }
 
     public int Count => Samples.Count ;
 
@@ -126,6 +116,7 @@ namespace DIGITC2
 
       return JsonConvert.DeserializeObject<Distribution>( lJson );  
     }
+
     public IReadOnlyList<Sample> Samples => mSamples.AsReadOnlyList();
     public IReadOnlyList<double> Values  => mValues .AsReadOnlyList();
 

@@ -16,57 +16,48 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  public class BytesAsLanguageDigits_Score : Score
+  {
+    public BytesAsLanguageDigits_Score( double aLikelihood )
+    {
+      Likelihood  = aLikelihood;
+      Passed      = Likelihood > Context.Session.Args.GetOptionalDouble("BytesAsLanguageDigits_PassThreshold" ).GetValueOrDefault(0.35);
+      QuitProcess = Likelihood < Context.Session.Args.GetOptionalDouble("BytesAsLanguageDigits_QuiteThreshold").GetValueOrDefault(0.01);
+    }
+  }
+  
   public class ScoreBytesAsLanguageDigits : LexicalFilter
   {
     public ScoreBytesAsLanguageDigits() : base() 
     {
       mReferenceHistogram = DTable.FromFile( Context.Session.ReferenceFile("EnglishText_Bytes_Histogram.json") )  ;
+      if ( mReferenceHistogram == null )
+        Context.Error("Failed loading reference EnglishText_Bytes_Histogram.json");
     }
+
+    string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {
-      var lDist = aInput.GetDistribution();
+      var lDist = aInput.GetDistribution().ExtendedWithBaseline(0, 256, 1, CreateFakeKey);
 
-      List<Sample> lSamples = new List<Sample>();
-
-      for( int i = 0; i < 256; i++ )  
-        lSamples.Add( new Sample( new FakeSampleSource( new ByteSymbol(-1,(byte)i).Meaning),i));
-
-      lSamples.AddRange(lDist.Samples);
-
-      var lRawHistogram = new Histogram(lSamples) ;
+      var lRawHistogram = new Histogram(lDist) ;
 
       var lFullRangeHistogram = lRawHistogram.Table ;
 
       var lHistogram = lFullRangeHistogram.Normalized();
 
-      if ( mReferenceHistogram.YValues.Count == lHistogram.YValues.Count )
-      {
-        var a = GoodnessOfFit.RSquared(mReferenceHistogram.YValues, lHistogram.YValues) ; 
-        var b = GoodnessOfFit.StandardError(mReferenceHistogram.YValues, lHistogram.YValues, 1) ; 
-        var c = GoodnessOfFit.CoefficientOfDetermination(mReferenceHistogram.YValues, lHistogram.YValues) ; 
-      }
+      var lLikelihood = GoodnessOfFit.RSquared(mReferenceHistogram.YValues, lHistogram.YValues) ; 
 
-
-      var lRankSize = lHistogram.ToRankSize();
-
-      Score lScore = null ;
+      Score lScore = new BytesAsLanguageDigits_Score(lLikelihood) ;
       
       mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore) ;
 
-      bool lSaveReference = Context.Session.Args.GetBool("SaveReference") ;
-      if ( lSaveReference )
-      {
-        string lDistFile = Context.Session.OutFile( aStep.Label + "_Histogram.json");
-        string lRSFile   = Context.Session.OutFile( aStep.Label + "_RankSize.json");
+      if ( Context.Session.Args.GetBool("SaveReference") )
+        lHistogram.Save(Context.Session.OutFile( aStep.Label + "_Histogram.json"));  
 
-        lHistogram.Save(lDistFile);  
-        lRankSize .Save(lRSFile);  
-      }
-
-      lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
-      lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_RankSize.png"));
-
+      if ( Context.Session.Args.GetBool("Plot") )
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
 
       return mStep ;
     }

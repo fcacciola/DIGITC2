@@ -13,7 +13,7 @@ namespace DIGITC2
   {
     public AmplitudeGate() 
     { 
-      mThreshold = (float)Context.Session.Params.AmplitudeGate_Threshold;
+      mThreshold = (float)Context.Session.Args.GetDouble("AmplitudeGate_Threshold");
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )

@@ -13,8 +13,8 @@ namespace DIGITC2
   {
     public ExtractGatedlSymbols() 
     { 
-      mMinDuration = Context.Session.Params.ExtractGatedlSymbols_MinDuration ;
-      mMergeGap    = Context.Session.Params.ExtractGatedlSymbols_MergeGap ; 
+      mMinDuration = Context.Session.Args.GetDouble("ExtractGatedlSymbols_MinDuration") ;
+      mMergeGap    = Context.Session.Args.GetDouble("ExtractGatedlSymbols_MergeGap") ; 
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )

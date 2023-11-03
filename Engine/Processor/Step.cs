@@ -13,51 +13,51 @@ namespace DIGITC2
 {
   public class Step : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, IWithState aData, Score aScore )
+    public Step( Signal aSignal, string aLabel, Filter aFilter, Score aScore, IWithState aData )
     {
-      Signal      = aSignal;
-      Label       = aLabel ;
-      Filter      = aFilter; 
-      Data        = aData;
-      Score       = aScore;
+      Signal = aSignal;
+      Label  = aLabel ;
+      Filter = aFilter; 
+      Score  = aScore;
+      Data   = aData;
     }
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Step Next( string aLabel, Filter aFilter, IWithState aData = null, Score aScore = null )
+    public Step Next( string aLabel, Filter aFilter, Score aScore = null, IWithState aData = null )
     {
-      return new Step(Signal, aLabel, aFilter, aData, aScore);
+      return new Step(Signal, aLabel, aFilter, aScore, aData);
     }
 
     public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
     {
-      return new Step(aSignal, aLabel, aFilter, aData, null);
+      return new Step(aSignal, aLabel, aFilter, null, aData);
     }
 
     public State GetState()
     {
       State rS = new State("Step",$"{StepIdx}") ;
+
       if ( Filter != null ) 
         rS.Add( Filter.GetState() );  
 
       if ( Signal != null )
         rS.Add( Signal.GetState() );  
 
-      if ( Data != null ) 
-        rS.Add( Data.GetState() );  
-
       if ( Score != null ) 
         rS.Add( Score.GetState() );  
+
+      if ( Data != null ) 
+        rS.Add( Data.GetState() );  
 
       return rS ;
     }
 
-    public Signal     Signal  ;
-    public string     Label   ;
-    public Filter     Filter  ;
-    public IWithState Data    ;
-    public bool       NoNewSignal ;
-    public Score      Score ;
+    public Signal     Signal ;
+    public string     Label  ;
+    public Filter     Filter ;
+    public Score      Score  ;
+    public IWithState Data   ;
 
     public int       StepIdx ;
   }

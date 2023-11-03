@@ -65,7 +65,10 @@ namespace Driver
           FromRandomBits.Run(lArgs);
 
         if ( lArgs.GetBool("FromLargeText") )
-          FromLargeText .Run(lArgs);
+          FromLargeText.Run(lArgs);
+
+        if ( lArgs.GetBool("FromMultipleTextSizes") )
+          FromMultipleTextSizes.Run(lArgs); 
       }
     }
   }

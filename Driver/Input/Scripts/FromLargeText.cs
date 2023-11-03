@@ -19,28 +19,7 @@ public class FromLargeText
 
     Context.WriteLine("From large text");
 
-    string lData = "dracula.txt" ;
-
-    var lHugeWordList = File.ReadAllText( Context.Session.SampleFile(lData) ).Split('\n','\r',' ');
-
-    int lCount = aArgs.GetOptionalInt("TextSlice") ?? lHugeWordList.Length ;
-
-    List<string> lSublist = new List<string>();
-
-    var lRNG = new Random();
-
-    while ( lSublist.Count < Math.Min(lCount,lHugeWordList.Length) )  
-    { 
-      int lIdx = lRNG.Next(0, lHugeWordList.Length) ;
-      
-      string lWord = lHugeWordList[lIdx]; 
-      if ( !string.IsNullOrEmpty(lWord) )
-        lSublist.Add(lWord  );
-    }
-
-    string lSourceText = string.Join(" ", lSublist.ToArray() );
-
-    Context.WriteLine("Source text: " + lSourceText );
+    string lSourceText = File.ReadAllText( Context.Session.SampleFile( Context.Session.Args.Get("LargeText") ) );
 
     var lSource = BitsSource.FromText(lSourceText);  
 

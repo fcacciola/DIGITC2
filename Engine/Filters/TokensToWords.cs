@@ -13,7 +13,11 @@ namespace DIGITC2
 {
   public class TokensToWords : LexicalFilter
   {
-    public TokensToWords( string aCharSet = "us-ascii", string aFallback = "!" ) : base() { mCharSet = aCharSet ; mFallback = aFallback; }
+    public TokensToWords() : base() 
+    { 
+      mCharSet  = Context.Session.Args.Get("TokensToWords_CharSet") ; 
+      mFallback = Context.Session.Args.Get("TokensToWords_Fallback") ;
+    }
 
     protected override Step Process ( LexicalSignal aInput, Step aStep )
     {

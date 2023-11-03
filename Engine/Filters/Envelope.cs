@@ -13,8 +13,8 @@ namespace DIGITC2
   {
     public Envelope() 
     { 
-      mAttackTime  = (float)Context.Session.Params.Envelop_AttackTime;  
-      mReleaseTime = (float)Context.Session.Params.Envelope_ReleaseTime;  
+      mAttackTime  = (float)Context.Session.Args.GetDouble("Envelop_AttackTime");  
+      mReleaseTime = (float)Context.Session.Args.GetDouble("Envelope_ReleaseTime");  
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
