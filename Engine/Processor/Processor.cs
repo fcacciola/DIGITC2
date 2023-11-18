@@ -42,12 +42,14 @@ namespace DIGITC2
 
         Context.Watch(lStep) ; 
 
-        if ( (lStep.Score?.QuitProcess).GetValueOrDefault(false) )
+        if ( lStep.Quit )
         {
-          Context.WriteLine("Filter indicated to quite process.");
+          Context.WriteLine("Filter indicated to quit process.");
           break ;
         }
       }
+
+      rR.Setup();
 
       return rR ;  
     }

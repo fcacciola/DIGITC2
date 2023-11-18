@@ -16,21 +16,14 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  public class BytesAsLanguageDigits_Score : Score
-  {
-    public BytesAsLanguageDigits_Score( double aLikelihood )
-    {
-      Likelihood  = aLikelihood;
-      Passed      = Likelihood > Context.Session.Args.GetOptionalDouble("BytesAsLanguageDigits_PassThreshold" ).GetValueOrDefault(0.35);
-      QuitProcess = Likelihood < Context.Session.Args.GetOptionalDouble("BytesAsLanguageDigits_QuiteThreshold").GetValueOrDefault(0.01);
-    }
-  }
-  
+
   public class ScoreBytesAsLanguageDigits : LexicalFilter
   {
     public ScoreBytesAsLanguageDigits() : base() 
     {
-      mReference = DTable.FromFile( Context.Session.ReferenceFile("EnglishText_Bytes_Histogram.json") )  ;
+      mReference     = DTable.FromFile( Context.Session.ReferenceFile("Dracula_Bytes_Histogram.json") )  ;
+      mQuitThreshold = Context.Session.Args.GetOptionalInt("BytesAsLanguageDigits_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(Context.Session.Args.Get("BytesAsLanguageDigits_FitnessMap"));
     }
 
     string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
@@ -45,24 +38,28 @@ namespace DIGITC2
 
       var lHistogram = lFullRangeHistogram.Normalized();
 
-      var lLikelihood = GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues) ; 
+      var lLikelihood = (int)Math.Round(GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues) * 100) ; 
 
-      Score lScore = new BytesAsLanguageDigits_Score(lLikelihood) ;
+      var lFitness = mFitnessMap.Map(lLikelihood) ;
+
+      Score lScore = new Score(lLikelihood,lFitness) ;
       
-      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore) ;
+      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore, lLikelihood > mQuitThreshold) ;
 
       if ( Context.Session.Args.GetBool("SaveReference") )
-        lHistogram.Save(Context.Session.OutFile( aStep.Label + "_Histogram.json"));  
+        lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  
 
       if ( Context.Session.Args.GetBool("Plot") )
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_Histogram.png"));
 
       return mStep ;
     }
 
     protected override string Name => "ScoreBytesAsLanguageDigits" ;
 
-    DTable mReference = null ;
+    int        mQuitThreshold;
+    FitnessMap mFitnessMap ;
+    DTable     mReference = null ;
   }
 
 }

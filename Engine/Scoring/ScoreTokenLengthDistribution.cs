@@ -14,21 +14,13 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  public class TokenLengthDistribution_Score : Score
-  {
-    public TokenLengthDistribution_Score( double aLikelihood )
-    {
-      Likelihood  = aLikelihood;
-      Passed      = Likelihood > Context.Session.Args.GetOptionalDouble("ScoreTokenLengthDistribution_PassThreshold" ).GetValueOrDefault(0.35);
-      QuitProcess = Likelihood < Context.Session.Args.GetOptionalDouble("ScoreTokenLengthDistribution_QuiteThreshold").GetValueOrDefault(0.01);
-    }
-  }
-
   public class ScoreTokenLengthDistribution : LexicalFilter
   {
     public ScoreTokenLengthDistribution() : base() 
     {
-      mReference = DTable.FromFile( Context.Session.ReferenceFile("EnglishText_Tokens_RankSize.json") )  ;
+      mReference = DTable.FromFile( Context.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
+      mQuitThreshold = Context.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(Context.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
     string CreateFakeKey( double i ) => $"{i}";
@@ -45,22 +37,24 @@ namespace DIGITC2
 
       var lRankSize = lFullRangeRankSize.Normalized();
 
-      var lLikelihood = GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues) ; 
+      var lLikelihood = (int)Math.Round(GoodnessOfFit.RSquared(mReference.YValues, lRankSize.YValues) * 100) ; 
 
-      Score lScore = new TokenLengthDistribution_Score(lLikelihood) ;
+      var lFitness = mFitnessMap.Map(lLikelihood) ;
 
-      mStep = aStep.Next( "Token-length distribution score", this, lScore) ;
+      Score lScore = new Score(lLikelihood,lFitness) ;
+
+      mStep = aStep.Next( "Token-length distribution score", this, lScore, lLikelihood < mQuitThreshold) ;
 
       if ( Context.Session.Args.GetBool("SaveReference") )
       {
-        lHistogram.Save(Context.Session.OutFile( aStep.Label + "_Histogram.json"));  
-        lRankSize .Save(Context.Session.OutFile( aStep.Label + "_RankSize.json"));  
+        lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  
+        lRankSize .Save(Context.Session.LogFile( aStep.Label + "_RankSize.json"));  
       }
 
       if ( Context.Session.Args.GetBool("Plot") )
       {
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_Histogram.png"));
+        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_RankSize.png"));
       }
 
       return mStep ;
@@ -68,7 +62,9 @@ namespace DIGITC2
 
     protected override string Name => "ScoreTokenLengthDistribution" ;
 
-    DTable mReference = null ;
+    int        mQuitThreshold;
+    FitnessMap mFitnessMap ;
+    DTable     mReference = null ;
   }
 
 

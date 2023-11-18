@@ -34,10 +34,10 @@ namespace DIGITC2
       mStep = aStep.Next( "Word-frequency distribution score", this, lScore) ;
 
       if ( Context.Session.Args.GetBool("SaveReference") )
-        lHistogram.Save(Context.Session.OutFile( aStep.Label + "_Histogram.json"));  
+        lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  
 
       if ( Context.Session.Args.GetBool("Plot") )
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aStep.Label +"_Histogram.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_Histogram.png"));
 
       return mStep ;
     }

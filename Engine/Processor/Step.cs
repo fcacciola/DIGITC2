@@ -13,25 +13,26 @@ namespace DIGITC2
 {
   public class Step : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, Score aScore, IWithState aData )
+    public Step( Signal aSignal, string aLabel, Filter aFilter, Score aScore, bool aQuit, IWithState aData )
     {
       Signal = aSignal;
       Label  = aLabel ;
       Filter = aFilter; 
       Score  = aScore;
+      Quit   = aQuit;
       Data   = aData;
     }
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Step Next( string aLabel, Filter aFilter, Score aScore = null, IWithState aData = null )
+    public Step Next( string aLabel, Filter aFilter, Score aScore = null, bool aQuit = false, IWithState aData = null )
     {
-      return new Step(Signal, aLabel, aFilter, aScore, aData);
+      return new Step(Signal, aLabel, aFilter, aScore, aQuit, aData);
     }
 
     public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
     {
-      return new Step(aSignal, aLabel, aFilter, null, aData);
+      return new Step(aSignal, aLabel, aFilter, null, false, aData);
     }
 
     public State GetState()
@@ -57,9 +58,11 @@ namespace DIGITC2
     public string     Label  ;
     public Filter     Filter ;
     public Score      Score  ;
+    public bool       Quit   ;
     public IWithState Data   ;
 
     public int       StepIdx ;
+
   }
  
 }

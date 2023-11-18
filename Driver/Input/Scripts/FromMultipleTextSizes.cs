@@ -46,7 +46,7 @@ public class FromMultipleTextSizes
 
       var lSource = BitsSource.FromText(lSourceText);  
 
-      var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
+      Processor.FromBits().Process( lSource.CreateSignal() ).Save() ;
 
       Context.Shutdown(); 
     }

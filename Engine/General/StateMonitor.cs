@@ -29,20 +29,6 @@ namespace DIGITC2
 
   public abstract class TextOutputStateMonitor : StateMonitor
   {
-    public void Open( string aFile )
-    {
-      mStream = new FileStream(aFile, FileMode.Create, FileAccess.Write);
-      mBaseWriter = new StreamWriter(mStream);
-      mWriter = new IndentedTextWriter(mBaseWriter,"  ");  
-    } 
-
-    public override void Close()
-    {
-      mWriter.Close();
-      mBaseWriter.Close();
-      mStream.Close();
-    }
-
     public override void Write( string aS ) 
     {
       mWriter?.Write( aS );
@@ -68,15 +54,28 @@ namespace DIGITC2
 
     }
 
-    FileStream         mStream ;
-    TextWriter         mBaseWriter ;
-    IndentedTextWriter mWriter ;
+    protected TextWriter         mBaseWriter ;
+    protected IndentedTextWriter mWriter ;
   }
 
   public class LogStateMonitor : TextOutputStateMonitor
   {
     public LogStateMonitor()
     {
+    }
+
+    public void Open( string aFile )
+    {
+      mStream = new FileStream(aFile, FileMode.Create, FileAccess.Write);
+      mBaseWriter = new StreamWriter(mStream);
+      mWriter = new IndentedTextWriter(mBaseWriter,"  ");  
+    } 
+
+    public override void Close()
+    {
+      mWriter.Close();
+      mBaseWriter.Close();
+      mStream.Close();
     }
 
     void WatchAtomicArrayElement ( State aO, int aIdx )
@@ -127,15 +126,24 @@ namespace DIGITC2
     }
 
     bool UseCompactFormat(State aO) => aO.Type =="Bit" || aO.Type == "Byte";
+
+    Stream mStream ;
   }
 
-  public class ReportStateMonitor : TextOutputStateMonitor
+  public class Reporter : IDisposable
   {
-    public ReportStateMonitor()
+    public Reporter()
     {
+      mBaseWriter = new StringWriter();
+      mWriter = new IndentedTextWriter(mBaseWriter,"  ");  
     }
-        
-    public override void Watch ( State aO )
+
+
+    public string GetReport() => mBaseWriter.ToString();
+
+    public void Report ( IWithState aO ) => Report( aO?.GetState() ) ;
+
+    public void Report ( State aO )
     {
       if ( aO.Value != null )
            WriteLine( $"{aO.Name}: {aO.Value.Text}");
@@ -145,7 +153,7 @@ namespace DIGITC2
       if ( !aO.IsArray )
       {
         Indent();
-        aO.Children.ForEach( x => Watch(x) );
+        aO.Children.ForEach( x => Report(x) );
         Unindent();
       }
       else
@@ -154,9 +162,59 @@ namespace DIGITC2
       }
     }
 
-    FileStream         mStream ;
+    void WriteLine( string aS ) 
+    {
+      mWriter?.WriteLine( aS );
+      mWriter?.Flush();
+    }
+
+    void Indent()
+    {
+      if ( mWriter != null )  
+        mWriter.Indent++;
+    }
+
+    void Unindent()
+    {
+      if ( mWriter != null )  
+        mWriter.Indent--;
+
+    }
+
     TextWriter         mBaseWriter ;
     IndentedTextWriter mWriter ;
+
+    private bool disposedValue;
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        if (disposing)
+        {
+          mWriter    .Close();
+          mBaseWriter.Close();
+        }
+
+        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+        // TODO: set large fields to null
+        disposedValue = true;
+      }
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~Reporter()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
   }
 
 

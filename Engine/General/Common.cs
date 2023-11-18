@@ -13,20 +13,6 @@ using DocumentFormat.OpenXml.Vml.Spreadsheet;
 
 namespace DIGITC2
 {
-  //public class Params
-  //{
-  //  public float  WindowSizeInSeconds             = 0;
-  //  public int    MaxWordLength                   = 35;
-  //  public int    BitsPerByte                     = 8 ;
-  //  public bool   LittleEndian                    = true ;
-  //  public double Envelop_AttackTime              = 0.1;
-  //  public double Envelope_ReleaseTime            = 0.1;
-  //  public double AmplitudeGate_Threshold         = 0.65;
-  //  public double ExtractGatedlSymbols_MinDuration= 0.05;
-  //  public double ExtractGatedlSymbols_MergeGap   = 0.1;
-  //  public double BinarizeByDuration_Threshold    = 0.4;
-  //  public string CharSet                         = "us-ascii";
-  //}
 
   public class Session
   {
@@ -37,26 +23,39 @@ namespace DIGITC2
       InputFolder  = aInputFolder; 
       OutputFolder = aOutputFolder; 
 
-      if ( ! Directory.Exists( OutputFolder ) ) 
-      {
-        Directory.CreateDirectory( OutputFolder );  
-      }
+      SetupFolder(OutputFolder);
+      SetupFolder($"{OutputFolder}/{LogsSubFolder}");
+      SetupFolder($"{OutputFolder}/{ResultsSubFolder}/Discarded");
+      SetupFolder($"{OutputFolder}/{ResultsSubFolder}/Poor");
+      SetupFolder($"{OutputFolder}/{ResultsSubFolder}/Good");
+      SetupFolder($"{OutputFolder}/{ResultsSubFolder}/Excelent");
+      SetupFolder($"{OutputFolder}/{ResultsSubFolder}/Perfect");
     }  
+
+    public string SamplesSubFolder    => "Samples";
+    public string ReferencesSubFolder => "References";
+    public string LogsSubFolder       => "Logs";
+    public string ResultsSubFolder    => "Results";
 
     public string Name ;
     public Args   Args ;
     public string InputFolder ;
     public string OutputFolder ;
 
-    public string SampleFile    ( string aFilename ) => $"{InputFolder}/Samples/{aFilename}";
-    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
+    public string SampleFile    ( string aFilename ) => $"{InputFolder}/{SamplesSubFolder}/{aFilename}";
+    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/{ReferencesSubFolder}/{aFilename}";
     public string InFile        ( string aFilename ) => $"{InputFolder}/{aFilename}";
-    public string OutFile       ( string aTail     ) => $"{OutputFolder}/{Name}_{aTail}";
+    public string LogFile       ( string aTail     ) => $"{OutputFolder}/{LogsSubFolder}/{Name}_{aTail}";
 
-    public string LogFile    => OutFile("log.txt");
-    public string ReportFile => OutFile("report.txt");
+    public string TraceFile    => LogFile("trace.txt");
 
-//    public Params Params = new Params();
+    public string ReportFile( Result aResult ) => $"{OutputFolder}/{ResultsSubFolder}/{aResult.Fitness}/{Name}_report.txt";
+
+    public void SetupFolder ( string aFolder ) 
+    {
+      if ( ! Directory.Exists( aFolder ) ) 
+        Directory.CreateDirectory( aFolder );  
+    }
   }
 
   public class Context
@@ -79,27 +78,19 @@ namespace DIGITC2
 
     Session mSession = null ; 
 
+    
     void Setup_( Session aSession )
     {
       mSession = aSession ; 
 
-      if ( File.Exists( mSession.LogFile ) )
-       File.Delete( mSession.LogFile );  
-
-      if ( File.Exists( mSession.ReportFile ) )
-       File.Delete( mSession.ReportFile );  
+      if ( File.Exists( mSession.TraceFile ) )
+       File.Delete( mSession.TraceFile );  
 
       var lLogger = new LogStateMonitor();
-      lLogger.Open(mSession.LogFile);
+      lLogger.Open(mSession.TraceFile);
       mMonitors.Add( lLogger ) ;
 
-      var lReporter = new ReportStateMonitor();
-      lReporter.Open(mSession.ReportFile);
-      mMonitors.Add( lReporter ) ;
-
       WriteLine_("DIGITC 2");
-
-
     }
 
     void Shutdown_()
@@ -139,13 +130,13 @@ namespace DIGITC2
 
     static public Session Session => Instance.mSession ;
 
-    static public void Setup( Session aSession )               { Instance.Setup_(aSession) ; } 
-    static public void Shutdown()                              { Instance.Shutdown_() ; } 
-    static public void Throw( Exception e )                    { Instance.Throw_(e);}
-    static public void Error( string aText )                   { Instance.Error_(aText);}
-    static public void Watch( IWithState aO )                  { Instance.Watch_(aO) ; }
-    static public void Write( string aS )                      { Instance.Write_(aS);}
-    static public void WriteLine( string aS )                  { Instance.WriteLine_(aS);}
+    static public void   Setup( Session aSession ) { Instance.Setup_(aSession) ; } 
+    static public void   Shutdown()                { Instance.Shutdown_() ; } 
+    static public void   Throw( Exception e )      { Instance.Throw_(e);}
+    static public void   Error( string aText )     { Instance.Error_(aText);}
+    static public void   Watch( IWithState aO )    { Instance.Watch_(aO) ; }
+    static public void   Write( string aS )        { Instance.Write_(aS);}
+    static public void   WriteLine( string aS )    { Instance.WriteLine_(aS);}
 
   }
 }

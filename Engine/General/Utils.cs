@@ -21,6 +21,8 @@ namespace DIGITC2
 
     public static string Textualize( int aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
 
+    public static string Textualize( Enum aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
+
     public static string Textualize( string aN, string aFmt = "F2" ) => aN;  
 
     public static string Textualize<T>( T aN, string aFmt = "F2" ) => string.Format("{0:" + aFmt + "}", aN );  

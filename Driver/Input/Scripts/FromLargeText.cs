@@ -23,7 +23,7 @@ public class FromLargeText
 
     var lSource = BitsSource.FromText(lSourceText);  
 
-    var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
+    Processor.FromBits().Process( lSource.CreateSignal() ).Save() ;
 
     Context.Shutdown(); 
   }
