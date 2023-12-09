@@ -21,20 +21,6 @@ namespace Driver
 {
   internal class Program
   {
-    static void Plots()
-    {
-      //var lD = new Zipf(3.0,255);
-
-      //var lY = new Samples( lD.Samples().Take(10000).Select( s => (double)s ) );
-
-      //var lH = new Histogram2(lY, new Histogram2.Params(256,0,255));
-
-      //var lT0 = lH.Table;
-
-      //lT0.CreatePlot().SavePNG("./Zipf.png");
-
-      //lT0.ToLog().CreatePlot().SavePNG("./Zipf_Log.png");
-    }
 
     [STAThread]
     static void Main(string[] args)
@@ -69,6 +55,9 @@ namespace Driver
 
         if ( lArgs.GetBool("FromMultipleTextSizes") )
           FromMultipleTextSizes.Run(lArgs); 
+
+        if ( lArgs.GetBool("FromAudio_ByDuration") )
+          FromAudio_ByDuration.Run(lArgs); 
       }
     }
   }

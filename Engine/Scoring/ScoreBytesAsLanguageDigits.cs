@@ -44,7 +44,7 @@ namespace DIGITC2
 
       Score lScore = new Score(lLikelihood,lFitness) ;
       
-      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore, lLikelihood > mQuitThreshold) ;
+      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore, lLikelihood < mQuitThreshold) ;
 
       if ( Context.Session.Args.GetBool("SaveReference") )
         lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  

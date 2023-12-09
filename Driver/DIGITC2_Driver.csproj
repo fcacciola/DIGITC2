@@ -71,6 +71,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Input\Params0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Input\Samples\dracula.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

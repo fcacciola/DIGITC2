@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using NWaves.Audio;
 using NWaves.Signals;
 
 namespace DIGITC2
@@ -40,13 +42,25 @@ namespace DIGITC2
       return new Distribution(lSamples);
     }
 
-    //public WaveSignal Transform( Func<float,float> Transformation ) 
-    //{
-    //  float[] lTransformedSamples = new float[Samples.Length];
-    //  for (int i = 0; i < Samples.Length; i++)  
-    //    lTransformedSamples[i] = Transformation(Samples[i]);
-    //  return CopyWith( new DiscreteSignal(SamplingRate, lTransformedSamples) );
-    //}
+    public void SaveTo( Stream aStream ) 
+    {
+      var lWF = new WaveFile(Rep);
+      lWF.SaveTo( aStream );  
+    }
+
+    public void SaveTo( string aFilename )  
+    {
+      using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
+        SaveTo( lStream );  
+    }
+
+    public WaveSignal Transform(Func<float, float> Transformation)
+    {
+      float[] lTransformedSamples = new float[Samples.Length];
+      for (int i = 0; i < Samples.Length; i++)
+        lTransformedSamples[i] = Transformation(Samples[i]);
+      return CopyWith(new DiscreteSignal(SamplingRate, lTransformedSamples));
+    }
 
 
     protected override void UpdateState( State rS ) 

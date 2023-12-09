@@ -1,37 +1,32 @@
+using System.IO;
+
 namespace DIGITC2 {
 
 public class FromAudio_ByDuration 
 {
   public static void Run( Args aArgs  )
   {
-    Context.Setup( new Session("FromAudio", aArgs) ) ;
+    string lWaveFilename = aArgs.Get("Audio" ) ;
 
-    string lAudioSample0 = aArgs.Get("Audio" ) ;
+    Context.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(lWaveFilename), aArgs) ) ;
 
-    if ( System.IO.File.Exists( lAudioSample0 ) )
+    if ( File.Exists( lWaveFilename ) )
     {
-      var lSource = new WaveFileSource(lAudioSample0) ;  
+      var lSource = new WaveFileSource(lWaveFilename) ;
 
-      Context.WriteLine("Wave To Text Sample");
+      Context.WriteLine("Parameters");
+      Context.WriteLine("Envelop_AttackTime              =" + aArgs.GetDouble("Envelop_AttackTime"));
+      Context.WriteLine("Envelope_ReleaseTime            =" + aArgs.GetDouble("Envelope_ReleaseTime"));
+      Context.WriteLine("AmplitudeGate_Threshold         =" + aArgs.GetDouble("AmplitudeGate_Threshold"));
+      Context.WriteLine("ExtractGatedlSymbols_MinDuration=" + aArgs.GetDouble("ExtractGatedlSymbols_MinDuration"));
+      Context.WriteLine("ExtractGatedlSymbols_MergeGap   =" + aArgs.GetDouble("ExtractGatedlSymbols_MergeGap"));
+      Context.WriteLine("BinarizeByDuration_Threshold    =" + aArgs.GetDouble("BinarizeByDuration_Threshold"));
 
-      //Context.Session.Params.WindowSizeInSeconds             = aArgs.GetOptionalInt("WindowSizeInSeconds") ?? 250;
-      //Context.Session.Params.Envelop_AttackTime              = aArgs.GetOptionalDouble("Envelop_AttackTime") ?? 0.0;
-      //Context.Session.Params.Envelope_ReleaseTime            = aArgs.GetOptionalDouble("Envelope_ReleaseTime") ?? 0.0 ;
-      //Context.Session.Params.AmplitudeGate_Threshold         = aArgs.GetOptionalDouble("AmplitudeGate_Threshold") ?? 0.0;
-      //Context.Session.Params.ExtractGatedlSymbols_MinDuration= aArgs.GetOptionalDouble("ExtractGatedlSymbols_MinDuration") ?? 0.0;
-      //Context.Session.Params.ExtractGatedlSymbols_MergeGap   = aArgs.GetOptionalDouble("ExtractGatedlSymbols_MergeGap") ?? 0.0;  
-      //Context.Session.Params.BinarizeByDuration_Threshold    = aArgs.GetOptionalDouble("BinarizeByDuration_Threshold") ?? 0.0;
-
-      //Context.WriteLine("Parameters") ; 
-      //Context.WriteLine("Envelop_AttackTime              =" + Context.Session.Params.Envelop_AttackTime               ) ; 
-      //Context.WriteLine("Envelope_ReleaseTime            =" + Context.Session.Params.Envelope_ReleaseTime             ) ; 
-      //Context.WriteLine("AmplitudeGate_Threshold         =" + Context.Session.Params.AmplitudeGate_Threshold          ) ; 
-      //Context.WriteLine("ExtractGatedlSymbols_MinDuration=" + Context.Session.Params.ExtractGatedlSymbols_MinDuration ) ; 
-      //Context.WriteLine("ExtractGatedlSymbols_MergeGap   =" + Context.Session.Params.ExtractGatedlSymbols_MergeGap    ) ; 
-      //Context.WriteLine("BinarizeByDuration_Threshold    =" + Context.Session.Params.BinarizeByDuration_Threshold     ) ; 
-
-      var lResult = Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ) ;
-
+      Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
+    }
+    else
+    {
+      Context.Error("Could not find audio file: [" + lWaveFilename + "]");
     }
 
     Context.Shutdown(); 
