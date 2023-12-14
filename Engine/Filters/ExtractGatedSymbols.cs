@@ -7,24 +7,42 @@ using System.Threading.Tasks;
 using NWaves.Operations;
 using NWaves.Signals;
 
+using MathNet.Numerics.Statistics;
+
 namespace DIGITC2
 {
   public class ExtractGatedlSymbols : WaveFilter
   {
     public ExtractGatedlSymbols() 
     { 
-      mMinDuration = Context.Session.Args.GetDouble("ExtractGatedlSymbols_MinDuration") ;
-      mMergeGap    = Context.Session.Args.GetDouble("ExtractGatedlSymbols_MergeGap") ; 
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
     {
-      mInput      = aInput ; 
-      mAllSymbols = new List<GatedSymbol>();
+      mInput = aInput ; 
+
+      CreateSymbols();
+
+      MergeSymbols();
+
+      RemoveShortSymbols();
+
+      PlotSymbolsAsWave(mFinal, "Final");
+
+      mStep = aStep.Next( new LexicalSignal(mFinal), "Gated Symbols", this) ;
+
+      return mStep ;
+    }
+    
+    protected override string Name => "ExtractGatedSymbols" ;
+
+    void CreateSymbols()
+    {
+      mRawSymbols = new List<GatedSymbol>();
 
       mCurrCount = 0; 
       mPos       = 0 ;
-      foreach( float lV in aInput.Samples)
+      foreach( float lV in mInput.Samples)
       {
         if( mCurrCount == 0 || mCurrLevel != lV ) 
         {
@@ -43,83 +61,228 @@ namespace DIGITC2
 
       AddSymbol();
 
-      MergeSymbols();
+      PlotSymbolsAsWave(mRawSymbols,"Raw");
 
-      RemoveShortSymbols();
+      List<double> lDurations = GetDurations(mRawSymbols);
 
-      mStep = aStep.Next(  new LexicalSignal(mFinal), "Gated Symbols", this) ;
+      var lMergedHistogram = GetHistogram(lDurations) ;  
 
-      return mStep ;
+      if ( Context.Session.Args.GetBool("Plot") )
+      { 
+        lMergedHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile("GatedSymbols_RawSymbols_Durations_Histogram.png"));
+      }
+
     }
-    
-    protected override string Name => "ExtractGatedSymbols" ;
 
     void AddSymbol()
     {
       if ( mCurrCount > 0 )
-        mAllSymbols.Add( new GatedSymbol(mAllSymbols.Count, mCurrLevel, mInput.SamplingRate, mPos - mCurrCount, mCurrCount ) );
+        mRawSymbols.Add( new GatedSymbol(mRawSymbols.Count, mCurrLevel, mInput.SamplingRate, mPos - mCurrCount, mCurrCount ) );
+    }
+
+
+    List<double> GetGaps()
+    {
+      List<double> rGaps = new List<double>() ;
+
+      for( int i = 0; i < mRawSymbols.Count ; )  
+      {
+        GatedSymbol lA = mRawSymbols[i];
+
+        if ( lA.IsSymbol )
+        {
+          double lGapLen = 0 ;
+
+          int j = i + 1 ;
+
+          bool lNextSymbolFound = false ;
+
+          for( ; j < mRawSymbols.Count && ! lNextSymbolFound; j++ )  
+          {
+            GatedSymbol lB = mRawSymbols[j];
+
+            if ( lB.IsSymbol )
+            {
+              lNextSymbolFound = true ; 
+
+              rGaps.Add(lGapLen) ;
+            }
+            else
+            {
+              lGapLen += lB.Length ;
+            }
+          }
+          i = j ;
+        }
+        else
+        {
+          ++ i;
+        }
+      }
+
+      rGaps.Sort();
+
+      if ( Context.Session.Args.GetBool("Plot") )
+      { 
+        var lGapsHistogram = GetHistogram(rGaps) ;  
+        lGapsHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile("GatedSymbols_Gaps_Histogram.png"));
+      }
+
+      return rGaps ;
+        
+    }
+
+    DTable GetHistogram( List<double> aValues )
+    {
+      var lDist = new Distribution(aValues) ;
+
+      var lRawHistogram = new Histogram(lDist) ;
+
+      var lFullRangeHistogram = lRawHistogram.Table ;
+
+      var rHistogram = lFullRangeHistogram.Normalized();
+
+      return rHistogram;
     }
 
     void MergeSymbols()
     {
-      mMerged = new List<GatedSymbol>();
+      int lIteration  = 0 ;
 
-      List<int> lSeparatorGapPositions = new List<int>();
+      var lSrcSymbols = mRawSymbols ;
 
-      for( int i = 0; i < mAllSymbols.Count; i++ )  
+      List<GatedSymbol> lTgtSymbols ;
+
+      int lMergeCount ;
+
+      var lGaps = GetGaps() ;
+
+      do
       {
-        GatedSymbol lSymbol = mAllSymbols[i];
+        lMergeCount = 0 ;
 
-        if ( lSymbol.IsGap && lSymbol.Duration >= mMergeGap )
-          lSeparatorGapPositions.Add( i );
-      }
+        double lGapTheshold = lGaps.Percentile(5 + ( lIteration << 2 ) ); 
 
-      int lMergeStart = 0 ;
-      foreach( int j in lSeparatorGapPositions ) 
-      {
-        MergeSymbols(lMergeStart,j);
-        lMergeStart = j + 1 ;
+        lTgtSymbols = new List<GatedSymbol>();
+
+        for( int i = 0; i < lSrcSymbols.Count ; )  
+        {
+          GatedSymbol lA = lSrcSymbols[i];
+
+          if ( lA.IsSymbol )
+          {
+            double lGapLen = 0 ;
+
+            int j = i + 1 ;
+
+            bool lNextSymbolFound = false ;
+            bool lMerged          = false ;
+
+            for( ; j < lSrcSymbols.Count && ! lNextSymbolFound; j++ )  
+            {
+              GatedSymbol lB = lSrcSymbols[j];
+
+              if ( lB.IsSymbol )
+              {
+                lNextSymbolFound = true ; 
+
+                lMerged = lA.Amplitude == lB.Amplitude && lGapLen < lGapTheshold ;  
+
+                if ( lMerged )
+                {
+                  MergeSymbols(lSrcSymbols, lTgtSymbols, i,j);
+                  ++ lMergeCount ;
+                }
+              }
+              else
+              {
+                lGapLen += lB.Length ;
+              }
+            }
+
+            if ( ! lMerged )
+            {
+              for ( int k = i ; k < j ; ++ k )
+                lTgtSymbols.Add( lSrcSymbols[k] );
+            }
+
+            i = j ;
+          }
+          else
+          {
+            lTgtSymbols.Add(lA);
+            ++ i;
+          }
+        }
+
+        PlotSymbolsAsWave(lTgtSymbols,"Merged_" + lIteration );
+
+        ++ lIteration ;
+
+        lSrcSymbols = lTgtSymbols; 
       }
+      while ( lMergeCount > 0 && lIteration < 15 )  ;
+
+      mMerged = lTgtSymbols ;
     }
 
-
-    void MergeSymbols(int aBegin, int aEnd )
+    void MergeSymbols(List<GatedSymbol> aSrcSymbols, List<GatedSymbol> aMergedSymbols, int aFrom, int aTo )
     {
-      if ( aBegin < aEnd )
-      { 
-        int lTrimmedBegin = aBegin ;
-        int lTrimmedEnd   = aEnd   ;
+      int lMergedLen = 0 ;
 
-        while ( lTrimmedBegin < aEnd && mAllSymbols[lTrimmedBegin].IsGap )
-          lTrimmedBegin++;
+      for ( int i = aFrom ; i <= aTo ; i++ ) 
+        lMergedLen += aSrcSymbols[i].Length ; 
 
-        while ( lTrimmedEnd > aBegin && mAllSymbols[lTrimmedEnd-1].IsGap )
-          lTrimmedEnd--;
+        aMergedSymbols.Add( new GatedSymbol(aMergedSymbols.Count, aSrcSymbols[aFrom].Amplitude, mInput.SamplingRate, aSrcSymbols[aFrom].Pos, lMergedLen));
+    }
 
-        int lMergedLen = 0 ;
+    List<double> GetDurations( List<GatedSymbol> aSymbols )  
+    {
+      List<double> rDurations = new List<double>() ;
 
-        for ( int i = lTrimmedBegin ; i < lTrimmedEnd ; i++ ) 
-         lMergedLen += mAllSymbols[i].Length ; 
+      aSymbols.ForEach( s => { if ( s.IsSymbol ) rDurations.Add(s.Duration) ; } );
 
-         mMerged.Add( new GatedSymbol(mMerged.Count, mAllSymbols[lTrimmedBegin].Amplitude, mInput.SamplingRate, mAllSymbols[lTrimmedBegin].Pos, lMergedLen));
-      }
+      rDurations.Sort(); 
+
+      return rDurations ; 
+
     }
 
     void RemoveShortSymbols()
     {
-      mFinal = new List<GatedSymbol> ();
-      mMerged.ForEach( s => { if ( s.Duration >= mMinDuration ) mFinal.Add(s); } );
+      List<double> lDurations = GetDurations(mMerged);
+
+      var lMergedHistogram = GetHistogram(lDurations) ;  
+
+      if ( Context.Session.Args.GetBool("Plot") )
+      { 
+        lMergedHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile("GatedSymbols_Merged_Durations_Histogram.png"));
+      }
+
+      double lMinDuration = lDurations.Percentile(25); 
+
+      mFinal = new List<GatedSymbol>();
+
+      mMerged.ForEach( s => { if ( s.Duration >= lMinDuration ) mFinal.Add(s); } );
     }
 
+    void PlotSymbolsAsWave( List<GatedSymbol> aSymbols, string aLabel )
+    {
+      if ( Context.Session.Args.GetBool("Plot") )
+      {
+        List<float> lSamples = new List<float> ();
+        aSymbols.ForEach( s => s.DumpSamples(lSamples ) );
+        DiscreteSignal lWaveRep = new DiscreteSignal(mInput.SamplingRate, lSamples);
+        WaveSignal lWave = new WaveSignal(lWaveRep);
+        lWave.SaveTo( Context.Session.LogFile( "GatedSymbols_" + aLabel + ".wav") ) ;
+      }
+    }
 
-    double            mMinDuration ;
-    double            mMergeGap ;
     WaveSignal        mInput ;
-                                                                                                                                                                               
     int               mPos ;
     float             mCurrLevel ;
     int               mCurrCount ;
-    List<GatedSymbol> mAllSymbols ;
+    List<GatedSymbol> mRawSymbols ;
     List<GatedSymbol> mMerged ;
     List<GatedSymbol> mFinal ;
   }

@@ -76,7 +76,8 @@ namespace DIGITC2
 
     public override Symbol Copy() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
 
-    public bool IsGap => Amplitude == 0 ;
+    public bool IsGap    => Amplitude == 0 ;
+    public bool IsSymbol => ! IsGap ;
 
     public void DumpSamples( List<float> aSamples )
     {

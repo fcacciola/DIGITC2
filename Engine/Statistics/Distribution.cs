@@ -79,6 +79,12 @@ namespace DIGITC2
   {  
     public Distribution() {}
 
+    public Distribution( IEnumerable<double> aValues )
+    { 
+      mSamples.AddRange( aValues.Select( v => new Sample( new FakeSampleSource($"{v}"), v ) ) ) ;
+      mValues .AddRange( aValues ) ;
+    }
+
     public Distribution( IEnumerable<Sample> aSamples )
     { 
       mSamples.AddRange(aSamples); 

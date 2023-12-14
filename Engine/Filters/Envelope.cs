@@ -47,24 +47,23 @@ namespace DIGITC2
     {
       WaveSignal rR = aInput;
 
-      List<Iteration> lIterations = new List<Iteration>();
-
-      lIterations.Add( new Iteration(0.001f,.001f) );
-      lIterations.Add( new Iteration(0.001f,.001f) );
-      lIterations.Add( new Iteration(0.001f,.001f) );
-      lIterations.Add( new Iteration(0.001f,.001f) );
-      lIterations.Add( new Iteration(0.001f,.001f) );
-      lIterations.Add( new Iteration(0.005f,.005f) );
-      lIterations.Add( new Iteration(0.005f,.005f) );
-      lIterations.Add( new Iteration(0.005f,.005f) );
-      lIterations.Add( new Iteration(0.005f,.01f) );
-
-      //lIterations.ForEach( lI => lI.SetupLabel(aStep.Label, lIterations.IndexOf(lI)));  
+      List<Iteration> lIterations = new List<Iteration>
+      {
+        new Iteration(0.001f, .001f),
+        new Iteration(0.001f, .001f),
+        new Iteration(0.001f, .001f),
+        new Iteration(0.001f, .001f),
+        new Iteration(0.001f, .001f),
+        new Iteration(0.005f, .005f),
+        new Iteration(0.005f, .005f),
+        new Iteration(0.005f, .005f),
+        new Iteration(0.005f, .01f)
+      };
 
       lIterations.ForEach( lI => rR = Apply(rR,lI) ) ;
 
       if ( Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( Context.Session.LogFile( aStep.Label + "_Envelope.wav") ) ;
+        rR.SaveTo( Context.Session.LogFile( "_Envelope.wav") ) ;
 
       mStep = aStep.Next( rR, "Envelope", this) ;
 

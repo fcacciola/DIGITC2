@@ -40,11 +40,11 @@ namespace DIGITC2
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
     {
-      var lR0 = Apply(aInput, aStep.Label + "_A", new Gate(.98f,0.9f,0.8f,0.7f,0.6f,0.5f,0.4f,0.3f,0.2f,0.1f));
+      var lR0 = Apply(aInput, "A", new Gate(.98f,0.9f,0.8f,0.7f,0.6f,0.5f,0.4f,0.3f,0.2f,0.1f));
 
-      var lR1 = Apply(lR0, aStep.Label + "_B", new Gate(.98f,0.7f,0.5f,0.3f));
+      var lR1 = Apply(lR0, "B", new Gate(.98f,0.7f,0.4f,0.2f));
 
-      var lR2 = Apply(lR1, aStep.Label + "_C", new Gate(.98f,0.4f));
+      var lR2 = Apply(lR1, "C", new Gate(.98f,0.3f));
 
       mStep = aStep.Next( lR2, "AmplitudeGate", this) ;
 
@@ -68,7 +68,7 @@ namespace DIGITC2
       var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, rOutput));
 
       if ( Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( Context.Session.LogFile( aLabel + "_AmplitudGate.wav") ) ;
+        rR.SaveTo( Context.Session.LogFile( "AmplitudGate_" + aLabel + ".wav") ) ;
 
       return rR ;
     }
