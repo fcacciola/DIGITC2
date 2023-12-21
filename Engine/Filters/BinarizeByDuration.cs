@@ -20,9 +20,9 @@ namespace DIGITC2
     protected override Step Process (LexicalSignal aInput, Step aStep )
     {
        List<BitSymbol>   lBits     = new List<BitSymbol>   ();
-       List<GatedSymbol> lBitViews = new List<GatedSymbol> ();
+       List<PulseSymbol> lBitViews = new List<PulseSymbol> ();
 
-       var lSymbols = aInput.GetSymbols<GatedSymbol>() ;
+       var lSymbols = aInput.GetSymbols<PulseSymbol>() ;
        
        double lAccDuration = 0 ;
        lSymbols.ForEach( s => lAccDuration += s.Duration ) ;
@@ -31,12 +31,12 @@ namespace DIGITC2
        double lMaxDuration = 0 ;
        lSymbols.ForEach( s => { if ( s.Duration < 3 * lAvgDuration ) lMaxDuration = Math.Max(s.Duration, lMaxDuration) ; } ) ;
 
-       foreach ( GatedSymbol lGI in lSymbols ) 
+       foreach ( PulseSymbol lGI in lSymbols ) 
        {
          bool lOne = ( lGI.Duration / lMaxDuration ) > mThreshold ;
 
-         GatedSymbol lViewSym = lGI.Copy() as GatedSymbol ;
-         lViewSym.Amplitude = lOne ? - lGI.Amplitude * 0.5f : - lGI.Amplitude * 0.2f;
+         PulseSymbol lViewSym = lGI.Copy() as PulseSymbol ;
+         lViewSym.MaxAmplitude = lOne ? - lGI.MaxAmplitude * 0.5f : - lGI.MaxAmplitude * 0.2f;
          lBitViews.Add( lViewSym ) ; 
 
          lBits.Add( new BitSymbol( lBits.Count, lOne, lViewSym )) ;

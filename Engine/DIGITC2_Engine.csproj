@@ -102,7 +102,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Filters\AmplitudeGate.cs" />
+    <Compile Include="Filters\Discretize.cs" />
     <Compile Include="Filters\BinarizeByDuration.cs" />
     <Compile Include="Scoring\ScoreTokenLengthDistribution.cs" />
     <Compile Include="Scoring\ScoreBytesAsLanguageDigits.cs" />
@@ -122,7 +122,7 @@
     <Compile Include="Filters\Tokenize.cs" />
     <Compile Include="Filters\BinaryToBytes.cs" />
     <Compile Include="Filters\TokensToWords.cs" />
-    <Compile Include="Filters\ExtractGatedSymbols.cs" />
+    <Compile Include="Filters\ExtractPulseSymbols.cs" />
     <Compile Include="Filters\Filter.cs" />
     <Compile Include="Processor\Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

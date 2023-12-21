@@ -59,8 +59,8 @@ namespace DIGITC2
       var rProcessor = new Processor();
 
       rProcessor.Add( new Envelope() )
-                .Add( new AmplitudeGate() )
-                .Add( new ExtractGatedlSymbols() )
+                .Add( new Discretize() )
+                .Add( new ExtractPulseSymbols() )
                 .Add( new BinarizeByDuration() ) ;
 
       return rProcessor ;

@@ -56,28 +56,18 @@ namespace DIGITC2
     public virtual Sample ToSample() => new Sample( new SymbolSampleSource(this, Meaning), Value)  ;
   }
 
-  public class GatedSymbol : Symbol
+  public class PulseStep
   {
-    public GatedSymbol( int aIdx, float aAmplitud, int aSamplingRate, int aPos, int aLength ) : base(aIdx)
+    public PulseStep( float aAmplitud, int aPos, int aLength, double aDuration ) 
     {
-      Amplitude    = aAmplitud;
-      SamplingRate = aSamplingRate; 
-      Pos          = aPos; 
-      Length       = aLength;
+      Amplitude = aAmplitud;
+      Pos       = aPos; 
+      Length    = aLength;
+      Duration  = aDuration; 
     }
 
-    public double Duration => (double)Length / (double)SamplingRate;
 
-    public override string Type => "Gated" ;
-
-    public override string Meaning => $"{Duration:F2} at {(double)Pos/(double)SamplingRate:F2}" ;
-
-    public override double Value => Amplitude ;
-
-    public override Symbol Copy() {  return new GatedSymbol( Idx, Amplitude, SamplingRate, Pos, Length ); }  
-
-    public bool IsGap    => Amplitude == 0 ;
-    public bool IsSymbol => ! IsGap ;
+    public PulseStep Copy() {  return new PulseStep( Amplitude, Pos, Length, Duration ); }  
 
     public void DumpSamples( List<float> aSamples )
     {
@@ -89,19 +79,57 @@ namespace DIGITC2
         aSamples.Add(Amplitude);
     }
 
-    public float Amplitude ;
-    public int   SamplingRate ;
-    public int   Pos ;
-    public int   Length ; 
+    public float  Amplitude ;
+    public int    Pos ;
+    public int    Length ; 
+    public double Duration ;
+  }
+
+  public class PulseSymbol : Symbol
+  {
+    public PulseSymbol( int aIdx, int aSamplingRate, int aPos, int aLength, List<PulseStep> aSteps ) : base(aIdx)
+    {
+      MaxAmplitude = 0;
+      SamplingRate = aSamplingRate; 
+      Pos          = aPos;
+      Length       = aLength;
+      Steps        = aSteps ; 
+    }
+
+    public double Duration => (double)Length / (double)SamplingRate;
+
+    public override string Type => "Pulse" ;
+
+    public override string Meaning => $"{Duration:F2} pulse at {(double)Pos/(double)SamplingRate:F2} " ;
+
+    public override double Value => MaxAmplitude ;
+
+    public override Symbol Copy()
+    { 
+      var lStepsCopy = new List<PulseStep>() ;  
+      Steps.ForEach( s => lStepsCopy.Add( s.Copy() ) );  
+      return new PulseSymbol( Idx, SamplingRate, Pos, Length, lStepsCopy ); 
+    }  
+
+    public void DumpSamples( List<float> aSamples )
+    {
+      Steps.ForEach( s => s.DumpSamples( aSamples ) ); 
+    }
+
+    public float           MaxAmplitude ;
+    public int             SamplingRate ;
+    public int             Pos ;
+    public int             Length ; 
+    public List<PulseStep> Steps;
   }
 
   public class BitSymbol : Symbol
   {
-    public BitSymbol( int aIdx, bool aOne, GatedSymbol aView ) : base(aIdx) { One = aOne ; View = aView ; }
+    public BitSymbol( int aIdx, bool aOne, PulseSymbol aView ) : base(aIdx) { One = aOne ; View = aView ; }
 
     public override string Type => "Bit" ;
 
-    public override Symbol Copy() { return new BitSymbol( Idx, One, View?.Copy()  as GatedSymbol ); }  
+    public override Symbol Copy() { return new BitSymbol( Idx, One, View?.Copy()  as PulseSymbol ); }  
 
     public override string Meaning => One ? "1" : "0" ;
 
@@ -109,7 +137,7 @@ namespace DIGITC2
 
     public bool One ;
 
-    public GatedSymbol View ;
+    public PulseSymbol View ;
   }
 
   public class ByteSymbol : Symbol
