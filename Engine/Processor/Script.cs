@@ -26,10 +26,12 @@ namespace DIGITC2
     public string Get(string aKey) => Settings.ContainsKey(aKey) ? Settings[aKey] : null; 
     
     public int?    GetOptionalInt   (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToInt32  (v) ; else return null ; }
+    public float?  GetOptionalFloat (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToSingle (v) ; else return null ; }
     public double? GetOptionalDouble(string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToDouble (v) ; else return null ; }
     public bool?   GetOptionalBool  (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToBoolean(v) ; else return null ; }
 
     public int    GetInt   (string aKey) => GetOptionalInt   (aKey) ?? 0 ;
+    public float  GetFloat (string aKey) => GetOptionalFloat (aKey) ?? 0.0f;
     public double GetDouble(string aKey) => GetOptionalDouble(aKey) ?? 0.0;
     public bool   GetBool  (string aKey) => GetOptionalBool  (aKey) ?? false;
 

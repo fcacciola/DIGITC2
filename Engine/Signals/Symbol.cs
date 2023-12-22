@@ -58,49 +58,51 @@ namespace DIGITC2
 
   public class PulseStep
   {
-    public PulseStep( float aAmplitud, int aPos, int aLength, double aDuration ) 
+    public PulseStep( float aAmplitud, int aStart, int aEnd, double aDuration ) 
     {
       Amplitude = aAmplitud;
-      Pos       = aPos; 
-      Length    = aLength;
+      Start     = aStart; 
+      End       = aEnd;
       Duration  = aDuration; 
     }
 
 
-    public PulseStep Copy() {  return new PulseStep( Amplitude, Pos, Length, Duration ); }  
+    public PulseStep Copy() {  return new PulseStep( Amplitude, Start, End, Duration ); }  
 
     public void DumpSamples( List<float> aSamples )
     {
-      int lC = aSamples.Count ;
-      for( int i = lC ; i < Pos ; i++ )
-        aSamples.Add(0);
-
       for( int i = 0; i < Length; i++ ) 
         aSamples.Add(Amplitude);
     }
 
+    public int Length => End - Start ;
+
     public float  Amplitude ;
-    public int    Pos ;
-    public int    Length ; 
+    public int    Start ;
+    public int    End ; 
     public double Duration ;
   }
 
   public class PulseSymbol : Symbol
   {
-    public PulseSymbol( int aIdx, int aSamplingRate, int aPos, int aLength, List<PulseStep> aSteps ) : base(aIdx)
+    public PulseSymbol( int aIdx, int aSamplingRate, int aStart, int aEnd, IEnumerable<PulseStep> aSteps ) : base(aIdx)
     {
-      MaxAmplitude = 0;
       SamplingRate = aSamplingRate; 
-      Pos          = aPos;
-      Length       = aLength;
-      Steps        = aSteps ; 
+      Start        = aStart;
+      End          = aEnd;
+
+      Steps.AddRange(aSteps) ; 
+
+      MaxAmplitude = Steps.Select( p => p.Amplitude ).Max() ;
     }
+
+    public int    Length => End - Start ;
 
     public double Duration => (double)Length / (double)SamplingRate;
 
     public override string Type => "Pulse" ;
 
-    public override string Meaning => $"{Duration:F2} pulse at {(double)Pos/(double)SamplingRate:F2} " ;
+    public override string Meaning => $"{Duration:F2} pulse at {(double)Start/(double)SamplingRate:F2} " ;
 
     public override double Value => MaxAmplitude ;
 
@@ -108,19 +110,25 @@ namespace DIGITC2
     { 
       var lStepsCopy = new List<PulseStep>() ;  
       Steps.ForEach( s => lStepsCopy.Add( s.Copy() ) );  
-      return new PulseSymbol( Idx, SamplingRate, Pos, Length, lStepsCopy ); 
+      return new PulseSymbol( Idx, SamplingRate, Start, End, lStepsCopy ); 
     }  
 
     public void DumpSamples( List<float> aSamples )
     {
+      int lC = aSamples.Count ;
+      for( int i = lC ; i < Start ; i++ )
+        aSamples.Add(0);
+
       Steps.ForEach( s => s.DumpSamples( aSamples ) ); 
     }
 
+    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Duration:F2}"), Duration)  ;
+
     public float           MaxAmplitude ;
     public int             SamplingRate ;
-    public int             Pos ;
-    public int             Length ; 
-    public List<PulseStep> Steps;
+    public int             Start ;
+    public int             End ; 
+    public List<PulseStep> Steps = new List<PulseStep>();
   }
 
   public class BitSymbol : Symbol
