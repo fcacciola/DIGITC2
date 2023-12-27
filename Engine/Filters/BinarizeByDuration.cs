@@ -14,7 +14,6 @@ namespace DIGITC2
   {
     public BinarizeByDuration() 
     { 
-      mThreshold = Context.Session.Args.GetDouble("BinarizeByDuration_Threshold") ; 
     }
 
     protected override Step Process (LexicalSignal aInput, Step aStep )
@@ -50,7 +49,6 @@ namespace DIGITC2
 
     protected override string Name => "BinarizeByDuration" ;
 
-    double mThreshold ;
   }
 
 }

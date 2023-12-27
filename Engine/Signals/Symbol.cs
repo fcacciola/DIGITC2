@@ -78,6 +78,7 @@ namespace DIGITC2
     public int Length => End - Start ;
 
     public float  Amplitude ;
+    public int    Level => (int)(Amplitude * 100) ;
     public int    Start ;
     public int    End ; 
     public double Duration ;
@@ -123,6 +124,8 @@ namespace DIGITC2
     }
 
     public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Duration:F2}"), Duration)  ;
+
+    public int             MaxLevel => (int)(MaxAmplitude*100) ;
 
     public float           MaxAmplitude ;
     public int             SamplingRate ;

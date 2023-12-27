@@ -125,8 +125,8 @@ namespace DIGITC2
   {
     public ExtractPulseSymbols() 
     { 
-      mDullThreshold  = Context.Session.Args.GetOptionalFloat("Pulses_DullThreshold").GetValueOrDefault(.35f);
-      mSplitThreshold = Context.Session.Args.GetOptionalFloat("Pulses_SplitThreshold").GetValueOrDefault(.35f);
+      mDullThreshold  = Context.Session.Args.GetOptionalInt("Pulses_DullThreshold") .GetValueOrDefault(35);
+      mSplitThreshold = Context.Session.Args.GetOptionalInt("Pulses_SplitThreshold").GetValueOrDefault(25);
     }
 
     protected override Step Process ( WaveSignal aInput, Step aStep )
@@ -200,7 +200,7 @@ namespace DIGITC2
 
       foreach( var lPulse in mRawPulses )
       {
-        if ( lPulse.MaxAmplitude > mDullThreshold )
+        if ( lPulse.MaxLevel > mDullThreshold )
           mLoudPulses.Add(lPulse );
       }
 
@@ -223,33 +223,91 @@ namespace DIGITC2
       int lC = aPulse.Steps.Count ;
       int lL = lC - 1 ;
 
-      PulseStep lPrev = null ;
-
       int lRunStart = 0 ;
 
       for ( int i = 0 ; i < lC  ; ++ i )
       {
         var lStep = aPulse.Steps[i];
 
+        int lLevel = lStep.Level ;
+
         if ( i > 0 && i < lL )
         {
-          var lNext = aPulse.Steps[i+1];
-          if ( lStep.Amplitude < mSplitThreshold && lPrev.Amplitude > lStep.Amplitude && lNext.Amplitude > lStep.Amplitude )  
+          bool lDullEnough  = lStep.Level < mSplitThreshold ;
+          if ( lDullEnough )
           {
-            if ( lRunStart < i )
-              lRuns.Add( new Run{ From = lRunStart, To = i, Gap = false} ) ;
+            bool lFromPeak = false ;
 
-            Context.WriteLine($"      Local minima found at step {i}");
+            float lCurrLevel = lLevel ;
+            float lDiff = 0 ;
+            for ( int j = i - 1 ; j  >= 0 ; j-- )
+            {
+              var lPrev = aPulse.Steps[j];  
+              float lPrevLevel = lPrev.Level ;
+              if ( lPrevLevel >= lCurrLevel)
+              {
+                lDiff += lPrevLevel - lCurrLevel ;
+                if ( lDiff >= 20 )
+                {
+                  lFromPeak = true ;  
+                  break ;
+                }
+              }
+              else
+              {
+                break ;
+              }
 
-            lRuns.Add( new Run{ From = i, To = i + 1, Gap = true} ) ;
+              lCurrLevel = lPrevLevel ;
+            }
 
-            lRunStart = i + 1 ;
+            if ( lFromPeak )
+            {
+              bool lToPeak = false ;
+
+              int k = i + 1 ;
+
+              lCurrLevel = lLevel ;
+              lDiff = 0 ;
+              for ( int j = i + 1 ; j  < lC ; j ++ )
+              {
+                var lNext = aPulse.Steps[j];  
+                float lNextLevel = lNext.Level ;
+                if ( lNextLevel == lCurrLevel ) 
+                  k = j ;
+                if ( lNextLevel >= lCurrLevel)
+                {
+                  lDiff += lNextLevel - lCurrLevel ;
+                  if ( lDiff >= 20 )
+                  {
+                    lToPeak = true ;  
+                    break ;
+                  }
+                }
+                else
+                {
+                  break ;
+                }
+
+                lCurrLevel = lNextLevel ;
+              }
+
+              if ( lToPeak )  
+              {
+                if ( lRunStart < i )
+                  lRuns.Add( new Run{ From = lRunStart, To = i, Gap = false} ) ;
+
+                Context.WriteLine($"      Local minima found at step {i}");
+
+                lRuns.Add( new Run{ From = i, To = k, Gap = true} ) ;
+
+                lRunStart = k ;
+              }
+            }
           }
         }
-
-        lPrev = lStep;  
-
       }
+
       if ( lRunStart < lC )
         lRuns.Add( new Run{ From = lRunStart, To = lC, Gap = false} ) ;
 
@@ -313,8 +371,8 @@ namespace DIGITC2
     bool              mInGap ;
     int               mPulseStart ;
     int               mPos ;
-    float             mDullThreshold ;
-    float             mSplitThreshold ;
+    int               mDullThreshold ;
+    int               mSplitThreshold ;
     List<PulseSymbol> mRawPulses ;
     List<PulseSymbol> mLoudPulses ;
     List<PulseSymbol> mSplitPulses ;
