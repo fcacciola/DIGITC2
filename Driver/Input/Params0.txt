@@ -14,8 +14,4 @@ BytesAsLanguageDigits_FitnessMap=35,50,85,97
 BytesAsLanguageDigits_QuitThreshold=1
 TokenLengthDistribution_FitnessMap=50,65,85,97
 TokenLengthDistribution_QuitThreshold=1
-BinarizeByDuration_Threshold=0.4
-BinaryToBytes_BitsPerByte=8
-BinaryToBytes_LittleEndian=true
-TokensToWords_CharSet=us-ascii
-TokensToWords_Fallback=!
+

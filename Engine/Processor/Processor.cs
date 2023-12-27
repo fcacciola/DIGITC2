@@ -41,12 +41,6 @@ namespace DIGITC2
         rR.Add( lStep ) ;
 
         Context.Watch(lStep) ; 
-
-        if ( lStep.Quit )
-        {
-          Context.WriteLine("Filter indicated to quit process.");
-          break ;
-        }
       }
 
       rR.Setup();

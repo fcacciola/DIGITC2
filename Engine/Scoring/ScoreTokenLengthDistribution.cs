@@ -25,7 +25,7 @@ namespace DIGITC2
 
     string CreateFakeKey( double i ) => $"{i}";
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0,50,1,CreateFakeKey);
 

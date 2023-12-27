@@ -11,36 +11,23 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2
 {
-  public class Step : IWithState
+  public class Branch : IWithState
   {
-    public Step( Signal aSignal, string aLabel, Filter aFilter, Score aScore, bool aQuit, IWithState aData )
+    public Branch( Signal aSignal, string aLabel, Score aScore = null, bool aQuit = false, IWithState aData = null )
     {
-      Signal = aSignal;
-      Label  = aLabel ;
-      Filter = aFilter; 
-      Score  = aScore;
-      Quit   = aQuit;
-      Data   = aData;
+      ParentStep = null ;
+      Signal     = aSignal;
+      Label      = aLabel ;
+      Score      = aScore;
+      Quit       = aQuit;
+      Data       = aData;
     }
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Step Next( string aLabel, Filter aFilter, Score aScore = null, bool aQuit = false, IWithState aData = null )
-    {
-      return new Step(Signal, aLabel, aFilter, aScore, aQuit, aData);
-    }
-
-    public Step Next( Signal aSignal, string aLabel, Filter aFilter, IWithState aData = null )
-    {
-      return new Step(aSignal, aLabel, aFilter, null, false, aData);
-    }
-
     public State GetState()
     {
-      State rS = new State("Step",$"{StepIdx}") ;
-
-      if ( Filter != null ) 
-        rS.Add( Filter.GetState() );  
+      State rS = new State("Branch",$"{Label}") ;
 
       if ( Signal != null )
         rS.Add( Signal.GetState() );  
@@ -54,14 +41,35 @@ namespace DIGITC2
       return rS ;
     }
 
+    public Step       ParentStep ;
     public Signal     Signal ;
     public string     Label  ;
-    public Filter     Filter ;
     public Score      Score  ;
     public bool       Quit   ;
     public IWithState Data   ;
+    public int        Idx ;
+  }
 
-    public int       StepIdx ;
+  public class Step : IWithState
+  {
+    public Step( Filter aFilter, List<Branch> aBranches )
+    {
+      Filter = aFilter; 
+      Branches.AddRange( aBranches) ; 
+
+    }
+    public State GetState()
+    {
+      State rS = new State("Step",$"{Idx}") ;
+
+      Branches.ForEach( b => rS.Add( b.GetState() ) ) ;
+
+      return rS ;
+    }
+
+    public int          Idx ;
+    public Filter       Filter ;
+    public List<Branch> Branches = new List<Branch>();
 
   }
  

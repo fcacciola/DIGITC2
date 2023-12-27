@@ -16,11 +16,9 @@ namespace DIGITC2
     {
     }
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      mStep = aStep.Next( "Token Separatos", this) ;
-
-      return mStep ;
+      rOutput.Add(aInputBranch);
     }
 
     protected override string Name => "FindTokenSeparators" ;

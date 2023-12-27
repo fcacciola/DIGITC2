@@ -64,13 +64,16 @@ namespace DIGITC2
       return new Gate($"", lThresholds);
     }
 
-    protected override Step Process ( WaveSignal aInput, Step aStep )
+    protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
     {
-      var lR = Apply( aInput, CreateGate(10) ) ;
+      Process(10, aInput, aInputBranch, rOuput);
+    }
 
-      mStep = aStep.Next( lR, "AmplitudeGate", this) ;
+    void Process ( int aResolution, WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
+    {
+      var lR = Apply( aInput, CreateGate(aResolution) ) ;
 
-      return mStep ;
+      rOuput.Add( new Branch(lR, $"Resolution:{aResolution}") ) ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )

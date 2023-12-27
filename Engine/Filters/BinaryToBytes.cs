@@ -14,11 +14,17 @@ namespace DIGITC2
   {
     public BinaryToBytes() : base() 
     { 
-      mLittleEndian = Context.Session.Args.GetBool("BinaryToBytes_LittleEndian") ; 
-      mBitsPerByte  = Context.Session.Args.GetInt("BinaryToBytes_BitsPerByte") ; 
     }
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    {
+      Process(true , 5, aInput, rOutput);
+      Process(true , 8, aInput, rOutput);
+      Process(false, 5, aInput, rOutput);
+      Process(false, 8, aInput, rOutput);
+    }
+
+    void Process ( bool aLittleEndian, int aBitsPerByte, LexicalSignal aInput, List<Branch> rOutput )
     {
       mBitValues  = new List<bool>(); 
 
@@ -28,17 +34,16 @@ namespace DIGITC2
       int lByteCount = 0; 
       int i = 0;
 
-
       do
       { 
         mDEBUG_ByteString = "" ;
 
         int lRem = lLen - i ;
 
-        if ( mLittleEndian )
+        if ( aLittleEndian )
           AddPadding();
 
-        for ( int j = 0 ; i < lLen && j < mBitsPerByte ; j++, i ++ )
+        for ( int j = 0 ; i < lLen && j < aBitsPerByte ; j++, i ++ )
         {
           mDEBUG_ByteString += $"[{(lSymbols[i].One ? "1" : "0")}]";
           mBitValues.Add( lSymbols[i].One ) ;  
@@ -46,7 +51,7 @@ namespace DIGITC2
         
         AddRemainder(lRem);
 
-        if ( !mLittleEndian )
+        if ( !aLittleEndian )
           AddPadding();
 
         lByteCount ++ ;
@@ -63,9 +68,7 @@ namespace DIGITC2
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      mStep = aStep.Next( new LexicalSignal(lByteSymbols), "Bytes", this) ;
-
-      return mStep ;
+      rOutput.Add( new Branch( new LexicalSignal(lByteSymbols), $"{(aLittleEndian ? "LittleEndian" : "BigEndian")}|{aBitsPerByte} BitsPerByte") ) ;
     }
 
     protected override string Name => "BinaryToBytes" ;
@@ -94,8 +97,6 @@ namespace DIGITC2
         }
       }
     }
-    bool mLittleEndian ;
-    int  mBitsPerByte ;
 
     List<bool> mBitValues ;
 

@@ -11,19 +11,45 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  public class TextDigitValidator
+  {
+    public TextDigitValidator()
+    {
+
+    }
+
+    public bool IsValid ( string aText )
+    {
+      if ( string.IsNullOrEmpty( aText ) ) 
+        return false;
+
+      char lChar = aText[0];
+
+      return    char.IsLetterOrDigit(lChar) 
+             || char.IsPunctuation(lChar) 
+            //|| char.IsWhiteSpace(lChar) 
+            //|| char.IsSeparator(lChar) 
+            ;
+    }
+  }
+
   public class TokensToWords : LexicalFilter
   {
     public TokensToWords() : base() 
     { 
-      mCharSet  = Context.Session.Args.Get("TokensToWords_CharSet") ; 
-      mFallback = Context.Session.Args.Get("TokensToWords_Fallback") ;
     }
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process(LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput)
     {
-      Encoding lEncoding = Encoding.GetEncoding( mCharSet
+      Process( new Options() { Label = "ascii CharSet", CharSet = "ascii", Fallback = "!", Validator = new TextDigitValidator() }
+             , aInput, aInputBranch, rOutput) ;
+    }
+
+    void Process( Options aOptions, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput)
+    {
+      Encoding lEncoding = Encoding.GetEncoding( aOptions.CharSet
                                                , new EncoderReplacementFallback("(unknown)")
-                                               , new DecoderReplacementFallback(mFallback));
+                                               , new DecoderReplacementFallback( aOptions.Fallback));
 
       List<WordSymbol> lWords = new List<WordSymbol> ();
 
@@ -40,8 +66,8 @@ namespace DIGITC2
           lBuffer[0] = lByteSymbol.Byte; 
           string lDigit = lEncoding.GetString(lBuffer);
 
-          if ( ! IsValidTextDigit( lDigit ) )
-            lDigit = mFallback ;
+          if ( !  aOptions.Validator.IsValid( lDigit ) )
+            lDigit = aOptions.Fallback ;
 
           lSB.Append( lDigit );
 
@@ -52,29 +78,19 @@ namespace DIGITC2
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      mStep = aStep.Next( new LexicalSignal(lWords), "Words", this) ;
-
-      return mStep ;
+      rOutput.Add( new Branch( new LexicalSignal(lWords), aOptions.Label) ) ;
     }
 
-    bool IsValidTextDigit ( string aText )
-    {
-      if ( string.IsNullOrEmpty( aText ) ) 
-        return false;
-
-      char lChar = aText[0];
-
-      return    char.IsLetterOrDigit(lChar) 
-             || char.IsPunctuation(lChar) 
-            //|| char.IsWhiteSpace(lChar) 
-            //|| char.IsSeparator(lChar) 
-            ;
-    }
 
     protected override string Name => "TokenToWords" ;
 
-    string mCharSet ;
-    string mFallback ; 
+    class Options
+    {
+      internal string             Label ;
+      internal string             CharSet ;
+      internal string             Fallback ; 
+      internal TextDigitValidator Validator ;
+    }
   }
 
 }

@@ -18,12 +18,13 @@ namespace DIGITC2
 
     public Step AddFirst( Signal aInput)
     {
-      return Add( new Step(aInput, "Start", null, null, false, null) ) ;
+      var lFirstBranch = new List<Branch>(){ new Branch(aInput,"Start",null,false,null) };
+      return Add( new Step(null, lFirstBranch) ) ;
     }
 
     public Step Add( Step aStep )
     {
-      aStep.StepIdx = Steps.Count;
+      aStep.Idx = Steps.Count;
       Steps.Add( aStep ) ;
       return aStep ;
     }

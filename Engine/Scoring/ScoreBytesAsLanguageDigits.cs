@@ -28,7 +28,7 @@ namespace DIGITC2
 
     string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0, 256, 1, CreateFakeKey);
 

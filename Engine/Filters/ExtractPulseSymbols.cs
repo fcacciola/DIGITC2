@@ -13,9 +13,17 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace DIGITC2
 {
-  internal class PulseFilterHelper
+  public class PulseFilterHelper
   {
-    static internal (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses )
+    static public PulseSymbol CreateOnePulse( PulseSymbol aSource )
+    {
+    }
+
+    static public PulseSymbol CreateZeroPulse( PulseSymbol aSource )
+    {
+    }
+
+    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses )
     {
       var lDist = new Distribution( aPulses.ConvertAll( s => s.ToSample() ) ) ;
 
@@ -28,7 +36,7 @@ namespace DIGITC2
       return (rHistogram, rRankSize);
     }
 
-    static internal void PlotPulses( List<PulseSymbol> aPulses, int aSamplingRate, string aLabel )
+    static public void PlotPulses( List<PulseSymbol> aPulses, int aSamplingRate, string aLabel )
     {
       if ( Context.Session.Args.GetBool("Plot") )
       {
@@ -40,9 +48,9 @@ namespace DIGITC2
       }
     }
 
-    static internal void PlotPulseDurationHistogram( List<PulseSymbol> aPulses, string aName )
+    static public void PlotPulseDurationHistogram( List<PulseSymbol> aPulses, string aName )
     {
-      (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
+      (DTable lHistogram, DTable   lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
       if ( Context.Session.Args.GetBool("Plot") )
       { 
@@ -125,87 +133,88 @@ namespace DIGITC2
   {
     public ExtractPulseSymbols() 
     { 
-      mDullThreshold  = Context.Session.Args.GetOptionalInt("Pulses_DullThreshold") .GetValueOrDefault(35);
-      mSplitThreshold = Context.Session.Args.GetOptionalInt("Pulses_SplitThreshold").GetValueOrDefault(25);
     }
 
-    protected override Step Process ( WaveSignal aInput, Step aStep )
+    protected override void Process (WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      mInput = aInput ; 
+      Process( new Options(){ Label = "A", DullThreshold = 35, SplitThreshold = 25, SplitLevelDiff = 20 }
+             , aInput, aInputBranch, rOutput );
+
+    }
+
+    void Process ( Options aOptions, WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    {
+      mInput   = aInput ; 
+
+      mData = new Data(){ Options = aOptions } ;
 
       CreatePulses();
       RemoveDullPulses();
       SplitPulses();  
       RemoveUnfitPulses();
 
-      mStep = aStep.Next( new LexicalSignal(mFinalPulses), "Raw Pulses", this) ;
-
-      return mStep ;
+      rOutput.Add( new Branch(new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
     }
     
     protected override string Name => "ExtractPulses" ;
 
     void CreatePulses()
     {
-      mRawPulses = new List<PulseSymbol>();
+      mData.InGap = mInput.Samples[0] == 0 ;
 
-      mInGap = mInput.Samples[0] == 0 ;
-
-      mPulseStart = 0 ;
-      mPos        = 0 ;
+      mData.PulseStart = 0 ;
+      mData.Pos        = 0 ;
 
       Context.WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
 
-      for ( mPos = 0 ; mPos < mInput.Samples.Length ; ++ mPos )
+      for ( mData.Pos = 0 ; mData.Pos < mInput.Samples.Length ; ++ mData.Pos )
       {
-        float lV = mInput.Samples[mPos] ;
+        float lV = mInput.Samples[mData.Pos] ;
 
         if ( lV > 0 )
         {
-          if ( mInGap )
+          if ( mData.InGap )
           {
-            mPulseStart = mPos ;
-            Context.WriteLine($"Pulse start at {mPulseStart}");
+            mData.PulseStart = mData.Pos ;
+            Context.WriteLine($"Pulse start at {mData.PulseStart}");
           }
-          mInGap = false ;  
+          mData.InGap = false ;  
         }
         else
         {
           AddPulse();
-          mInGap = true ;  
+          mData.InGap = true ;  
         }
       }
 
       AddPulse();
 
-      PulseFilterHelper.PlotPulses(mRawPulses, mInput.SamplingRate, "Raw");
-      PulseFilterHelper.PlotPulseDurationHistogram(mRawPulses, "Raw");
+      PulseFilterHelper.PlotPulses(mData.RawPulses, mInput.SamplingRate, $"{mData.Options.Label}_Raw");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.RawPulses, $"{mData.Options.Label}_Raw");
     }
 
     void AddPulse()
     {
-      if ( ! mInGap )
+      if ( ! mData.InGap )
       {
-        var lSteps = PulseStepBuilder.Build(mInput, mPulseStart, mPos ) ;
+        var lSteps = PulseStepBuilder.Build(mInput, mData.PulseStart, mData.Pos ) ;
 
-        Context.WriteLine($"Creatign new Pulse from {mPulseStart} to {mPos} with {lSteps}");
+        Context.WriteLine($"Creatign new Pulse from {mData.PulseStart} to {mData.Pos} with {lSteps}");
 
-        mRawPulses.Add( new PulseSymbol(mRawPulses.Count, mInput.SamplingRate, mPulseStart, mPos, lSteps ) );
+        mData.RawPulses.Add( new PulseSymbol(mData.RawPulses.Count, mInput.SamplingRate, mData.PulseStart, mData.Pos, lSteps ) );
       }
     }
 
     void RemoveDullPulses()
     {
-      mLoudPulses = new List<PulseSymbol>();
-
-      foreach( var lPulse in mRawPulses )
+      foreach( var lPulse in mData.RawPulses )
       {
-        if ( lPulse.MaxLevel > mDullThreshold )
-          mLoudPulses.Add(lPulse );
+        if ( lPulse.MaxLevel > mData.Options.DullThreshold )
+          mData.LoudPulses.Add(lPulse );
       }
 
-      PulseFilterHelper.PlotPulses(mLoudPulses, mInput.SamplingRate, "Loud");
-      PulseFilterHelper.PlotPulseDurationHistogram(mLoudPulses, "Loud");
+      PulseFilterHelper.PlotPulses(mData.LoudPulses, mInput.SamplingRate, $"{mData.Options.Label}_Loud");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.LoudPulses, $"{mData.Options.Label}_Loud");
     }
 
     struct Run
@@ -233,7 +242,7 @@ namespace DIGITC2
 
         if ( i > 0 && i < lL )
         {
-          bool lDullEnough  = lStep.Level < mSplitThreshold ;
+          bool lDullEnough  = lStep.Level < mData.Options.SplitThreshold ;
           if ( lDullEnough )
           {
             bool lFromPeak = false ;
@@ -247,7 +256,7 @@ namespace DIGITC2
               if ( lPrevLevel >= lCurrLevel)
               {
                 lDiff += lPrevLevel - lCurrLevel ;
-                if ( lDiff >= 20 )
+                if ( lDiff >= mData.Options.SplitLevelDiff )
                 {
                   lFromPeak = true ;  
                   break ;
@@ -278,7 +287,7 @@ namespace DIGITC2
                 if ( lNextLevel >= lCurrLevel)
                 {
                   lDiff += lNextLevel - lCurrLevel ;
-                  if ( lDiff >= 20 )
+                  if ( lDiff >= mData.Options.SplitLevelDiff )
                   {
                     lToPeak = true ;  
                     break ;
@@ -330,19 +339,17 @@ namespace DIGITC2
 
           var lNewPulseStart = lSteps.First().Start ;
           var lNewPulseEnd   = lSteps.Last ().End ;  
-          var lNewPulse = new PulseSymbol(mSplitPulses.Count, mInput.SamplingRate, lNewPulseStart, lNewPulseEnd, lSteps );
-          mSplitPulses.Add(lNewPulse);
+          var lNewPulse = new PulseSymbol(mData.SplitPulses.Count, mInput.SamplingRate, lNewPulseStart, lNewPulseEnd, lSteps );
+          mData.SplitPulses.Add(lNewPulse);
         }
       }
     }
 
     void SplitPulses()
     {
-      mSplitPulses = new List<PulseSymbol>();
-
       Context.WriteLine("Splitting Pulses");
 
-      foreach( var lPulse in mLoudPulses )
+      foreach( var lPulse in mData.LoudPulses )
       {
         Context.WriteLine($"  Checking  pulse {lPulse}");
         var lRuns = FindRuns( lPulse );  
@@ -352,31 +359,42 @@ namespace DIGITC2
         }
         else
         {
-          mSplitPulses.Add( lPulse ); 
+          mData.SplitPulses.Add( lPulse ); 
         }
       }
 
-      PulseFilterHelper.PlotPulses(mSplitPulses, mInput.SamplingRate, "Split");
-      PulseFilterHelper.PlotPulseDurationHistogram(mSplitPulses, "Split");
+      PulseFilterHelper.PlotPulses(mData.SplitPulses, mInput.SamplingRate, $"{mData.Options.Label}_Split");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.SplitPulses, $"{mData.Options.Label}_Split");
     }
 
     void RemoveUnfitPulses()
     {
-      mFinalPulses = new List<PulseSymbol>();
-
-      mFinalPulses = mSplitPulses ;
+      mData.FinalPulses.AddRange( mData.SplitPulses ) ;
     }
 
-    WaveSignal        mInput ;
-    bool              mInGap ;
-    int               mPulseStart ;
-    int               mPos ;
-    int               mDullThreshold ;
-    int               mSplitThreshold ;
-    List<PulseSymbol> mRawPulses ;
-    List<PulseSymbol> mLoudPulses ;
-    List<PulseSymbol> mSplitPulses ;
-    List<PulseSymbol> mFinalPulses ;
+    class Options
+    {
+      internal string Label ;
+      internal int    DullThreshold ;
+      internal int    SplitThreshold ;
+      internal int    SplitLevelDiff ;
+    }
+
+    class Data
+    {
+      internal Options           Options ;
+      internal List<PulseSymbol> RawPulses   = new List<PulseSymbol>();
+      internal List<PulseSymbol> LoudPulses  = new List<PulseSymbol>();
+      internal List<PulseSymbol> SplitPulses = new List<PulseSymbol>();
+      internal List<PulseSymbol> FinalPulses = new List<PulseSymbol>() ;
+      internal bool              InGap ;
+      internal int               PulseStart ;
+      internal int               Pos ;
+    }
+
+    WaveSignal mInput ;
+    Data       mData ;
+
   }
 
 

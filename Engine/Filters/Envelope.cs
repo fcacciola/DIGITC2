@@ -43,11 +43,9 @@ namespace DIGITC2
     { 
     }
 
-    protected override Step Process ( WaveSignal aInput, Step aStep )
+    protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      WaveSignal rR = aInput;
-
-      List<Iteration> lIterations = new List<Iteration>
+      List<Iteration> lIterationsA = new List<Iteration>
       {
         new Iteration(0.001f, .001f),
         new Iteration(0.001f, .001f),
@@ -60,14 +58,19 @@ namespace DIGITC2
         new Iteration(0.005f, .01f)
       };
 
-      lIterations.ForEach( lI => rR = Apply(rR,lI) ) ;
+      Process(lIterationsA, "10-steps", aInput, aInputBranch, rOutput ) ;
+    }
+
+    void Process ( List<Iteration> aIterations, string aLabel, WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    {
+      WaveSignal rR = aInput;
+
+      aIterations.ForEach( lI => rR = Apply(rR,lI) ) ;
 
       if ( Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( Context.Session.LogFile( "_Envelope.wav") ) ;
+        rR.SaveTo( Context.Session.LogFile( $"_{aLabel}_Envelope.wav") ) ;
 
-      mStep = aStep.Next( rR, "Envelope", this) ;
-
-      return mStep ;
+      rOutput.Add( new Branch(rR, aLabel));
     }
 
     WaveSignal Apply ( WaveSignal aInput, Iteration aIteration )

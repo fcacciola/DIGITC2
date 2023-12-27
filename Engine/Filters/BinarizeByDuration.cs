@@ -16,35 +16,113 @@ namespace DIGITC2
     { 
     }
 
-    protected override Step Process (LexicalSignal aInput, Step aStep )
+    enum BitType { One, Zero, Noise } ;
+    enum LayerClass {  ClassA, ClassB ,ClassC } ;
+
+    class Layer
     {
-       List<BitSymbol>   lBits     = new List<BitSymbol>   ();
-       List<PulseSymbol> lBitViews = new List<PulseSymbol> ();
+      internal Layer ( LayerClass aClass )
+      {
+        mClass = aClass ;
+      }
 
-       var lSymbols = aInput.GetSymbols<PulseSymbol>() ;
-       
-       double lAccDuration = 0 ;
-       lSymbols.ForEach( s => lAccDuration += s.Duration ) ;
-       double lAvgDuration = lAccDuration / (double)lSymbols.Count ;
+      internal void Add( ClassifiedPulse aCPulse )
+      {
+        var lBitType = aCPulse.Classification.GetBitType(mClass);
 
-       double lMaxDuration = 0 ;
-       lSymbols.ForEach( s => { if ( s.Duration < 3 * lAvgDuration ) lMaxDuration = Math.Max(s.Duration, lMaxDuration) ; } ) ;
+        if ( lBitType != BitType.Noise )
+          AddBit( aCPulse.Pulse, lBitType == BitType.One);
+      }
 
-       foreach ( PulseSymbol lGI in lSymbols ) 
+      void AddBit( PulseSymbol aPulse, bool aIsOne ) 
+      {
+        PulseSymbol lView = aIsOne ? PulseFilterHelper.CreateOnePulse(aPulse) : PulseFilterHelper.CreateZeroPulse(aPulse);
+
+        mBits.Add( new BitSymbol( mBits.Count, aIsOne, lView )) ;
+      }
+
+      internal LexicalSignal GetSignal()
+      {
+        return new LexicalSignal(mBits);
+      }
+
+      internal string Label => mClass.ToString();
+
+      LayerClass      mClass ;
+      List<BitSymbol> mBits = new List<BitSymbol> ();
+    }
+    
+    class Classification
+    {
+      internal BitType GetBitType( LayerClass aLayer )
+      {
+        return aLayer == LayerClass.ClassA ? A : ( aLayer == LayerClass.ClassB ? B : C ) ;
+      }
+
+      internal BitType A ;
+      internal BitType B ;
+      internal BitType C ;
+    }
+
+    class ClassifiedPulse
+    {
+      internal PulseSymbol    Pulse ;
+      internal Classification Classification ;
+    }
+
+    class Classifier
+    {
+      internal static List<ClassifiedPulse> Run( LexicalSignal aInput )
+      {
+        Classifier rC = new Classifier(aInput);
+
+        return rC.Estimate();
+      }
+
+      Classifier( LexicalSignal aInput )
+      {
+        mInput = aInput;  
+      }
+
+      internal List<ClassifiedPulse> Estimate()
+      {
+         var lPulses = mInput.GetSymbols<PulseSymbol>() ;
+         (DTable lHistogram, DTable lRankSize) = PulseFilterHelper.GetHistogramAndRankSize(lPulses) ;
+
+         lPulses.ForEach( p => mClasses.Add( Estimate(p) ) );
+
+         return mClasses ;
+      }
+
+      internal ClassifiedPulse Estimate( PulseSymbol aPulse )  
+      {
+        ClassifiedPulse rClass = new ClassifiedPulse(){Pulse = aPulse};
+        return rClass ;
+      }
+
+      LexicalSignal mInput ;
+      List<ClassifiedPulse> mClasses = new List<ClassifiedPulse> ();  
+    }
+
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    {
+       var lClassifiedPulses = Classifier.Run(aInput);
+
+       Layer lLayerA = new Layer( LayerClass.ClassA );   
+       Layer lLayerB = new Layer( LayerClass.ClassB );   
+       Layer lLayerC = new Layer( LayerClass.ClassC );   
+
+       foreach( var lCPulse in lClassifiedPulses ) 
        {
-         bool lOne = ( lGI.Duration / lMaxDuration ) > mThreshold ;
-
-         PulseSymbol lViewSym = lGI.Copy() as PulseSymbol ;
-         lViewSym.MaxAmplitude = lOne ? - lGI.MaxAmplitude * 0.5f : - lGI.MaxAmplitude * 0.2f;
-         lBitViews.Add( lViewSym ) ; 
-
-         lBits.Add( new BitSymbol( lBits.Count, lOne, lViewSym )) ;
-
+         lLayerA.Add( lCPulse ) ;
+         lLayerB.Add( lCPulse ) ;
+         lLayerC.Add( lCPulse ) ;
        }
-   
-       mStep = aStep.Next( new LexicalSignal(lBits), "Duration-based Bits", this) ;
 
-       return mStep ;
+       rOutput.Add( new Branch(lLayerA.GetSignal(), lLayerA.Label) ) ;
+       rOutput.Add( new Branch(lLayerB.GetSignal(), lLayerA.Label) ) ;
+       rOutput.Add( new Branch(lLayerC.GetSignal(), lLayerA.Label) ) ;
+
     }
 
     protected override string Name => "BinarizeByDuration" ;

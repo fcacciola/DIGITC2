@@ -31,7 +31,7 @@ namespace DIGITC2
     { 
     }
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
       List<string> lWords = new List<string>();  
 
@@ -45,9 +45,7 @@ namespace DIGITC2
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  
 
-      mStep = aStep.Next( new LexicalSignal(lTextSymbols), "Text", this, new TextMessage(lText)) ;
-
-      return mStep ;
+      rOutput.Add( new Branch( new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
     }
 
     protected override string Name => "WordsToText" ;

@@ -11,14 +11,41 @@ using NWaves.Signals;
 namespace DIGITC2
 { 
 
+  public class TokenSeparators
+  {
+    public TokenSeparators()
+    {
+      Label = "Standard Token Separators" ;
+
+      mSeparators = BytesSource.GetWordSeparators() ; 
+    }
+
+    public string Label ;
+
+    public bool IsSeparator( Symbol aS )
+    {
+      foreach( var lSeparator in mSeparators )
+        if ( lSeparator == aS ) 
+          return true ;
+
+      return false ;
+    }
+
+    List<Symbol> mSeparators = new List<Symbol>() ;
+  }
+   
   public class Tokenizer : LexicalFilter
   {
     public Tokenizer() : base() 
     {
-      mSeparators = BytesSource.GetWordSeparators() ; 
     }
 
-    protected override Step Process ( LexicalSignal aInput, Step aStep )
+    protected override void Process(LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput)
+    {
+      Process( new TokenSeparators() , aInput, aInputBranch, rOutput);
+    }
+
+    void Process( TokenSeparators aSeparators, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput)
     {
       List<Symbol> lCurrToken = new List<Symbol>();
 
@@ -26,7 +53,7 @@ namespace DIGITC2
 
       foreach( var lByte in aInput.Symbols )
       {
-        if ( IsSeparator(lByte) )
+        if ( aSeparators.IsSeparator(lByte) )
         { 
           if ( lCurrToken.Count > 0 ) 
           {
@@ -46,23 +73,12 @@ namespace DIGITC2
         lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      mStep = aStep.Next( new LexicalSignal(lTokens), "Tokens", this) ;
-
-      return mStep ;
+      rOutput.Add( new Branch( new LexicalSignal(lTokens), aSeparators.Label ) ) ;
     }
 
-    bool IsSeparator( Symbol aS )
-    {
-      foreach( var lSeparator in mSeparators )
-        if ( lSeparator == aS ) 
-          return true ;
-
-      return false ;
-    }
 
     protected override string Name => "Tokenize" ;
 
-    List<Symbol> mSeparators = new List<Symbol>() ;
 
 
   }

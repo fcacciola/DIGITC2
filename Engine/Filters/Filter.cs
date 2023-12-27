@@ -11,12 +11,24 @@ namespace DIGITC2
     public Step Apply( Step aInput ) 
     {
       if ( mStep == null )
-        mStep = DoApply ( aInput );
+      {
+        List<Branch> lOutput = new List<Branch>();
+
+        foreach ( Branch lBranch in aInput.Branches ) 
+        {
+          if ( ! lBranch.Quit )
+          {
+            DoApply(lBranch, lOutput);
+          }
+        }
+
+        mStep = new Step(this,lOutput); 
+      }
 
       return mStep;
     }
 
-    protected abstract Step DoApply( Step aInput) ;
+    protected abstract void DoApply( Branch aInput, List<Branch> rOutput ) ;
 
     public State GetState()
     {
@@ -38,16 +50,16 @@ namespace DIGITC2
   {
     protected WaveFilter() : base() {}
 
-    protected override Step DoApply( Step aInput ) 
+    protected override void DoApply( Branch aInput, List<Branch> rOuput )
     {
       WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
       if ( lWaveSignal == null )
         throw new ArgumentException("Input Signal must be an Audio Signal.");
 
-      return Process(lWaveSignal, aInput);
+      Process(lWaveSignal, aInput, rOuput);
     }
     
-    protected abstract Step Process ( WaveSignal aInput, Step aInputStep );  
+    protected abstract void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput );  
 
   }
 
@@ -55,16 +67,16 @@ namespace DIGITC2
   {
     protected LexicalFilter() : base() {}
 
-    protected override Step DoApply( Step aInput ) 
+    protected override void DoApply( Branch aInput, List<Branch> rOuput )
     {
       LexicalSignal lLexicalSignal = aInput.Signal as LexicalSignal; 
       if ( lLexicalSignal == null )
         throw new ArgumentException("Input Signal must be a gated Lexical Signal.");
 
-      return Process(lLexicalSignal, aInput);
+      Process(lLexicalSignal, aInput, rOuput );
     }
     
-    protected abstract Step Process ( LexicalSignal aInput, Step aStep );  
+    protected abstract void Process(LexicalSignal aInput, Branch aInputBranch, List<Branch> rOuput);  
 
   }
 
