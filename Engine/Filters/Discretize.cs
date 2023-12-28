@@ -73,7 +73,7 @@ namespace DIGITC2
     {
       var lR = Apply( aInput, CreateGate(aResolution) ) ;
 
-      rOuput.Add( new Branch(lR, $"Resolution:{aResolution}") ) ;
+      rOuput.Add( new Branch(aInputBranch, lR, $"Resolution:{aResolution}") ) ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )

@@ -70,7 +70,7 @@ namespace DIGITC2
       if ( Context.Session.Args.GetBool("Plot") )
         rR.SaveTo( Context.Session.LogFile( $"_{aLabel}_Envelope.wav") ) ;
 
-      rOutput.Add( new Branch(rR, aLabel));
+      rOutput.Add( new Branch(aInputBranch, rR, aLabel));
     }
 
     WaveSignal Apply ( WaveSignal aInput, Iteration aIteration )

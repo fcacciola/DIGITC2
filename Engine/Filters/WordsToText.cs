@@ -45,7 +45,7 @@ namespace DIGITC2
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  
 
-      rOutput.Add( new Branch( new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
     }
 
     protected override string Name => "WordsToText" ;

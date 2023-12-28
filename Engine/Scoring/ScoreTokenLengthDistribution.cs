@@ -43,21 +43,19 @@ namespace DIGITC2
 
       Score lScore = new Score(lLikelihood,lFitness) ;
 
-      mStep = aStep.Next( "Token-length distribution score", this, lScore, lLikelihood < mQuitThreshold) ;
-
       if ( Context.Session.Args.GetBool("SaveReference") )
       {
-        lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  
-        lRankSize .Save(Context.Session.LogFile( aStep.Label + "_RankSize.json"));  
+        lHistogram.Save(Context.Session.LogFile( Name + "_Histogram.json"));  
+        lRankSize .Save(Context.Session.LogFile( Name + "_RankSize.json"));  
       }
 
       if ( Context.Session.Args.GetBool("Plot") )
       {
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(Name +"_Histogram.png"));
+        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(Name +"_RankSize.png"));
       }
 
-      return mStep ;
+      rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
     }
 
     protected override string Name => "ScoreTokenLengthDistribution" ;

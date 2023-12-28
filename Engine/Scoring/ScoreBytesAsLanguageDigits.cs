@@ -44,15 +44,14 @@ namespace DIGITC2
 
       Score lScore = new Score(lLikelihood,lFitness) ;
       
-      mStep = aStep.Next( "Byte distribution score for language digits.", this, lScore, lLikelihood < mQuitThreshold) ;
-
       if ( Context.Session.Args.GetBool("SaveReference") )
-        lHistogram.Save(Context.Session.LogFile( aStep.Label + "_Histogram.json"));  
+        lHistogram.Save(Context.Session.LogFile( Name + "_Histogram.json"));  
 
       if ( Context.Session.Args.GetBool("Plot") )
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(aStep.Label +"_Histogram.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(Name +"_Histogram.png"));
 
-      return mStep ;
+      rOutput.Add( new Branch(aInputBranch, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
+
     }
 
     protected override string Name => "ScoreBytesAsLanguageDigits" ;

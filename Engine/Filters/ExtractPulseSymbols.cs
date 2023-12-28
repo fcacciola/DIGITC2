@@ -15,23 +15,42 @@ namespace DIGITC2
 {
   public class PulseFilterHelper
   {
+
+    static public PulseSymbol CreateSpecialPulse( PulseSymbol aSource, float aAmplitude )
+    {
+      var lSteps = new List<PulseStep>
+      {
+        new PulseStep(aAmplitude, aSource.Start, aSource.End)
+      };  
+      return new PulseSymbol( aSource.Idx, aSource.SamplingRate, aSource.Start, aSource.End, lSteps ); 
+    }
+
     static public PulseSymbol CreateOnePulse( PulseSymbol aSource )
     {
+      return CreateSpecialPulse(aSource, 0.9f);
     }
 
     static public PulseSymbol CreateZeroPulse( PulseSymbol aSource )
     {
+      return CreateSpecialPulse(aSource, 0.3f);
     }
 
-    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses )
+    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
     {
-      var lDist = new Distribution( aPulses.ConvertAll( s => s.ToSample() ) ) ;
+      return GetHistogramAndRankSize( aPulses.ConvertAll( s => s.ToSample() ), aNormalizeHistogram, aNormalizeRankSize ) ;
+    }
 
-      var rHistogram = new Histogram(lDist).Table ;
+    static public (DTable,DTable) GetHistogramAndRankSize( List<Sample> aSamples, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
+    {
+      var lDist = new Distribution(aSamples) ;
 
-      var lFullRangeRankSize = rHistogram.ToRankSize();
+      var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      var rRankSize = lFullRangeRankSize.Normalized();
+      var lFullRangeRankSize = lFullRangeHistogram.ToRankSize();
+
+      var rRankSize = aNormalizeRankSize ? lFullRangeRankSize.Normalized() : lFullRangeRankSize ;
+
+      var rHistogram = aNormalizeHistogram ? lFullRangeHistogram.Normalized() : lFullRangeHistogram ;  
 
       return (rHistogram, rRankSize);
     }
@@ -113,7 +132,7 @@ namespace DIGITC2
       if ( mCurrCount > 0 )
       {
         Context.WriteLine($"  Step of {mAmplitude} from {mStepStart} to {mPos}");
-        mSteps.Add( new PulseStep(mAmplitude, mStepStart, mPos, (double)mCurrCount / (double)mSource.SamplingRate ) );
+        mSteps.Add( new PulseStep(mAmplitude, mStepStart, mPos ) );
         mStepStart = mPos ;
       }
     }
@@ -153,7 +172,7 @@ namespace DIGITC2
       SplitPulses();  
       RemoveUnfitPulses();
 
-      rOutput.Add( new Branch(new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
     }
     
     protected override string Name => "ExtractPulses" ;

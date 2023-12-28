@@ -78,7 +78,7 @@ namespace DIGITC2
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      rOutput.Add( new Branch( new LexicalSignal(lWords), aOptions.Label) ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lWords), aOptions.Label) ) ;
     }
 
 

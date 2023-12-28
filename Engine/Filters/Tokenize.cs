@@ -73,7 +73,7 @@ namespace DIGITC2
         lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      rOutput.Add( new Branch( new LexicalSignal(lTokens), aSeparators.Label ) ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lTokens), aSeparators.Label ) ) ;
     }
 
 

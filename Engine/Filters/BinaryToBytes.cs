@@ -14,17 +14,25 @@ namespace DIGITC2
   {
     public BinaryToBytes() : base() 
     { 
+      mBranchSelection = new Branch.Selection(Context.Session.Args.Get("BinaryToBytes_Branches"));
     }
 
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      Process(true , 5, aInput, rOutput);
-      Process(true , 8, aInput, rOutput);
-      Process(false, 5, aInput, rOutput);
-      Process(false, 8, aInput, rOutput);
+      if ( mBranchSelection.IsActive("Little5") )
+        Process(true , 5, aInput, aInputBranch, rOutput);
+
+      if ( mBranchSelection.IsActive("Little8") )
+        Process(true , 8, aInput, aInputBranch, rOutput);
+
+      if ( mBranchSelection.IsActive("Big5") )
+        Process(false, 5, aInput, aInputBranch, rOutput);
+
+      if ( mBranchSelection.IsActive("Big85") )
+        Process(false, 8, aInput, aInputBranch, rOutput);
     }
 
-    void Process ( bool aLittleEndian, int aBitsPerByte, LexicalSignal aInput, List<Branch> rOutput )
+    void Process ( bool aLittleEndian, int aBitsPerByte, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
       mBitValues  = new List<bool>(); 
 
@@ -41,7 +49,7 @@ namespace DIGITC2
         int lRem = lLen - i ;
 
         if ( aLittleEndian )
-          AddPadding();
+          AddPadding(aBitsPerByte);
 
         for ( int j = 0 ; i < lLen && j < aBitsPerByte ; j++, i ++ )
         {
@@ -49,10 +57,10 @@ namespace DIGITC2
           mBitValues.Add( lSymbols[i].One ) ;  
         }
         
-        AddRemainder(lRem);
+        AddRemainder(aBitsPerByte, lRem);
 
         if ( !aLittleEndian )
-          AddPadding();
+          AddPadding(aBitsPerByte);
 
         lByteCount ++ ;
       }
@@ -68,29 +76,28 @@ namespace DIGITC2
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new Branch( new LexicalSignal(lByteSymbols), $"{(aLittleEndian ? "LittleEndian" : "BigEndian")}|{aBitsPerByte} BitsPerByte") ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), $"{(aLittleEndian ? "LittleEndian" : "BigEndian")}|{aBitsPerByte} BitsPerByte") ) ;
     }
 
     protected override string Name => "BinaryToBytes" ;
 
-    void AddPadding()
+    void AddPadding( int aBitsPerByte )
     {
-      if (  mBitsPerByte < 8 )
+      if ( aBitsPerByte < 8 )
       {
-        for( int k = mBitsPerByte ; k < 8 ; k++ ) 
+        for( int k = aBitsPerByte ; k < 8 ; k++ ) 
         {
           mDEBUG_ByteString += $"[P:0]";
           mBitValues.Add( false ) ;
         }
-
       }
     }
 
-    void AddRemainder( int aRem )
+    void AddRemainder( int aBitsPerByte, int aRem )
     {
-      if ( aRem < mBitsPerByte )
+      if ( aRem < aBitsPerByte )
       {
-        for( int k = aRem ; k < mBitsPerByte ; k++ ) 
+        for( int k = aRem ; k < aBitsPerByte ; k++ ) 
         {
           mDEBUG_ByteString += $"[R:0]";
           mBitValues.Add( false ) ;
@@ -102,6 +109,7 @@ namespace DIGITC2
 
     string mDEBUG_ByteString ;
 
+    Branch.Selection mBranchSelection ;
   }
 
 }

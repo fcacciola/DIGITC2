@@ -4,12 +4,14 @@ xFromMultipleTextSizes=true
 FromAudio_ByDuration=true
 
 xAudio=./Input/Samples/Sample-1_5.wav,./Input/Samples/Sample-2.wav,./Input/Samples/Sample-3.wav,./Input/Samples/Sample-4.wav,./Input/Samples/Sample-5.wav,./Input/Samples/Sample-6.wav,./Input/Samples/Sample-7.wav
-Audio=./Input/Samples/Sample-4.wav
+xxAudio=./Input/Samples/Sample-4.wav
+Audio=./Input/Samples/Sample-1_5.wav
 BitsCount=1024
 LargeText=dracula.txt
 TextSlices=2,3,4,8,16,32,512
 Plot=true
 xSaveReference=true
+BinaryToBytes_Branches=!Little5,Little8,!Big5,!Big8
 BytesAsLanguageDigits_FitnessMap=35,50,85,97
 BytesAsLanguageDigits_QuitThreshold=1
 TokenLengthDistribution_FitnessMap=50,65,85,97

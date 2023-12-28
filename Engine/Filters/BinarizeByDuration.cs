@@ -4,6 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using DocumentFormat.OpenXml.Drawing;
+
+using MathNet.Numerics.Statistics;
+
+using Newtonsoft.Json.Serialization;
+
 using NWaves.Operations;
 using NWaves.Signals;
 
@@ -17,18 +23,18 @@ namespace DIGITC2
     }
 
     enum BitType { One, Zero, Noise } ;
-    enum LayerClass {  ClassA, ClassB ,ClassC } ;
+    enum BranchName {  BranchA, BranchB } ;
 
-    class Layer
+    class FilterBranch
     {
-      internal Layer ( LayerClass aClass )
+      internal FilterBranch ( BranchName aBranchName )
       {
-        mClass = aClass ;
+        mBranchName = aBranchName ;
       }
 
       internal void Add( ClassifiedPulse aCPulse )
       {
-        var lBitType = aCPulse.Classification.GetBitType(mClass);
+        var lBitType = aCPulse.Classification.GetBitType(mBranchName);
 
         if ( lBitType != BitType.Noise )
           AddBit( aCPulse.Pulse, lBitType == BitType.One);
@@ -46,28 +52,31 @@ namespace DIGITC2
         return new LexicalSignal(mBits);
       }
 
-      internal string Label => mClass.ToString();
+      internal string Label => mBranchName.ToString();
 
-      LayerClass      mClass ;
+      BranchName      mBranchName ;
       List<BitSymbol> mBits = new List<BitSymbol> ();
     }
     
     class Classification
     {
-      internal BitType GetBitType( LayerClass aLayer )
+      internal BitType GetBitType( BranchName aBranchName )
       {
-        return aLayer == LayerClass.ClassA ? A : ( aLayer == LayerClass.ClassB ? B : C ) ;
+        return aBranchName == BranchName.BranchA ? ForBranchA : ForBranchB ;
       }
 
-      internal BitType A ;
-      internal BitType B ;
-      internal BitType C ;
+      public override string ToString() => $"[{ForBranchA}|{ForBranchB}]";
+      
+      internal BitType ForBranchA ;
+      internal BitType ForBranchB ;
     }
 
     class ClassifiedPulse
     {
       internal PulseSymbol    Pulse ;
       internal Classification Classification ;
+
+      public override string ToString() => $"[{Pulse}|{Classification}]";
     }
 
     class Classifier
@@ -84,45 +93,136 @@ namespace DIGITC2
         mInput = aInput;  
       }
 
+      internal class Cluster
+      {
+        internal Cluster( double aCenter, double aSize )
+        {
+          mCenter = aCenter ;
+          mSize   = aSize ; 
+        }
+
+        internal double GetDistance( double aV )
+        {
+          double lDist = Math.Abs(aV - mCenter) ; 
+          double lScaled = lDist / mSize ;  
+
+          return lScaled ;  
+        }
+
+        double mCenter ;
+        double mSize   ;
+      }
+
+      internal (Cluster,Cluster) GetClusters( List<double> aDurations )
+      {
+        double lMinD = aDurations.Min();
+        double lMaxD = aDurations.Max();
+
+        double lRange = lMaxD - lMinD ; 
+
+        double lZeroCenter = lMinD + lRange * .20  ; 
+        double lOneCenter  = lMinD + lRange * .80  ; 
+
+        double lSize = lRange * .40 ;
+
+        Cluster rClusterZero = new Cluster( lZeroCenter, lSize );
+        Cluster rClusterOne  = new Cluster( lOneCenter , lSize );
+
+        return ( rClusterZero, rClusterOne );
+      }
+
+
       internal List<ClassifiedPulse> Estimate()
       {
          var lPulses = mInput.GetSymbols<PulseSymbol>() ;
-         (DTable lHistogram, DTable lRankSize) = PulseFilterHelper.GetHistogramAndRankSize(lPulses) ;
+         var lDurations = lPulses.ConvertAll( p => p.Duration ) ;
 
-         lPulses.ForEach( p => mClasses.Add( Estimate(p) ) );
+         (Cluster lClusterZero, Cluster lClusterOne) = GetClusters( lDurations ) ;  
 
-         return mClasses ;
+         foreach( var lPulse in lPulses )
+         {  
+           double lDuration = lPulse.Duration ;
+
+           double lDistToZero = lClusterZero.GetDistance(lDuration) ; 
+           double lDistToOne  = lClusterOne .GetDistance(lDuration) ; 
+
+           Classification lClassification = new Classification();
+
+           if ( lDistToZero <= 1.0 && lDistToOne > 1.0 )
+           {
+             lClassification.ForBranchA = BitType.Zero ;
+
+             if (  lDistToZero <= 0.75 )
+                  lClassification.ForBranchB = BitType.Zero ;
+             else lClassification.ForBranchB = BitType.Noise ;
+           }
+           else if ( lDistToOne <= 1.0 && lDistToZero > 1.0 )
+           {
+             lClassification.ForBranchA = BitType.One ;
+             if (  lDistToOne <= 0.75 )
+                  lClassification.ForBranchB = BitType.One ;
+             else lClassification.ForBranchB = BitType.Noise ;
+           }
+           else if ( lDistToOne <= 1.0 && lDistToZero <= 1.0 )
+           {
+             lClassification.ForBranchA = BitType.One ;
+             lClassification.ForBranchB = BitType.Zero ;
+           }
+           else if ( lDistToOne > 1.0 && lDistToZero > 1.0 )
+           {
+             lClassification.ForBranchA = BitType.Noise ;
+             lClassification.ForBranchB = BitType.Noise ;
+           }
+
+           mClassifiedPulses.Add( new ClassifiedPulse(){ Pulse = lPulse, Classification = lClassification } ) ;
+         }
+
+         return mClassifiedPulses ;
       }
 
-      internal ClassifiedPulse Estimate( PulseSymbol aPulse )  
-      {
-        ClassifiedPulse rClass = new ClassifiedPulse(){Pulse = aPulse};
-        return rClass ;
-      }
+      LexicalSignal         mInput ;
+      List<ClassifiedPulse> mClassifiedPulses = new List<ClassifiedPulse> ();  
+    }
 
-      LexicalSignal mInput ;
-      List<ClassifiedPulse> mClasses = new List<ClassifiedPulse> ();  
+    static public void PlotBits( LexicalSignal aSignal, string aLabel )
+    {
+      List<BitSymbol> lBits = aSignal.GetSymbols<BitSymbol>();  
+
+      if ( lBits.Count > 0 ) 
+      { 
+        List<float> lSamples = new List<float> ();
+        lBits.ForEach( b => b.View.DumpSamples(lSamples ) );
+        int lSamplingRate = lBits[0].View.SamplingRate;
+        DiscreteSignal lWaveRep = new DiscreteSignal(lSamplingRate, lSamples);
+        WaveSignal lWave = new WaveSignal(lWaveRep);
+        lWave.SaveTo( Context.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
+      }
     }
 
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
        var lClassifiedPulses = Classifier.Run(aInput);
 
-       Layer lLayerA = new Layer( LayerClass.ClassA );   
-       Layer lLayerB = new Layer( LayerClass.ClassB );   
-       Layer lLayerC = new Layer( LayerClass.ClassC );   
+       FilterBranch lBranchA = new FilterBranch( BranchName.BranchA );   
+       FilterBranch lBranchB = new FilterBranch( BranchName.BranchB );   
 
        foreach( var lCPulse in lClassifiedPulses ) 
        {
-         lLayerA.Add( lCPulse ) ;
-         lLayerB.Add( lCPulse ) ;
-         lLayerC.Add( lCPulse ) ;
+         lBranchA.Add( lCPulse ) ;
+         lBranchB.Add( lCPulse ) ;
        }
 
-       rOutput.Add( new Branch(lLayerA.GetSignal(), lLayerA.Label) ) ;
-       rOutput.Add( new Branch(lLayerB.GetSignal(), lLayerA.Label) ) ;
-       rOutput.Add( new Branch(lLayerC.GetSignal(), lLayerA.Label) ) ;
+       LexicalSignal lSignalA = lBranchA.GetSignal() ;
+       LexicalSignal lSignalB = lBranchB.GetSignal() ;
 
+       if ( Context.Session.Args.GetBool("Plot") )
+       {
+         PlotBits(lSignalA, lBranchA.Label);
+         PlotBits(lSignalB, lBranchB.Label);
+       }
+
+       rOutput.Add( new Branch(aInputBranch, lSignalA, lBranchA.Label) ) ;
+       rOutput.Add( new Branch(aInputBranch, lSignalB, lBranchB.Label) ) ;
     }
 
     protected override string Name => "BinarizeByDuration" ;

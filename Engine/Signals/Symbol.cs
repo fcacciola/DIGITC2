@@ -58,16 +58,15 @@ namespace DIGITC2
 
   public class PulseStep
   {
-    public PulseStep( float aAmplitud, int aStart, int aEnd, double aDuration ) 
+    public PulseStep( float aAmplitud, int aStart, int aEnd ) 
     {
       Amplitude = aAmplitud;
       Start     = aStart; 
       End       = aEnd;
-      Duration  = aDuration; 
     }
 
 
-    public PulseStep Copy() {  return new PulseStep( Amplitude, Start, End, Duration ); }  
+    public PulseStep Copy() {  return new PulseStep( Amplitude, Start, End ); }  
 
     public void DumpSamples( List<float> aSamples )
     {
@@ -77,11 +76,10 @@ namespace DIGITC2
 
     public int Length => End - Start ;
 
-    public float  Amplitude ;
-    public int    Level => (int)(Amplitude * 100) ;
-    public int    Start ;
-    public int    End ; 
-    public double Duration ;
+    public float Amplitude ;
+    public int   Level => (int)(Amplitude * 100) ;
+    public int   Start ;
+    public int   End ; 
   }
 
   public class PulseSymbol : Symbol

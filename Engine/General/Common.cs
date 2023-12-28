@@ -49,7 +49,7 @@ namespace DIGITC2
 
     public string TraceFile    => LogFile("trace.txt");
 
-    public string ReportFile( Result aResult ) => $"{OutputFolder}/{ResultsSubFolder}/{aResult.Fitness}/{Name}_report.txt";
+    public string ReportFile( ResultPath aResult ) => $"{OutputFolder}/{ResultsSubFolder}/{aResult.Fitness}/{Name}_report.txt";
 
     public void SetupFolder ( string aFolder ) 
     {
