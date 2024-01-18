@@ -185,6 +185,7 @@ namespace DIGITC2
       mData.Pos        = 0 ;
 
       Context.WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
+      Context.Indent();  
 
       for ( mData.Pos = 0 ; mData.Pos < mInput.Samples.Length ; ++ mData.Pos )
       {
@@ -208,6 +209,7 @@ namespace DIGITC2
 
       AddPulse();
 
+      Context.Unindent();  
       PulseFilterHelper.PlotPulses(mData.RawPulses, mInput.SamplingRate, $"{mData.Options.Label}_Raw");
       PulseFilterHelper.PlotPulseDurationHistogram(mData.RawPulses, $"{mData.Options.Label}_Raw");
     }
@@ -245,7 +247,7 @@ namespace DIGITC2
 
     List<Run> FindRuns( PulseSymbol aPulse )
     {
-      Context.WriteLine($"    Finding runs");
+      Context.WriteLine($"Finding runs");
       List<Run> lRuns = new List<Run>();
 
       int lC = aPulse.Steps.Count ;
@@ -255,6 +257,7 @@ namespace DIGITC2
 
       for ( int i = 0 ; i < lC  ; ++ i )
       {
+        Context.Unindent();  
         var lStep = aPulse.Steps[i];
 
         int lLevel = lStep.Level ;
@@ -325,7 +328,7 @@ namespace DIGITC2
                 if ( lRunStart < i )
                   lRuns.Add( new Run{ From = lRunStart, To = i, Gap = false} ) ;
 
-                Context.WriteLine($"      Local minima found at step {i}");
+                Context.WriteLine($"Local minima found at step {i}");
 
                 lRuns.Add( new Run{ From = i, To = k, Gap = true} ) ;
 
@@ -334,6 +337,7 @@ namespace DIGITC2
             }
           }
         }
+        Context.Unindent();  
       }
 
       if ( lRunStart < lC )
@@ -344,13 +348,14 @@ namespace DIGITC2
 
     void SplitPulse( PulseSymbol aPulse, List<Run> aRuns )
     {
-      Context.WriteLine($"    Splittig pulse with {aRuns.Count} runs");
+      Context.WriteLine($"Splittig pulse with {aRuns.Count} runs");
+      Context.Indent();  
 
       foreach( var lRun in aRuns ) 
       {
         if ( !lRun.Gap )
         {
-          Context.WriteLine($"      Loud run from {lRun.From} to {lRun.To}");
+          Context.WriteLine($"Loud run from {lRun.From} to {lRun.To}");
 
           List<PulseStep> lSteps = new List<PulseStep>();
           for( int i = lRun.From ; i < lRun.To ; ++ i )
@@ -362,15 +367,18 @@ namespace DIGITC2
           mData.SplitPulses.Add(lNewPulse);
         }
       }
+      Context.Unindent();  
     }
 
     void SplitPulses()
     {
       Context.WriteLine("Splitting Pulses");
+      Context.Indent();  
 
       foreach( var lPulse in mData.LoudPulses )
       {
-        Context.WriteLine($"  Checking  pulse {lPulse}");
+        Context.WriteLine($"Checking  pulse {lPulse}");
+        Context.Indent();  
         var lRuns = FindRuns( lPulse );  
         if (  lRuns.Count > 1 )  
         {
@@ -380,10 +388,12 @@ namespace DIGITC2
         {
           mData.SplitPulses.Add( lPulse ); 
         }
+        Context.Unindent();  
       }
 
       PulseFilterHelper.PlotPulses(mData.SplitPulses, mInput.SamplingRate, $"{mData.Options.Label}_Split");
       PulseFilterHelper.PlotPulseDurationHistogram(mData.SplitPulses, $"{mData.Options.Label}_Split");
+      Context.Unindent();  
     }
 
     void RemoveUnfitPulses()

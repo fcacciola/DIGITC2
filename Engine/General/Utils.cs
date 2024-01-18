@@ -15,6 +15,14 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
+  public static class MathX
+  {
+    public static double LERP( double aL, double aH, double aF )  
+    {
+      return ( 1.0 - aF ) * aL + aF * aH;
+    }
+  }
+
   public class Textualizer
   {
     public static string Textualize( bool aN, string aFmt = "F2" ) => string.Format("{0}", aN );  

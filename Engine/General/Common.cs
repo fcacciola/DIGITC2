@@ -109,6 +109,16 @@ namespace DIGITC2
       mMonitors.ForEach( lMonitor => lMonitor.WriteLine(aS) );
     }
 
+    void Indent_()
+    {
+      mMonitors.ForEach( lMonitor => lMonitor.Indent() );
+    }
+
+    void Unindent_()
+    {
+      mMonitors.ForEach( lMonitor => lMonitor.Unindent() );
+    }
+
     void Watch_ ( IWithState aO )
     {
       mMonitors.ForEach( lMonitor => lMonitor.Watch( aO ) );
@@ -137,6 +147,8 @@ namespace DIGITC2
     static public void   Watch( IWithState aO )    { Instance.Watch_(aO) ; }
     static public void   Write( string aS )        { Instance.Write_(aS);}
     static public void   WriteLine( string aS )    { Instance.WriteLine_(aS);}
+    static public void   Indent()                  { Instance.Indent_();}
+    static public void   Unindent()                { Instance.Unindent_();}
 
   }
 }

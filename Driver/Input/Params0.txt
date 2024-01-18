@@ -4,8 +4,8 @@ xFromMultipleTextSizes=true
 FromAudio_ByDuration=true
 
 xAudio=./Input/Samples/Sample-1_5.wav,./Input/Samples/Sample-2.wav,./Input/Samples/Sample-3.wav,./Input/Samples/Sample-4.wav,./Input/Samples/Sample-5.wav,./Input/Samples/Sample-6.wav,./Input/Samples/Sample-7.wav
-xxAudio=./Input/Samples/Sample-4.wav
-Audio=./Input/Samples/Sample-1_5.wav
+Audio=./Input/Samples/Sample-4.wav
+xxAudio=./Input/Samples/Sample-1_5.wav
 BitsCount=1024
 LargeText=dracula.txt
 TextSlices=2,3,4,8,16,32,512

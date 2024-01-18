@@ -19,6 +19,10 @@ namespace DIGITC2
 
     public abstract void WriteLine( string aS ) ;
 
+    public abstract void Indent() ;
+
+    public abstract void Unindent() ;
+
     public abstract void Watch ( State aO ) ;
 
     public abstract void Close();
@@ -41,13 +45,13 @@ namespace DIGITC2
       mWriter?.Flush();
     }
 
-    protected void Indent()
+    public override void Indent()
     {
       if ( mWriter != null )  
         mWriter.Indent++;
     }
 
-    protected void Unindent()
+    public override void Unindent()
     {
       if ( mWriter != null )  
         mWriter.Indent--;
