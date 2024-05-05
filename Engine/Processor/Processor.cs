@@ -48,7 +48,7 @@ namespace DIGITC2
       return rR ;  
     }
 
-    public static Processor FromAudioToBits_ByPulseDuration()
+    public static Processor FromAudioToBits_ByPulseDuration2()
     {
       var rProcessor = new Processor();
 
@@ -56,6 +56,17 @@ namespace DIGITC2
                 .Add( new Discretize() )
                 .Add( new ExtractPulseSymbols() )
                 .Add( new BinarizeByDuration() ) ;
+
+      return rProcessor ;
+    }
+
+    public static Processor FromAudioToBits_ByPulseDuration()
+    {
+      var rProcessor = new Processor();
+
+      //rProcessor.Add( new Envelope2() )
+      rProcessor.Add( new OnsetDetection() )
+                .Add( new DecodeTaps() )  ;
 
       return rProcessor ;
     }

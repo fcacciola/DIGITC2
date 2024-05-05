@@ -13,6 +13,11 @@ namespace DIGITC2
 
   public class TokenSeparators
   {
+    public static char[] GetWordSeparators()
+    {
+      return " ,;.:-!¡¿?()[]{}/$%&#@*=+\\\"'".ToCharArray();
+    }
+
     public TokenSeparators()
     {
       Label = "Standard Token Separators" ;

@@ -14,32 +14,38 @@ using OxyPlot.Annotations;
 
 namespace DIGITC2
 {
-  public class Envelope : WaveFilter
+  public class Envelope2 : WaveFilter
   {
     class Iteration
     {
-      internal Iteration( float aAT, float aRT )
+      internal Iteration( double aFreq, double aDeltaPass, double aDeltaStop )
       {
-        AttackTime  = aAT;
-        ReleaseTime = aRT;
+        Freq = aFreq ;
+
+        RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / aDeltaPass ) ;
+        AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / aDeltaStop ) ;
+
+        Order = 2 ;
       }
 
       internal string Label ;
 
-      internal float AttackTime ;
-      internal float ReleaseTime ;
+      internal double Freq ;
+      internal double RipplePassDb  ;
+      internal double AttenuateDB  ;
+      internal int    Order ;
 
       internal void SetupLabel( string aName, int i )
       {
-        Label = aName + "_" + i + "_Envelope_" + ( AttackTime * 10000 ) + "_" + ( ReleaseTime * 10000 );
+        Label = aName + "_" + i + "_Envelope2_" + ( Freq) ;
       }
 
-      public override string ToString() => $"{AttackTime}|{ReleaseTime}";
+      public override string ToString() => $"{Freq}";
 
       internal bool Plot => true ;
     }
 
-    public Envelope() 
+    public Envelope2() 
     { 
     }
 
@@ -49,18 +55,10 @@ namespace DIGITC2
 
       List<Iteration> lIterationsA = new List<Iteration>
       {
-        new Iteration(0.001f, .001f),
-        new Iteration(0.001f, .001f),
-        new Iteration(0.001f, .001f),
-        new Iteration(0.001f, .001f),
-        new Iteration(0.001f, .001f),
-        new Iteration(0.005f, .005f),
-        new Iteration(0.005f, .005f),
-        new Iteration(0.005f, .005f),
-        new Iteration(0.005f, .01f)
+        new Iteration(10, 0.96, 0.04),
       };
 
-      Process(lIterationsA, "10-steps", aInput, aInputBranch, rOutput ) ;
+      Process(lIterationsA, "A", aInput, aInputBranch, rOutput ) ;
     }
 
     void Process ( List<Iteration> aIterations, string aLabel, WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
@@ -79,9 +77,11 @@ namespace DIGITC2
     {
       int lSR = aInput.Rep.SamplingRate ;
 
-      EnvelopeFollower envelopeFollower = new EnvelopeFollower(lSR, aIteration.AttackTime, aIteration.ReleaseTime);
+      double lFreq = aIteration.Freq / ( 0.5 * lSR ) ;
 
-      var lNewSamples0 = aInput.Rep.Samples.Select(s => envelopeFollower.Process(s));
+      var ellip = new NWaves.Filters.Elliptic.LowPassFilter(lFreq, aIteration.Order, aIteration.RipplePassDb, aIteration.AttenuateDB);
+
+      var lNewSamples0 = ellip.ApplyTo(aInput.Rep).Samples;
 
       var lNewSamples1 = lNewSamples0.Where( s => s > 1e-4 && s <= 1.0 ) ;
 
@@ -107,7 +107,7 @@ namespace DIGITC2
       return lES ;
     }
 
-    protected override string Name => "Envelope" ;
+    protected override string Name => "Envelope2" ;
 
   }
 

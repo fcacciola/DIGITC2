@@ -31,6 +31,8 @@ namespace DIGITC2
     public abstract Distribution GetDistribution() ;
 
     public string Name = "";
+
+    public string Origin = "";
   }
 
-  }
+}

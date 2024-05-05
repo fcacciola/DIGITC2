@@ -58,6 +58,10 @@ namespace Driver
 
         if ( lArgs.GetBool("FromAudio_ByDuration") )
           FromAudio_ByDuration.Run(lArgs); 
+
+        if ( lArgs.GetBool("FromMockAudio_ByDuration") )
+          FromMockAudio_ByDuration.Run(lArgs); 
+          
       }
     }
   }

@@ -35,7 +35,7 @@ namespace DIGITC2
 
     public static string Textualize<T>( T aN, string aFmt = "F2" ) => string.Format("{0:" + aFmt + "}", aN );  
 
-    public static string Textualize<T>( T[] aArray, int aMaxSize = 16, string aFmt = "F2" ) 
+    public static string TextualizeArray<T>( T[] aArray, string aFmt = "F2", int aMaxSize = 64 ) 
     {
       List<string> lStrings = new List<string>();
       int lLen = aArray.Length;

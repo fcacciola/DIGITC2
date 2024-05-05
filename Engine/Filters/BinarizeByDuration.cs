@@ -17,105 +17,6 @@ using NWaves.Signals;
 
 namespace DIGITC2
 {
-  public class PeaksFinder
-  {
-    public class Peak
-    {
-      public DPoint Value ;
-      public int    Idx ;
-      public double Height ;
-
-      public override string ToString() => $"[{Value}@{Idx}({Height})]";
-    }
-
-    public PeaksFinder( IEnumerable<DPoint> aDistribution ) 
-    { 
-      mDistribution.Add( new DPoint(null, 0) ) ;
-      if ( aDistribution.Count() > 0 )
-           mDistribution.AddRange( aDistribution );  
-      else mDistribution.Add( new DPoint(null, 0) ); 
-      mDistribution.Add( new DPoint(null, 0) );
-    }  
-
-    public static List<Peak> Find( IEnumerable<DPoint> aDistribution )
-    {
-      var PF = new PeaksFinder(aDistribution);
-      Context.WriteLine("Finding peaks...");
-      Context.Indent();
-      PF.DoFind();
-      Context.Unindent();
-      return PF.mSortedPeaks ;
-    }
-
-    void DoFind() 
-    {
-      int lSC = mDistribution.Count;
-
-      int lSL = lSC - 1 ;
-      var lPrev = mDistribution[0];
-      for( int i = 1; i < lSL ; ++ i )
-      {
-        var lValue = mDistribution[i];
-        var lNext  = mDistribution[i+1] ;
-
-        if ( lValue.Y > lPrev.Y && lValue.Y > lNext.Y )
-          mPeaks.Add( new Peak{ Value = lValue, Idx = i, Height = 0 } );  
-        lPrev = lValue ;
-      }
-
-      mPeaks.ForEach( p => Context.WriteLine($"Raw Peak: {p}" ) ) ; 
-
-      List<double> lValleys = new List<double>();
-
-      int lPC = mPeaks.Count;
-      int lPL = lPC - 1 ; 
-      for( int i = 0 ; i < lPC ; ++ i )
-      {
-        var lPeak = mPeaks[i];  
-
-        int lMinSearchBegin = lPeak.Idx + 1 ;
-
-        int lMinSearchEnd = i < lPL ? mPeaks[i+1].Idx : mDistribution.Count ;
-
-        var lMin = lPeak.Value.Y ;
-        for( int j = lMinSearchBegin ;  j < lMinSearchEnd ; ++ j )
-        {
-          var lV = mDistribution[j].Y ;
-          if ( lV < lMin )
-            lMin = lV ;
-        }
-
-        lValleys.Add(lMin);
-      }
-
-      double lMinL = 0 ;
-
-      for( int i = 0 ; i < lPC ; ++ i )
-      {
-        var lPeak = mPeaks[i];  
-        var lMinR = lValleys[i];
-
-        double lHeightL = lPeak.Value.Y - lMinL ;
-        double lHeightR = lPeak.Value.Y - lMinR ; 
-        lPeak.Height = Math.Min(lHeightL, lHeightR);
-
-        lMinL = lMinR ;
-      }
-      mPeaks.ForEach( p => Context.WriteLine($"Weighted Peak: {p}" ) ) ; 
-
-      mSortedPeaks = mPeaks.OrderByDescending( p => p.Height ).ToList(); 
-
-      mSortedPeaks.ForEach( p => Context.WriteLine($"Sorted Peak: {p}" ) ) ; 
-
-      Context.WriteLine($"{mSortedPeaks.Count} peaks found" ) ; 
-    }
-
-    readonly List<DPoint> mDistribution = new List<DPoint>();
-
-    List<Peak> mPeaks = new List<Peak>();
-    List<Peak> mSortedPeaks = null;
-
-  }
 
   public class BinarizeByDuration : LexicalFilter
   {
@@ -225,7 +126,7 @@ namespace DIGITC2
         Cluster rClusterZero = null;
         Cluster rClusterOne  = null ;
 
-        var lPeaks = PeaksFinder.Find(aDistribution);
+        var lPeaks = ExtremePointsFinder.Find(aDistribution);
 
         if ( lPeaks.Count >= 2 )
         {

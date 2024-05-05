@@ -41,6 +41,15 @@ namespace DIGITC2
   public abstract class WaveSource : Source
   {
     protected Signal mSignal ; 
+
+    public static void SaveTo( DiscreteSignal aRep, string aFilename )  
+    {
+      using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
+      {
+        var lWF = new WaveFile(aRep);
+        lWF.SaveTo( lStream );  
+      }
+    }
   }
 
   public class WaveFileSource : WaveSource
@@ -58,12 +67,14 @@ namespace DIGITC2
         {
           var waveContainer = new WaveFile(stream);
           mSignal = new WaveSignal(waveContainer[Channels.Average]);
-          mSignal.Name = $"({mFilename})"; 
+          mSignal.Name = $"({ Path.GetFileNameWithoutExtension(mFilename)})"; 
+          mSignal.Origin = mFilename; 
         }
       }
 
       return mSignal ;
     }
+
 
     readonly string mFilename ;
   }

@@ -37,13 +37,14 @@ namespace DIGITC2
 
   public sealed class FakeSampleSource : SampleSource
   {
-    public FakeSampleSource( string aKey ) { mKey = aKey ; }  
+    public FakeSampleSource( string aKey, int aCount ) { mKey = aKey ; mCount = aCount ; }  
 
     public override string Key => mKey ;
     
-    public override int HistogramCount => 0 ;
+    public override int HistogramCount => mCount ;
 
     string mKey ;
+    int    mCount ;
   }
 
   public sealed class SymbolSampleSource : SampleSource
@@ -81,7 +82,7 @@ namespace DIGITC2
 
     public Distribution( IEnumerable<double> aValues )
     { 
-      mSamples.AddRange( aValues.Select( v => new Sample( new FakeSampleSource($"{v}"), v ) ) ) ;
+      mSamples.AddRange( aValues.Select( v => new Sample( new FakeSampleSource($"{v}",1), v ) ) ) ;
       mValues .AddRange( aValues ) ;
     }
 
@@ -100,7 +101,7 @@ namespace DIGITC2
     {
       List<Sample> lSamples = new List<Sample>();
       for( double v = aLower; v < aHigher; v += aStep )  
-        lSamples.Add( new Sample( new FakeSampleSource( CreateKey(v) ) ,v));
+        lSamples.Add( new Sample( new FakeSampleSource( CreateKey(v), 0 ) ,v));
 
       lSamples.AddRange(Samples);
 

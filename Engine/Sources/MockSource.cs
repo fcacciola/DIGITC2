@@ -6,9 +6,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Animation;
 
 using NWaves.Audio;
 using NWaves.Signals;
+using NWaves.Signals.Builders;
 
 namespace DIGITC2
 {
@@ -110,38 +113,4 @@ namespace DIGITC2
     List<bool> mBits = new List<bool>();
   }
 
-  public class TextTo_Duration_base_Keying_WaveSource : WaveSource
-  {
-    public class Params
-    {
-      public string Text ;
-      public double EnvelopeAttackTime ;
-      public double EnvelopeReleaseTime ;
-      public double AmplitudeGateThreshold ;
-      public double ExtractGatedlSymbolsMinDuration ;
-      public double ExtractGatedlSymbolsMergeGap ;
-      public double BinarizeByDurationThreshold ;
-
-      public int    BinaryToBytesBitsPerByte   = 8;
-      public bool   BinaryToBytesLittleEndian = true;
-      public string BytesToTextCharSet        = "us-ascii";
-    }
-
-    public TextTo_Duration_base_Keying_WaveSource( Params aParams ) 
-    {
-      mParams = aParams ;
-    }
-
-    protected override Signal DoCreateSignal()
-    {
-      if ( mSignal == null ) 
-      {
-      }
-
-      return mSignal ;
-    }
-
-    readonly Params mParams ;
-
-  }
 }
