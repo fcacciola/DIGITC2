@@ -48,7 +48,7 @@ namespace DIGITC2
       return rR ;  
     }
 
-    public static Processor FromAudioToBits_ByPulseDuration2()
+    public static Processor FromAudioToBits_ByPulseDuration()
     {
       var rProcessor = new Processor();
 
@@ -60,13 +60,13 @@ namespace DIGITC2
       return rProcessor ;
     }
 
-    public static Processor FromAudioToBits_ByPulseDuration()
+    public static Processor FromAudioToBits_ByTapCode()
     {
       var rProcessor = new Processor();
 
-      //rProcessor.Add( new Envelope2() )
       rProcessor.Add( new OnsetDetection() )
-                .Add( new DecodeTaps() )  ;
+                .Add( new ExtractTapCode() )  
+                .Add( new BinarizeFromTapCode() ) ;
 
       return rProcessor ;
     }
@@ -76,6 +76,22 @@ namespace DIGITC2
       var rProcessor = new Processor();
 
       rProcessor.Add( new BinaryToBytes())
+                .Add( new ScoreBytesAsLanguageDigits())
+                .Add( new Tokenizer())
+                .Add( new ScoreTokenLengthDistribution())
+                .Add( new TokensToWords()) 
+                .Add( new WordsToText()) ;
+
+      return rProcessor ;
+    }
+
+    public static Processor FromAudio_ByCode_ToDirectLetters()
+    {
+      var rProcessor = new Processor();
+
+      rProcessor.Add( new OnsetDetection() )
+                .Add( new ExtractTapCode() )  
+                .Add( new TapCodeToBytes())
                 .Add( new ScoreBytesAsLanguageDigits())
                 .Add( new Tokenizer())
                 .Add( new ScoreTokenLengthDistribution())

@@ -135,6 +135,12 @@
     <Content Include="Input\Samples\Sample-9.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Input\Scripts\FromAudio_ByTapCode_DirectLetters.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Input\Scripts\FromAudio_ByTapCode_Binary.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Input\Scripts\FromMockAudio_ByDuration.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

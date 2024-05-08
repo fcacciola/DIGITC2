@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 using MathNet.Numerics.Integration;
 using MathNet.Numerics.Statistics;
@@ -18,27 +19,36 @@ using NWaves.Signals;
 namespace DIGITC2
 {
  
-  public class DecodeTaps : WaveFilter
+  public class TapCode
   {
-    public DecodeTaps() 
+    public TapCode( int aR, int aC ) {  Row = aR ; Col = aC ; }
+
+    public readonly int Row ;  
+    public readonly int Col ;
+
+    public override string ToString() => $"(R:{Row}xC:{Col})";
+  }
+
+  public class TapCodeSymbol : Symbol
+  {
+    public TapCodeSymbol( int aIdx, TapCode aCode ) : base(aIdx) { Code = aCode; }
+
+    public override string Type => "TapCode" ;
+
+    public override Symbol Copy() { return new TapCodeSymbol( Idx, Code ); }  
+
+    public override string Meaning => Code.ToString() ;
+
+    public override double Value => double.Parse($"{Code.Row}.{Code.Col}") ;
+
+    public TapCode Code ;
+
+  }
+
+  public class ExtractTapCode : WaveFilter
+  {
+    public ExtractTapCode() 
     { 
-    }
-
-    enum BitType { One, Zero, Noise } ;
-
-    static public void PlotBits( LexicalSignal aSignal, string aLabel )
-    {
-      List<BitSymbol> lBits = aSignal.GetSymbols<BitSymbol>();  
-
-      if ( lBits.Count > 0 ) 
-      { 
-        List<float> lSamples = new List<float> ();
-        lBits.ForEach( b => b.View.DumpSamples(lSamples ) );
-        int lSamplingRate = lBits[0].View.SamplingRate;
-        DiscreteSignal lWaveRep = new DiscreteSignal(lSamplingRate, lSamples);
-        WaveSignal lWave = new WaveSignal(lWaveRep);
-        lWave.SaveTo( Context.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
-      }
     }
 
     double Interval( double aET, double aST )
@@ -63,25 +73,6 @@ namespace DIGITC2
       public override string ToString() => $"[{Time}s|{Duration}s {(IsShort?"S":"L")} {Counter}]";
     }
 
-    public class CodeTable
-    {
-      public CodeTable() 
-      { }
-
-      public string Map( Code aCode )
-      {
-        string rT = "" ;
-        return rT ;
-      }
-    }
-
-    public class Code
-    {
-      public int Col ;
-      public int Row ;  
-
-      public override string ToString() => $"({Col}x{Row})";
-    }
 
     List<Tap> GetTaps( List<double> aTimes )
     {
@@ -118,9 +109,15 @@ namespace DIGITC2
        Context.WriteLine("Counted Taps:");
        lTaps.ForEach( t => Context.WriteLine(t.ToString()));
 
-       var lCounts = GetTapCounts(lTaps);
+       var lCodes = GetCodes(lTaps);
 
-       Context.WriteLine( $"Counts: {string.Join(",", lCounts )}");
+       Context.WriteLine( $"Code: {string.Join(",", lCodes )}");
+
+       int lIdx = 0 ;
+       var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
+
+       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
+
        Context.Unindent();  
     }
 
@@ -159,9 +156,18 @@ namespace DIGITC2
 
       Context.WriteLine($"Very First Peak: {lPeak}");
 
-      var lShortDurationReference = lPeak.Value.X.Value ;
+      double lShortDurationReference ;
 
-      Context.WriteLine($"Short duration reference: {lShortDurationReference}");
+      if ( lPeak != null)
+      {
+        lShortDurationReference = lPeak.Value.X.Value ;
+        Context.WriteLine($"Short duration referenc (from peak): {lShortDurationReference}");
+      }
+      else
+      { 
+        lShortDurationReference = aDurations.Minimum();
+        Context.WriteLine($"Short duration reference ( from minimum): {lShortDurationReference}");
+      }
 
       var lDurationIntervalL = lShortDurationReference - lShortDurationReference * .50 ; 
       var lDurationIntervalR = lShortDurationReference + lShortDurationReference * .25 ; 
@@ -187,9 +193,11 @@ namespace DIGITC2
       }
     }
     
-    List<int> GetTapCounts( List<Tap> aTaps ) 
+    bool IsEven ( int aN ) { return aN % 2 == 0 ; }
+
+    List<TapCode> GetCodes( List<Tap> aTaps ) 
     {
-      List<int> rCounts = new List<int>();
+      List<int> lCounts = new List<int>();
 
       int lMax  = 0 ;
       foreach (var lTap in aTaps)
@@ -200,24 +208,36 @@ namespace DIGITC2
             lMax = lTap.Counter ;
           else
           {
-            rCounts.Add( lMax ) ;
+            lCounts.Add( lMax ) ;
             lMax = 0 ;
           }
         }
         else
         {
           if ( lMax > 0)
-            rCounts.Add( lMax ) ;
+            lCounts.Add( lMax ) ;
           lMax = 0 ;
         }
       }
       if ( lMax > 0)
-        rCounts.Add( lMax ) ;
+        lCounts.Add( lMax ) ;
 
-      return rCounts ;
+      List<TapCode> rCodes = new List<TapCode> ();
+
+      Context.WriteLine( $"Counts: {string.Join(",", lCounts )}");
+
+      if ( ! IsEven(lCounts.Count) )
+        lCounts.Add(1);
+        
+      for (int i = 0 ; i < lCounts.Count ; i += 2 )
+      {
+        rCodes.Add( new TapCode(lCounts[i],lCounts[i+1]) ) ;
+      }
+
+      return rCodes ;
     }
 
-    protected override string Name => "BinarizeByDuration" ;
+    protected override string Name => "ExtractTapCode" ;
 
   }
 

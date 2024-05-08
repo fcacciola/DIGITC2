@@ -134,17 +134,19 @@ namespace DIGITC2
 
   public class BitSymbol : Symbol
   {
-    public BitSymbol( int aIdx, bool aOne, PulseSymbol aView ) : base(aIdx) { One = aOne ; View = aView ; }
+    public BitSymbol( int aIdx, bool aOne, double aLikelihood, PulseSymbol aView ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; View = aView ; }
 
     public override string Type => "Bit" ;
 
-    public override Symbol Copy() { return new BitSymbol( Idx, One, View?.Copy()  as PulseSymbol ); }  
+    public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, View?.Copy()  as PulseSymbol ); }  
 
     public override string Meaning => One ? "1" : "0" ;
 
     public override double Value => One ? 1.0 : 0.0 ;
 
     public bool One ;
+
+    double Likelihood ;
 
     public PulseSymbol View ;
   }

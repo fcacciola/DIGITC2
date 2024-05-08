@@ -36,6 +36,8 @@ namespace DIGITC2
 
     public OnsetDetection() 
     { 
+      mThreshold   = Context.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
+      mMinTapCount = Context.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
     }
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
@@ -44,12 +46,8 @@ namespace DIGITC2
 
       List<string> lArgs = new List<string> ();
 
-      //  %1.wav -t 0.6 -o %1.onesets.wav
-
-      double lThreshold = 0.6 ;
-
       lArgs.Add( aInput.Origin  ) ;
-      lArgs.Add( $"-t {lThreshold}") ;
+      lArgs.Add( $"-t {mThreshold}") ;
 
       var lResult = Task.Run(async() => await Cli.Wrap(AubioOnsetTool_Path)
                                                  .WithArguments(lArgs)
@@ -60,35 +58,48 @@ namespace DIGITC2
       if ( lErrors.Length > 0 ) 
         Context.Error(lErrors) ;
 
+      Context.WriteLine(lResult.StandardOutput.ToString());
+
       var lSTimes = lResult.StandardOutput.ToString().Replace(Environment.NewLine,"|").Split('|').Where( s => s.Length > 0 ).ToList(); 
 
-      var lTimes = lSTimes.ConvertAll( st => double.Parse( st ) ); 
+      Context.WriteLine($"Onset Count: {lSTimes.Count}");
 
-      if ( lTimes[0] == 0.0 )
-        lTimes.RemoveAt(0);
+      if ( lSTimes.Count >= mMinTapCount )
+      {
+        var lTimes = lSTimes.ConvertAll( st => double.Parse( st ) ); 
 
-      var lPositions = lTimes.ConvertAll( t => (int)Math.Round(t * (double)aInput.SamplingRate) ) ;
+        if ( lTimes[0] == 0.0 )
+          lTimes.RemoveAt(0);
 
-      Onset lOnset = new Onset(lTimes, lPositions) ;
+        var lPositions = lTimes.ConvertAll( t => (int)Math.Round(t * (double)aInput.SamplingRate) ) ;
 
-      int lLen = aInput.Rep.Length;
+        Onset lOnset = new Onset(lTimes, lPositions) ;
 
-      float[] lOutSignal = new float[lLen];
+        int lLen = aInput.Rep.Length;
 
-      for ( int i = 0 ; i < lLen ; i++ )  
-        lOutSignal[i] = 0 ;  
+        float[] lOutSignal = new float[lLen];
 
-      foreach( int lPos in lPositions )
-        lOutSignal[lPos] = 1 ;  
+        for ( int i = 0 ; i < lLen ; i++ )  
+          lOutSignal[i] = 0 ;  
 
-      var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, lOutSignal));
+        foreach( int lPos in lPositions )
+          lOutSignal[lPos] = 1 ;  
 
-      if ( Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( Context.Session.LogFile( $"_OnsetSequence.wav") ) ;
+        var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, lOutSignal));
 
-      rOutput.Add( new Branch(aInputBranch, rR, "OnsetSequence", null, false, lOnset));
+        if ( Context.Session.Args.GetBool("Plot") )
+          rR.SaveTo( Context.Session.LogFile( $"_OnsetSequence.wav") ) ;
+
+        rOutput.Add( new Branch(aInputBranch, rR, "OnsetSequence", null, false, lOnset));
+      }
+      else
+      {
+        rOutput.Add( new Branch(aInputBranch, null, "OnsetSequence-EMPTY", null, true));
+      }
     }
 
+    double mThreshold ;
+    int    mMinTapCount ;
 
     protected override string Name => "OnsetDetection" ;
 

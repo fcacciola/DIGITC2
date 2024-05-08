@@ -46,7 +46,7 @@ namespace DIGITC2
       {
         PulseSymbol lView = aIsOne ? PulseFilterHelper.CreateOnePulse(aPulse) : PulseFilterHelper.CreateZeroPulse(aPulse);
 
-        mBits.Add( new BitSymbol( mBits.Count, aIsOne, lView )) ;
+        mBits.Add( new BitSymbol( mBits.Count, aIsOne, 1.0, lView )) ;
       }
 
       internal LexicalSignal GetSignal()

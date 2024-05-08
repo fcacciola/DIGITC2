@@ -124,7 +124,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Filters\DecodeTaps.cs" />
+    <Compile Include="Filters\PolybiusSquare.cs" />
+    <Compile Include="Filters\BinarizeFromTapCode.cs" />
+    <Compile Include="Filters\TapCodeToBytes.cs" />
+    <Compile Include="Filters\ExtractTapCode.cs" />
     <Compile Include="Filters\Discretize.cs" />
     <Compile Include="Filters\BinarizeByDuration.cs" />
     <Compile Include="Filters\OnsetDetection.cs" />

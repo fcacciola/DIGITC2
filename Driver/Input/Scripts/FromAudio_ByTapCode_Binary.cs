@@ -3,8 +3,8 @@ using System.IO;
 
 namespace DIGITC2 {
 
-public class FromAudio_ByPulseDuration
-{
+public class FromAudio_ByTapCode_Binary
+{ 
   public static void Run( Args aArgs  )
   {
     string lArg = aArgs.Get("Audio" ) ;
@@ -31,7 +31,7 @@ public class FromAudio_ByPulseDuration
     {
       var lSource = new WaveFileSource(aWaveFilename) ;
 
-      Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
+      Processor.FromAudioToBits_ByTapCode().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
     }
     else
     {

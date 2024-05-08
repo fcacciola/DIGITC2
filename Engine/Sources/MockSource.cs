@@ -101,7 +101,7 @@ namespace DIGITC2
       mSymbols.Clear(); 
       foreach( bool lBit in mBits )
       {
-        BitSymbol lBS = new BitSymbol(mSymbols.Count(),lBit,null); 
+        BitSymbol lBS = new BitSymbol(mSymbols.Count(),lBit,1.0,null); 
         mSymbols.Add(lBS);
 
       }

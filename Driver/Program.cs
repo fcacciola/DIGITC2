@@ -56,8 +56,14 @@ namespace Driver
         if ( lArgs.GetBool("FromMultipleTextSizes") )
           FromMultipleTextSizes.Run(lArgs); 
 
-        if ( lArgs.GetBool("FromAudio_ByDuration") )
-          FromAudio_ByDuration.Run(lArgs); 
+        if ( lArgs.GetBool("FromAudio_ByPulseDuration") )
+          FromAudio_ByPulseDuration.Run(lArgs); 
+
+        if ( lArgs.GetBool("FromAudio_ByTapCode_Binary") )
+          FromAudio_ByTapCode_Binary.Run(lArgs); 
+
+        if ( lArgs.GetBool("FromAudio_ByTapCode_DirectLetters") )
+          FromAudio_ByTapCode_DirectLetters.Run(lArgs); 
 
         if ( lArgs.GetBool("FromMockAudio_ByDuration") )
           FromMockAudio_ByDuration.Run(lArgs); 
