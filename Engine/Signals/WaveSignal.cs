@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using NWaves.Audio;
 using NWaves.Signals;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class WaveSignal : Signal
   {

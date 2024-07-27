@@ -13,7 +13,7 @@ using NWaves.Audio;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public static class MathX
   {
@@ -21,6 +21,8 @@ namespace DIGITC2
     {
       return ( 1.0 - aF ) * aL + aF * aH;
     }
+
+    public static int SampleIdx( double aTime, int aSamplingRate ) => (int)Math.Ceiling(aTime * aSamplingRate) ;
   }
 
   public class Textualizer

@@ -16,7 +16,7 @@ using NWaves.Signals;
 using OxyPlot.Annotations;
 
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class OnsetDetection : WaveFilter
   {

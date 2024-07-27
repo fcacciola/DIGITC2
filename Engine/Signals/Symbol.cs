@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media.TextFormatting;
 
 using NWaves.Signals;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public abstract class Symbol : IWithState
   {

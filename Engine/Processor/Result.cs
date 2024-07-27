@@ -10,7 +10,7 @@ using System.Windows.Input;
 
 using DocumentFormat.OpenXml.Drawing.Charts;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class ResultPath : IWithState  
   {

@@ -11,7 +11,7 @@ using MathNet.Numerics.Statistics;
 using System.Runtime.InteropServices;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class PulseFilterHelper
   {

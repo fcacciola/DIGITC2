@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows.Media.Converters;
 using System.Xml.Schema;
 
 using MathNet.Numerics.Statistics;
@@ -11,7 +10,7 @@ using MathNet.Numerics.Statistics;
 using OxyPlot;
 using OxyPlot.Series;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class Stats : IWithState
   {

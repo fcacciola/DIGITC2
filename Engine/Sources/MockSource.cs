@@ -7,13 +7,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media.Animation;
 
 using NWaves.Audio;
 using NWaves.Signals;
 using NWaves.Signals.Builders;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public abstract class LexicalSource : Source
   {

@@ -1,20 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Media.Converters;
-using System.Xml.Schema;
-
-using MathNet.Numerics.Statistics;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 using OxyPlot;
 using OxyPlot.Series;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class DPoint
   {

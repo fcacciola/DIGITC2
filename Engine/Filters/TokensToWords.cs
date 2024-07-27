@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public class TextDigitValidator
   {

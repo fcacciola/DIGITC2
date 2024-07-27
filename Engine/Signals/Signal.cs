@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public abstract class Signal : IWithState
   {

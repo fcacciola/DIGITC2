@@ -11,7 +11,7 @@ using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Office2010.CustomUI;
 using DocumentFormat.OpenXml.Vml.Spreadsheet;
 
-namespace DIGITC2
+namespace DIGITC2_ENGINE
 {
   public abstract class StateMonitor
   {
