@@ -3,6 +3,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using DIGITC2_ENGINE;
+
 namespace DIGITC2.ViewModel;
 
 public partial class MainViewModel : ObservableObject
@@ -14,33 +16,79 @@ public partial class MainViewModel : ObservableObject
         this.connectivity = connectivity;
     }
 
+
+    public event Action SetRecButtonToStart;
+    public event Action SetRecButtonToStop;
+
+    public void OnSetRecButtonToStart()
+    {
+      SetRecButtonToStart?.Invoke();
+    }
+
+    public void OnSetRecButtonToStop()
+    {
+      SetRecButtonToStop?.Invoke();
+    }
+
     [ObservableProperty]
     ObservableCollection<string> items;
 
     [ObservableProperty]
     string text;
 
-    [RelayCommand]
-    async Task Add()
-    {
-        // Assure text is not empty
-        if (string.IsNullOrWhiteSpace(Text))
-            return;
+    CancellationTokenSource mCancellationTokenSource ;
 
+    bool mRecording = false;  
+
+    AudioService mAudioService = null ;
+
+    async Task StartRecording( CancellationToken aCT )
+    {
+      mAudioService.StartRecording(0);
+    }
+
+    async Task StopRecording()
+    {
+      mAudioService.StopRecording();
+    }
+
+    [RelayCommand]
+    async Task REC()
+    {
+      if ( ! mRecording )
+      {
+        mCancellationTokenSource = new CancellationTokenSource();
+        CancellationToken lToken = mCancellationTokenSource.Token;
+        mRecording = true;
+        OnSetRecButtonToStart(); 
+        Task.Run(async () => await StartRecording(lToken));  
+        return ;
+      }
+      else
+      {
+        if ( mCancellationTokenSource != null ) 
+        {
+          mCancellationTokenSource.Cancel();
+          mCancellationTokenSource = null;
+          mRecording = false;
+          OnSetRecButtonToStop();
+          Task.Run(async () => await StopRecording());  
+        }
+      }
         // Assure there's an internet connection
         // else show an alert
-        if(connectivity.NetworkAccess != NetworkAccess.Internet)
-        {
-            await Shell.Current.DisplayAlert("Uh Oh!", "No Internet", "OK");
-            return;
-        }
+        //if(connectivity.NetworkAccess != NetworkAccess.Internet)
+        //{
+        //    await Shell.Current.DisplayAlert("Uh Oh!", "No Internet", "OK");
+        //    return;
+        //}
 
-        string lTT = $"Text. Signal has samples";
-        // Add text to list of todos
-        Items.Add(lTT);
+        //string lTT = $"Text. Signal has samples";
+        //// Add text to list of todos
+        //Items.Add(lTT);
         
-        // Reset Text
-        Text = string.Empty;
+        //// Reset Text
+        //Text = string.Empty;
     }
 
     [RelayCommand]

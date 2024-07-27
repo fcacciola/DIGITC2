@@ -65,10 +65,30 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NWaves" Version="0.9.6" />
 		<PackageReference Include="OxyPlot.Core" Version="2.1.2" />
 		<PackageReference Include="OxyPlot.Pdf" Version="2.1.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Engine\Utils\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Platforms\Android\AudioService.cs">
+	    <ExcludeFromCurrentConfiguration>true</ExcludeFromCurrentConfiguration>
+	  </Compile>
+	  <Compile Update="Platforms\iOS\AudioService.cs">
+	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+	  </Compile>
+	  <Compile Update="Platforms\MacCatalyst\AudioService.cs">
+	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+	  </Compile>
+	  <Compile Update="Platforms\Tizen\AudioService.cs">
+	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+	  </Compile>
 	</ItemGroup>
 
 </Project>

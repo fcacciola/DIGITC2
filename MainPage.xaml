@@ -19,8 +19,10 @@
                Text="{Binding Text}"
                Grid.Row="1"/>
 
-        <Button Text="Add"
-                Command="{Binding AddCommand}"
+        <Button x:Name="RecButton"
+                Text="START Recording"
+                BackgroundColor="Red"
+                Command="{Binding RECCommand}"
                 Grid.Row="1"
                 Grid.Column="1"/>
 
