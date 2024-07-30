@@ -5,7 +5,11 @@ namespace DIGITC2_ENGINE
 {
     class AudioService 
     {
-        public int Channels => 1
+        public int MaxRecordingTime { get ; set ; } = 60 * 120 ;
+
+        public event Action RecStopped;
+
+        public int Channels => 1 ;
 
         public void Load(string filename)
         {
@@ -13,10 +17,12 @@ namespace DIGITC2_ENGINE
 
         public int Read(float[] buffer, int offset, int count)
         {
+          return 0 ;
         }
 
         public int ReadMono(float[] buffer, int offset, int count)
         {
+          return 0 ;
         }
 
         public void Play()
@@ -31,19 +37,17 @@ namespace DIGITC2_ENGINE
         {
         }
 
-        public void StartRecording(int deviceNumber = 0)
+        public void StartRecording( string aFile, int deviceNumber = 0)
         {
         }
 
         public void StopRecording()
         {
+        }
 
         //private void OnRecordedDataAvailable(object? sender, WaveInEventArgs waveInArgs)
         //{
         //}
 
-        public void Dispose()
-        {
-        }
     }
 }

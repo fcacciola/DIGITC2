@@ -15,14 +15,14 @@ public partial class MainPage : ContentPage
 
   private void OnSetRecButtonToStart()
   {
-    RecButton.Text = "START Recording";
     RecButton.BackgroundColor = Colors.Red ;
+    RecButton.Text = "START Recording";
   }
 
   private void OnSetRecButtonToStop()
   {
-    RecButton.Text = "STOP Recording";
     RecButton.BackgroundColor = Colors.Blue ;
+    RecButton.Text = "STOP Recording";
   }
 
 

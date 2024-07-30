@@ -5,6 +5,10 @@ namespace DIGITC2_ENGINE
 {
     class AudioService 
     {
+        public int MaxRecordingTime { get ; set ; } = 60 * 120 ;
+
+        public event Action RecStopped;
+
         public int Channels => 1
 
         public void Load(string filename)
@@ -31,7 +35,7 @@ namespace DIGITC2_ENGINE
         {
         }
 
-        public void StartRecording(int deviceNumber = 0)
+        public void StartRecording( string aFile, int deviceNumber = 0)
         {
         }
 
