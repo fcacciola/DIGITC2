@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:DIGITC2"
     Shell.FlyoutBehavior="Disabled">
     <ShellContent
-        Title="Home"
+        Title="DigITC"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 </Shell>

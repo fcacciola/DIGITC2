@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using DIGITC2 ;
+
 namespace DIGITC2_ENGINE
 {
     class AudioService 
@@ -10,6 +12,16 @@ namespace DIGITC2_ENGINE
         public event Action RecStopped;
 
         public int Channels => 1
+
+        public List<AudioDevice> EnumInputDevices()
+        {
+          return new List<AudioDevice>();
+        }
+
+        public List<AudioDevice> EnumOutputDevices()
+        {
+          return new List<AudioDevice>();
+        }
 
         public void Load(string filename)
         {

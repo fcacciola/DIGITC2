@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 
+using DIGITC2 ;
+
 namespace DIGITC2_ENGINE
 {
   class AudioService : ISampleProvider
   {
-    AudioFileReader? _reader;
+    AudioFileReader _reader;
     WaveOut _player;
 
     WaveInEvent    mRecorder;
@@ -18,12 +20,12 @@ namespace DIGITC2_ENGINE
     const int MaxBufferSize = 64000;
     private readonly float[] _tmp = new float[MaxBufferSize];
 
-    private WaveFormat? _waveFormat;
+    private WaveFormat _waveFormat;
 
     //public event Action<float[]>? WaveformUpdated;
     //public event Action<List<float[]>>? VectorsComputed;
 
-    public WaveFormat? WaveFormat => _waveFormat;
+    public WaveFormat WaveFormat => _waveFormat;
 
     public int MaxRecordingTime { get ; set ; } = 60 * 120 ;
 
@@ -44,6 +46,30 @@ namespace DIGITC2_ENGINE
       _player.Init(this);
     }
 
+    public List<AudioDevice> EnumInputDevices()
+    {
+      List<AudioDevice> rDevices = new List<AudioDevice>();  
+      for (int n = -1; n < WaveIn.DeviceCount; n++)
+      {
+        var lCaps = WaveIn.GetCapabilities(n);
+        rDevices.Add( new AudioDevice{ Name = lCaps.ProductName, Number = n } );
+      }
+
+      return rDevices;
+    }
+
+    public List<AudioDevice> EnumOutputDevices()
+    {
+      List<AudioDevice> rDevices = new List<AudioDevice>();  
+      for (int n = -1; n < WaveOut.DeviceCount; n++)
+      {
+        var lCaps = WaveOut.GetCapabilities(n);
+        rDevices.Add( new AudioDevice{ Name = lCaps.ProductName, Number = n } );
+      }
+
+      return rDevices;
+    }
+    
     public int Read(float[] buffer, int offset, int count)
     {
       if (_reader is null)

@@ -3,34 +3,50 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DIGITC2.MainPage"
              xmlns:viewmodel="clr-namespace:DIGITC2.ViewModel"
+             xmlns:root="clr-namespace:DIGITC2"
              x:DataType="viewmodel:MainViewModel">
 
-    <Grid RowDefinitions="100, Auto, *"
-          ColumnDefinitions=".75*, .25*"
+    <Grid RowDefinitions="Auto, Auto, Auto, *"
+          ColumnDefinitions="Auto, .25*"
           Padding="10"
-          RowSpacing="10"
-          ColumnSpacing="10">
+          RowSpacing="5"
+          ColumnSpacing="5">
 
-        <Image Grid.ColumnSpan="2"
-                Source="logo.png"
-               BackgroundColor="Transparent"/>
+    <HorizontalStackLayout Padding="10" Grid.Row="1" Grid.ColumnSpan="2">
 
-        <Entry Placeholder="Enter task"
-               Text="{Binding Text}"
-               Grid.Row="1"/>
+      <Picker ItemsSource="{Binding NoiseSources}" 
+                SelectedItem="{Binding SelectedNoise}" 
+                Title="Background Noise Type:" />
+    </HorizontalStackLayout>
 
-        <Button x:Name="RecButton"
+    <HorizontalStackLayout Padding="10" Grid.Row="2" Grid.ColumnSpan="2">
+
+      <Button x:Name="LoadAudioButton"
+                Text="Load Audio File"
+                BackgroundColor="DarkSeaGreen"
+                Command="{Binding LoadAudioCommand}"
+                />
+
+      <Button x:Name="RecButton"
                 Text="START Recording"
                 BackgroundColor="Red"
                 Command="{Binding RECCommand}"
-                Grid.Row="1"
-                Grid.Column="1"/>
+                />
 
-        <CollectionView Grid.Row="2" Grid.ColumnSpan="2"
+      <Button x:Name="NoiseButton"
+                Text="PLAY Noise Background"
+                BackgroundColor="DarkBlue"
+                Command="{Binding PlayNoiseCommand}"
+                />
+    </HorizontalStackLayout>
+
+    <Label Text="Sessions:" Grid.Row="3" Grid.ColumnSpan="2"/>
+
+    <CollectionView Grid.Row="4" Grid.ColumnSpan="2"
                         ItemsSource="{Binding Items}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="{x:Type x:String}">
+                <DataTemplate x:DataType="{x:Type root:Session}">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems>
