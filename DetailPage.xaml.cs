@@ -9,6 +9,8 @@ public partial class DetailPage : ContentPage
 	public DetailPage(DetailViewModel vm)
 	{
 		InitializeComponent();
+    vm.SetPlayButtonToStart += OnSetPlayButtonToStart;
+    vm.SetPlayButtonToStop  += OnSetPlayButtonToStop;
 		BindingContext = vm;
 	}
 
@@ -17,8 +19,20 @@ public partial class DetailPage : ContentPage
     base.OnAppearing();
     if (ViewModel != null)
     {
-      await ViewModel.LoadSession();
+      await ViewModel.Setup();
     }
+  }
+
+  private void OnSetPlayButtonToStart()
+  {
+    //PlayButton.BackgroundColor = Colors.Red;
+    PlayButton.Text = "PLAY";
+  }
+
+  private void OnSetPlayButtonToStop()
+  {
+    //PlayButton.BackgroundColor = Colors.Magenta;
+    PlayButton.Text = "STOP";
   }
 
 }

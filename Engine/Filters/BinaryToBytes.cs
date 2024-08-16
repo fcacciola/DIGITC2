@@ -14,7 +14,7 @@ namespace DIGITC2_ENGINE
   {
     public BinaryToBytes() : base() 
     { 
-      mBranchSelection = new Branch.Selection(Context.Session.Args.Get("BinaryToBytes_Branches"));
+      mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("BinaryToBytes_Branches"));
     }
 
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )

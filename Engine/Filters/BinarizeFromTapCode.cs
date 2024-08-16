@@ -21,16 +21,16 @@ public class BinarizeFromTapCode : LexicalFilter
 {
   public BinarizeFromTapCode() 
   { 
-    mBranchSelection = new Branch.Selection(Context.Session.Args.Get("BinarizeFromTapCode_Branches"));
+    mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("BinarizeFromTapCode_Branches"));
 
-    mMinBitCount = Context.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
+    mMinBitCount = DIGITC_Context.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
   }
 
 
   protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
   {
-    Context.WriteLine("Binarizing Tap Codes via Binary Polybius Squares");
-    Context.Indent();
+    DIGITC_Context.WriteLine("Binarizing Tap Codes via Binary Polybius Squares");
+    DIGITC_Context.Indent();
 
     var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
@@ -50,7 +50,7 @@ public class BinarizeFromTapCode : LexicalFilter
     if ( mBranchSelection.IsActive("Binary") )
       ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary, rOutput ) ;
 
-    Context.Unindent();  
+    DIGITC_Context.Unindent();  
   }
 
   void ProcessCodes( Branch aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<Branch> rOutput )

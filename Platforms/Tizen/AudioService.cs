@@ -5,7 +5,7 @@ using DIGITC2 ;
 
 namespace DIGITC2_ENGINE
 {
-    class AudioService 
+    public class AudioService 
     {
         public int MaxRecordingTime { get ; set ; } = 60 * 120 ;
 

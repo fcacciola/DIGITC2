@@ -18,9 +18,9 @@ namespace DIGITC2_ENGINE
   {
     public ScoreTokenLengthDistribution() : base() 
     {
-      mReference = DTable.FromFile( Context.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
-      mQuitThreshold = Context.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(Context.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
+      mReference = DTable.FromFile( DIGITC_Context.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
+      mQuitThreshold = DIGITC_Context.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DIGITC_Context.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
     string CreateFakeKey( double i ) => $"{i}";
@@ -43,16 +43,16 @@ namespace DIGITC2_ENGINE
 
       Score lScore = new Score(lLikelihood,lFitness) ;
 
-      if ( Context.Session.Args.GetBool("SaveReference") )
+      if ( DIGITC_Context.Session.Args.GetBool("SaveReference") )
       {
-        lHistogram.Save(Context.Session.LogFile( Name + "_Histogram.json"));  
-        lRankSize .Save(Context.Session.LogFile( Name + "_RankSize.json"));  
+        lHistogram.Save(DIGITC_Context.Session.LogFile( Name + "_Histogram.json"));  
+        lRankSize .Save(DIGITC_Context.Session.LogFile( Name + "_RankSize.json"));  
       }
 
-      if ( Context.Session.Args.GetBool("Plot") )
+      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
       {
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(Name +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.LogFile(Name +"_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile(Name +"_Histogram.png"));
+        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile(Name +"_RankSize.png"));
       }
 
       rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));

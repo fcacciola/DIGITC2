@@ -46,7 +46,7 @@ namespace DIGITC2_ENGINE
 
       string lReport = lReporter.GetReport();
 
-      string lOutputFile =  Context.Session.ReportFile(this);
+      string lOutputFile =  DIGITC_Context.Session.ReportFile(this);
 
       File.WriteAllText( lOutputFile, lReport );
     }

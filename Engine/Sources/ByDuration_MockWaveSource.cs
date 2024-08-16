@@ -56,7 +56,7 @@ namespace DIGITC2_ENGINE
 
         lWave.NormalizeMax();
 
-        SaveTo(lWave, Context.Session.LogFile( "Wave.wav"));
+        SaveTo(lWave, DIGITC_Context.Session.LogFile( "Wave.wav"));
 
         mSignal = new WaveSignal(lWave);
       }

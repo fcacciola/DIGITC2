@@ -7,10 +7,10 @@ using DIGITC2 ;
 
 namespace DIGITC2_ENGINE
 {
-  class AudioService : ISampleProvider
+  public class AudioService : ISampleProvider
   {
-    AudioFileReader _reader;
-    WaveOut _player;
+    AudioFileReader mReader;
+    WaveOut mPlayer;
 
     WaveInEvent    mRecorder;
     WaveFileWriter mWriter;
@@ -20,30 +20,30 @@ namespace DIGITC2_ENGINE
     const int MaxBufferSize = 64000;
     private readonly float[] _tmp = new float[MaxBufferSize];
 
-    private WaveFormat _waveFormat;
+    private WaveFormat mWaveFormat;
 
     //public event Action<float[]>? WaveformUpdated;
     //public event Action<List<float[]>>? VectorsComputed;
 
-    public WaveFormat WaveFormat => _waveFormat;
+    public WaveFormat WaveFormat => mWaveFormat;
 
     public int MaxRecordingTime { get ; set ; } = 60 * 120 ;
 
     public event Action RecStopped;
 
-    public void Load(string filename)
+    public void Load(string aFilename)
     {
-      _player?.Stop();
-      _player?.Dispose();
-      _reader?.Dispose();
+      mPlayer?.Stop();
+      mPlayer?.Dispose();
+      mReader?.Dispose();
 
-      _reader = new AudioFileReader(filename);
+      mReader = new AudioFileReader(aFilename);
 
       //Channels = _reader.WaveFormat.Channels;
-      _waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(_reader.WaveFormat.SampleRate, 1);
+      mWaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(mReader.WaveFormat.SampleRate, 1);
 
-      _player = new WaveOut();
-      _player.Init(this);
+      mPlayer = new WaveOut();
+      mPlayer.Init(this);
     }
 
     public List<AudioDevice> EnumInputDevices()
@@ -72,12 +72,12 @@ namespace DIGITC2_ENGINE
     
     public int Read(float[] buffer, int offset, int count)
     {
-      if (_reader is null)
+      if (mReader is null)
       {
         return 0;
       }
 
-      return _reader.WaveFormat.Channels switch
+      return mReader.WaveFormat.Channels switch
       {
         1 => ReadMono(buffer, offset, count),
         _ => ReadStereo(buffer, offset, count),
@@ -86,52 +86,52 @@ namespace DIGITC2_ENGINE
 
     public int ReadMono(float[] buffer, int offset, int count)
     {
-      if (_reader is null)
+      if (mReader is null)
       {
         return 0;
       }
 
-      var samplesRead = _reader.Read(buffer, offset, count);
+      var rSamplesRead = mReader.Read(buffer, offset, count);
 
-      return samplesRead;
+      return rSamplesRead;
     }
 
     public int ReadStereo(float[] buffer, int offset, int count)
     {
-      if (_reader is null)
+      if (mReader is null)
       {
         return 0;
       }
 
-      var samplesRead = _reader.Read(buffer, offset, count);
+      var samplesRead = mReader.Read(buffer, offset, count);
 
       return samplesRead;
     }
 
     public void Play()
     {
-      if (_player is null)
+      if (mPlayer is null)
       {
         return;
       }
 
-      if (_player.PlaybackState == PlaybackState.Stopped)
+      if (mPlayer.PlaybackState == PlaybackState.Stopped)
       {
-        _reader?.Seek(0, System.IO.SeekOrigin.Begin);
+        mReader?.Seek(0, System.IO.SeekOrigin.Begin);
       }
 
-      _player.Play();
+      mPlayer.Play();
     }
 
     public void Pause()
     {
-      _player?.Pause();
+      mPlayer?.Pause();
     }
 
     public void Stop()
     {
-      _player?.Stop();
-      _reader?.Seek(0, System.IO.SeekOrigin.Begin);
+      mPlayer?.Stop();
+      mReader?.Seek(0, System.IO.SeekOrigin.Begin);
     }
 
     public void StartRecording( string aFile, int deviceNumber = 0)
@@ -177,8 +177,8 @@ namespace DIGITC2_ENGINE
 
     public void Dispose()
     {
-      _player?.Dispose();
-      _reader?.Dispose();
+      mPlayer?.Dispose();
+      mReader?.Dispose();
       mRecorder?.Dispose();
     }
   }

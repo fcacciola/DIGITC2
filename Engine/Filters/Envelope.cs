@@ -69,8 +69,8 @@ namespace DIGITC2_ENGINE
 
       aIterations.ForEach( lI => rR = Apply(rR,lI) ) ;
 
-      if ( Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( Context.Session.LogFile( $"_{aLabel}_Envelope.wav") ) ;
+      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+        rR.SaveTo( DIGITC_Context.Session.LogFile( $"_{aLabel}_Envelope.wav") ) ;
 
       rOutput.Add( new Branch(aInputBranch, rR, aLabel));
     }
@@ -101,8 +101,8 @@ namespace DIGITC2_ENGINE
 
       var lES = aInput.CopyWith(lESRep);
 
-      if ( aIteration.Plot && Context.Session.Args.GetBool("Plot") )
-        lES.SaveTo( Context.Session.LogFile( aIteration.Label + ".wav") ) ;
+      if ( aIteration.Plot && DIGITC_Context.Session.Args.GetBool("Plot") )
+        lES.SaveTo( DIGITC_Context.Session.LogFile( aIteration.Label + ".wav") ) ;
 
       return lES ;
     }

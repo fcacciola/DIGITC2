@@ -16,8 +16,11 @@ namespace DIGITC2_ENGINE
   {
     public Dictionary<string, string> Settings = new Dictionary<string, string>();
 
-    static public Args FromFile   (string   file) => new Args(file);
-    static public Args FromCmdLine(string[] args) => new Args(args);
+    public Args() {}
+
+    static public Args FromFile      (string   file) => new Args(file);
+    static public Args FromCmdLine   (string[] args) => new Args(args);
+    static public Args FromDictionary( IDictionary<string, string> aArgs ) => new Args(aArgs);
 
     public string Get(string aKey) => Settings.ContainsKey(aKey) ? Settings[aKey] : null; 
     
@@ -34,6 +37,12 @@ namespace DIGITC2_ENGINE
     bool isValidLine(string line)
     {
       return !line.StartsWith("#") && line.Contains("=");
+    }
+
+    Args( IDictionary<string, string> aArgs )  
+    {
+      foreach( var lKV in aArgs )
+        Settings.Add(lKV.Key, lKV.Value );  
     }
 
     Args(string file)
@@ -106,7 +115,7 @@ namespace DIGITC2_ENGINE
 
   public class Session
   {
-    public Session( string aName, Args aArgs, string aInputFolder = "./Input", string aOutputFolder = "./Output" )
+    public Session( string aName, Args aArgs, string aInputFolder, string aOutputFolder )
     {
       Name         = aName;
       Args         = aArgs;
@@ -148,21 +157,21 @@ namespace DIGITC2_ENGINE
     }
   }
 
-  public class Context
+  public class DIGITC_Context
   {
-    static Context mInstance = null ;
+    static DIGITC_Context mInstance = null ;
 
-    public static Context Instance
+    public static DIGITC_Context Instance
     {
       get
       {
         if ( mInstance == null )
-          mInstance = new Context() ; 
+          mInstance = new DIGITC_Context() ; 
         return mInstance ;
       }
     }
 
-    Context()
+    DIGITC_Context()
     {
     }
 

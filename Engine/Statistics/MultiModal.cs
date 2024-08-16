@@ -49,8 +49,8 @@ namespace DIGITC2_ENGINE
 
     void DoFind() 
     {
-      Context.WriteLine("Finding peaks...");
-      Context.Indent();
+      DIGITC_Context.WriteLine("Finding peaks...");
+      DIGITC_Context.Indent();
 
       int lSC = mDistribution.Count;
 
@@ -66,12 +66,12 @@ namespace DIGITC2_ENGINE
         lPrev = lValue ;
       }
 
-      mExtremePoints.ForEach( p => Context.WriteLine($"Raw Peak: {p}" ) ) ; 
+      mExtremePoints.ForEach( p => DIGITC_Context.WriteLine($"Raw Peak: {p}" ) ) ; 
 
       if ( mExtremePoints.Count  == 0 )
         return ;
 
-      Context.WriteLine("Finding Valleys...");
+      DIGITC_Context.WriteLine("Finding Valleys...");
 
       if ( mExtremePoints[0].Idx > 0 )
         mExtremePoints.Add( new DExtremePoint{ IsPeak = false, Value = mDistribution[0], Idx = 0, Height = 0 } );  
@@ -102,13 +102,13 @@ namespace DIGITC2_ENGINE
         mExtremePoints.Add( new DExtremePoint{ IsPeak = false, Value = mDistribution[lMinIdx], Idx = lMinIdx, Height = 0 } );  
       }
 
-      Context.WriteLine("Sorting Extreme Points...");
+      DIGITC_Context.WriteLine("Sorting Extreme Points...");
 
       mExtremePoints = mExtremePoints.OrderBy( xp => xp.Idx ).ToList() ;
 
-      mExtremePoints.ForEach( p => Context.WriteLine($"Raw Extreme Points: {p}" ) ) ; 
+      mExtremePoints.ForEach( p => DIGITC_Context.WriteLine($"Raw Extreme Points: {p}" ) ) ; 
 
-      Context.WriteLine("Assigning Weights to Peaks...");
+      DIGITC_Context.WriteLine("Assigning Weights to Peaks...");
 
       int lLC = lPC - 1 ;
 
@@ -128,9 +128,9 @@ namespace DIGITC2_ENGINE
 
         }
       }
-      mExtremePoints.ForEach( p => Context.WriteLine($"Final Extreme Points: {p}" ) ) ; 
+      mExtremePoints.ForEach( p => DIGITC_Context.WriteLine($"Final Extreme Points: {p}" ) ) ; 
 
-      Context.Unindent();
+      DIGITC_Context.Unindent();
     }
 
     readonly List<DPoint> mDistribution = new List<DPoint>();

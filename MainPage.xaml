@@ -46,7 +46,7 @@
                         ItemsSource="{Binding Items}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="{x:Type root:Session}">
+                <DataTemplate x:DataType="{x:Type root:UserSession}">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems>

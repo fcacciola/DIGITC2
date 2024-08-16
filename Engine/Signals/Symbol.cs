@@ -175,7 +175,7 @@ namespace DIGITC2_ENGINE
 
     public override string Meaning => GetState().ToString() ;
 
-    public int UpperBound => Math.Max(Symbols.Count,Context.Session.Args.GetInt("MaxWordLength")) ;
+    public int UpperBound => Math.Max(Symbols.Count,DIGITC_Context.Session.Args.GetInt("MaxWordLength")) ;
     
     public override double Value => Symbols.Count ;
 
@@ -204,7 +204,7 @@ namespace DIGITC2_ENGINE
 
     public override string Meaning => $"[{Word}]" ;
 
-    public int UpperBound => Math.Max(Word.Length,Context.Session.Args.GetInt("MaxWordLength")) ;
+    public int UpperBound => Math.Max(Word.Length,DIGITC_Context.Session.Args.GetInt("MaxWordLength")) ;
 
     public override double Value => Word.Length ;
 

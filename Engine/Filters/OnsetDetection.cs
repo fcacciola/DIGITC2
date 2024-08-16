@@ -15,6 +15,7 @@ using NWaves.Signals;
 
 using OxyPlot.Annotations;
 
+using OnsetDetection ;
 
 namespace DIGITC2_ENGINE
 {
@@ -36,37 +37,25 @@ namespace DIGITC2_ENGINE
 
     public OnsetDetection() 
     { 
-      mThreshold   = Context.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
-      mMinTapCount = Context.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
+      mThreshold   = DIGITC_Context.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
+      mMinTapCount = DIGITC_Context.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
     }
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      const string AubioOnsetTool_Path = ".\\Tools\\aubioonset.exe";
+      var options = DetectorOptions.Default;
+      options.ActivationThreshold = 10;
+      options.SliceLength = 10.0f;
+      options.SlicePaddingLength = 0.5f;
+      options.Online = false;
+      var onsetDetector = new OnsetDetector(options, null);
+      var onsets = onsetDetector.Detect(aInput.Origin);
 
-      List<string> lArgs = new List<string> ();
+      DIGITC_Context.WriteLine($"Onset Count: {onsets.Count}");
 
-      lArgs.Add( aInput.Origin  ) ;
-      lArgs.Add( $"-t {mThreshold}") ;
-
-      var lResult = Task.Run(async() => await Cli.Wrap(AubioOnsetTool_Path)
-                                                 .WithArguments(lArgs)
-                                                 .WithValidation(CommandResultValidation.None)
-                                                 .ExecuteBufferedAsync()).Result;
-
-      string lErrors =  lResult.StandardError.ToString();
-      if ( lErrors.Length > 0 ) 
-        Context.Error(lErrors) ;
-
-      Context.WriteLine(lResult.StandardOutput.ToString());
-
-      var lSTimes = lResult.StandardOutput.ToString().Replace(Environment.NewLine,"|").Split('|').Where( s => s.Length > 0 ).ToList(); 
-
-      Context.WriteLine($"Onset Count: {lSTimes.Count}");
-
-      if ( lSTimes.Count >= mMinTapCount )
+      if ( onsets.Count >= mMinTapCount )
       {
-        var lTimes = lSTimes.ConvertAll( st => double.Parse( st ) ); 
+        var lTimes = onsets.ConvertAll( st => (double)st.OnsetTime ); 
 
         if ( lTimes[0] == 0.0 )
           lTimes.RemoveAt(0);
@@ -87,8 +76,8 @@ namespace DIGITC2_ENGINE
 
         var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, lOutSignal));
 
-        if ( Context.Session.Args.GetBool("Plot") )
-          rR.SaveTo( Context.Session.LogFile( $"_OnsetSequence.wav") ) ;
+        if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+          rR.SaveTo( DIGITC_Context.Session.LogFile( $"_OnsetSequence.wav") ) ;
 
         rOutput.Add( new Branch(aInputBranch, rR, "OnsetSequence", null, false, lOnset));
       }

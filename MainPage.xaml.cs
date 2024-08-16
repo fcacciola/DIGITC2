@@ -13,8 +13,8 @@ public partial class MainPage : ContentPage
     vm.SetRecButtonToStop  += OnSetRecButtonToStop;
     BindingContext = vm;
 
-    Preferences.Set("InputDevice" , "Microphone Array");
-    Preferences.Set("OutputDevice", "Altavoces");
+    Preferences.Set("InputDevice" , ""); // Use Default
+    Preferences.Set("OutputDevice", ""); // Use Default
   }
 
   protected override async void OnAppearing()

@@ -14,13 +14,13 @@ public class TapCodeToBytes : LexicalFilter
 {
   public TapCodeToBytes() : base() 
   { 
-    mBranchSelection = new Branch.Selection(Context.Session.Args.Get("TapCodeToBytes_Branches"));
+    mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("TapCodeToBytes_Branches"));
   }
 
   protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
   {
-    Context.WriteLine("Decoding Tap Codes as Bytes from Latin-alphabet Polybius Squares");
-    Context.Indent();
+    DIGITC_Context.WriteLine("Decoding Tap Codes as Bytes from Latin-alphabet Polybius Squares");
+    DIGITC_Context.Indent();
 
     var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
@@ -34,7 +34,7 @@ public class TapCodeToBytes : LexicalFilter
 
   void ProcessCodes( Branch aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<Branch> rOutput )
   {
-    List<string> lRawLetters = aCodes.ConvertAll( code => { string rLetter = aSquare.Decode(code) ; Context.WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
+    List<string> lRawLetters = aCodes.ConvertAll( code => { string rLetter = aSquare.Decode(code) ; DIGITC_Context.WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
 
     List<ByteSymbol> lByteSymbols = new List<ByteSymbol>();
 

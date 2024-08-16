@@ -8,17 +8,39 @@ using DIGITC2_ENGINE;
 
 namespace DIGITC2.ViewModel;
 
+public class AudioTools
+{
+  public AudioTools()
+  {
+    AudioService = new AudioService();
+
+    InputDevice  = FindDevice(Preferences.Get("InputDevice",  ""), AudioService.EnumInputDevices () ) ;
+    OutputDevice = FindDevice(Preferences.Get("OutputDevice", ""), AudioService.EnumOutputDevices() ) ;
+  }
+  
+  public AudioDevice  InputDevice  = null ;
+  public AudioDevice  OutputDevice = null ;
+  public AudioService AudioService = null ;
+
+  AudioDevice FindDevice( string aPreference, List<AudioDevice> aDevices )  
+  {
+    if ( aDevices.Count > 0 )
+    {
+      int lIdx = aDevices.FindIndex( s => s.Name.StartsWith(aPreference));
+      if ( lIdx != - 1 )
+      {
+        return aDevices[lIdx];  
+      }
+    }
+
+
+    return AudioDevice.DEFAULT ;
+  }
+}
 
 
 public partial class MainViewModel : ObservableObject
 {
-  class Settings
-  {
-    internal AudioDevice InputDevice  = null ;
-    internal AudioDevice OutputDevice = null ;
-  }
-
-  Settings mSettings = null ;
 
   readonly IConnectivity connectivity;
 
@@ -52,7 +74,7 @@ public partial class MainViewModel : ObservableObject
   ObservableCollection<string> noiseSources;
 
   [ObservableProperty]
-  ObservableCollection<Session> items;
+  ObservableCollection<UserSession> items;
 
   [ObservableProperty]
   string selectedNoise;
@@ -60,18 +82,13 @@ public partial class MainViewModel : ObservableObject
   [ObservableProperty]
   string text;
 
-  //CancellationTokenSource mCancellationTokenSource;
 
-  bool         mRecording    = false;
-  AudioService mAudioService = null;
-  Session      mSession      = null ;
-
-  Session CreateNewSession()
+  UserSession CreateNewSession()
   {
-    if ( ! Directory.Exists(Session.RootFolder) )
-      Directory.CreateDirectory(Session.RootFolder);
+    if ( ! Directory.Exists(UserSession.RootFolder) )
+      Directory.CreateDirectory(UserSession.RootFolder);
 
-    Session rSession = new Session();
+    UserSession rSession = new UserSession();
 
     string lCurrSessionName = Preferences.Get("CurrSession", "Session");
 
@@ -80,7 +97,7 @@ public partial class MainViewModel : ObservableObject
     do
     {
       rSession.ID = $"{lCurrSessionName}_{i}";  
-      rSession.Folder = Path.Combine(Session.RootFolder, rSession.ID);  
+      rSession.Folder = Path.Combine(UserSession.RootFolder, rSession.ID);  
       if ( ! Directory.Exists(rSession.Folder))
       {
         Directory.CreateDirectory(rSession.Folder);
@@ -93,29 +110,10 @@ public partial class MainViewModel : ObservableObject
     return null ;
   }
 
-  AudioDevice FindDevice( string aPreference, List<AudioDevice> aDevices )  
-  {
-    if ( aDevices.Count > 0 )
-    {
-      int lIdx = aDevices.FindIndex( s => s.Name.StartsWith(aPreference));
-      if ( lIdx != - 1 )
-      {
-        return aDevices[lIdx];  
-      }
-    }
-
-    return null ;
-  }
-
   void DoSetup()
   {
-    mAudioService = new AudioService();
-    mAudioService.RecStopped += OnRecStopped;
-
-    mSettings = new Settings();
-
-    mSettings.InputDevice  = FindDevice(Preferences.Get("InputDevice",  "Microphone Array"), mAudioService.EnumInputDevices() ) ;
-    mSettings.OutputDevice = FindDevice(Preferences.Get("OutputDevice", "Microphone Array"), mAudioService.EnumOutputDevices() ) ;
+    mAudioTools = new AudioTools();
+    mAudioTools.AudioService.RecStopped += OnRecStopped;
   }
 
   public async Task Setup()
@@ -127,11 +125,11 @@ public partial class MainViewModel : ObservableObject
   {
     await Task.Run(() => 
     {
-      string lRootFolder = Session.RootFolder ;
+      string lRootFolder = UserSession.RootFolder ;
 
       foreach( var lSessionFolder in Directory.GetDirectories(lRootFolder)) 
       {
-        Session lSession = Session.FromFolder(lSessionFolder);
+        UserSession lSession = UserSession.FromFolder(lSessionFolder);
         if ( lSession != null )
           Items.Add(lSession);
       }
@@ -142,25 +140,22 @@ public partial class MainViewModel : ObservableObject
   //async Task StartRecording(CancellationToken aCT)
   void StartRecording()
   {
-    if ( mSettings.InputDevice != null )
+    mSession = CreateNewSession();
+
+    if ( mSession != null )
     {
-      mSession = CreateNewSession();
+      mSession.WAVFile = Path.Combine(mSession.Folder, "Audio.wav");
 
-      if ( mSession != null )
-      {
-        mSession.WAVFile = Path.Combine(mSession.Folder, "Audio.wav");
+      mAudioTools.AudioService.StartRecording(mSession.WAVFile, mAudioTools.InputDevice.Number);
 
-        mAudioService.StartRecording(mSession.WAVFile, mSettings.InputDevice.Number);
-
-        mRecording = true;
-      }
+      mIsRecording = true;
     }
   }
 
   // async Task 
   void StopRecording()
   {
-    mAudioService.StopRecording();
+    mAudioTools.AudioService.StopRecording();
   }
 
   [RelayCommand]
@@ -169,19 +164,23 @@ public partial class MainViewModel : ObservableObject
 
   }
 
-  [RelayCommand]
-  async Task REC()
+  void DoREC()
   {
-    if (!mRecording)
+    if (!mIsRecording)
     {
       StartRecording();
       OnSetRecButtonToStop();
-      return;
     }
     else
     {
       StopRecording();
     }
+  }
+
+  [RelayCommand]
+  async Task REC()
+  {
+    DoREC();
   }
 
   [RelayCommand]
@@ -193,7 +192,7 @@ public partial class MainViewModel : ObservableObject
 
   public void OnRecStopped()
   {
-    mRecording = false;
+    mIsRecording = false;
 
     OnSetRecButtonToStart();
 
@@ -202,7 +201,7 @@ public partial class MainViewModel : ObservableObject
   }
 
   [RelayCommand]
-  void Delete(Session s)
+  void Delete(UserSession s)
   {
     // If the list of todos contains
     // given string, remove it from list
@@ -213,11 +212,17 @@ public partial class MainViewModel : ObservableObject
   }
 
   [RelayCommand]
-  async Task Tap(Session s)
+  async Task Tap(UserSession s)
   {
     // Trigger a navigation to the detail page
     //  - See [AppShell] for how to add a routing to the app's navigation
     //  - See [DetailViewModel] for how to resolve the 'Text' query parameter
     await Shell.Current.GoToAsync($"{nameof(DetailPage)}?sessionID={s.ID}");
   }
+
+  //CancellationTokenSource mCancellationTokenSource;
+
+  bool       mIsRecording = false;
+  UserSession    mSession     = null ;
+  AudioTools mAudioTools  = null ;
 }

@@ -1,82 +1,141 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
 using System.Collections.ObjectModel;
+
+using DIGITC2_ENGINE;
 
 namespace DIGITC2.ViewModel;
 
 [QueryProperty(nameof(SessionID), "sessionID")]
 public partial class DetailViewModel : ObservableObject
 {
-    public DetailViewModel()
+  public DetailViewModel()
+  {
+    slices = new ObservableCollection<string>();
+    results = new ObservableCollection<string>();
+  }
+
+  [ObservableProperty]
+  string sessionID;
+
+  [ObservableProperty] ObservableCollection<string> slices;
+
+  [ObservableProperty] ObservableCollection<string> results;
+
+  public event Action SetPlayButtonToStart;
+  public event Action SetPlayButtonToStop;
+
+  public void OnSetPlayButtonToStart()
+  {
+    SetPlayButtonToStart?.Invoke();
+  }
+
+  public void OnSetPlayButtonToStop()
+  {
+    SetPlayButtonToStop?.Invoke();
+  }
+
+  void DoSetup()
+  {
+    mAudioTools = new AudioTools();
+    mSession = GetSession();
+    if ( mSession != null && mSession.Summary != null)
+      PopulateUI(mSession.Summary);
+  }
+
+  public async Task Setup()
+  {
+    await Task.Run(() => DoSetup() );
+  }
+
+  //async Task StartRecording(CancellationToken aCT)
+  void StartPlatback()
+  {
+    if ( mIsPlaying )
+      StopPlayback();
+
+    if ( mSession != null && !string.IsNullOrEmpty(mSession.WAVFile) && File.Exists(mSession.WAVFile) )
     {
-      slices  = new ObservableCollection<Slice>();
-      results = new ObservableCollection<Result>();
+      mAudioTools.AudioService.Load(mSession.WAVFile);
+      mAudioTools.AudioService.Play();
+
+      mIsPlaying = true;
     }
+  }
 
-    [ObservableProperty]
-    string sessionID;
-
-    [ObservableProperty] ObservableCollection<Slice> slices;
-
-    [ObservableProperty] ObservableCollection<Result> results;
-
-    [RelayCommand]
-    async Task Analyze()
+  // async Task 
+  void StopPlayback()
+  {
+    if ( mIsPlaying )
     {
-      await Task.Run( () => DoAnalyze() );
+      mAudioTools.AudioService.Stop();
+      mIsPlaying = false;  
     }
+  }
 
-    [RelayCommand]
-    async Task Play()
+  [RelayCommand]
+  async Task Analyze()
+  {
+    await Task.Run(() => DoAnalyze());
+  }
+
+  [RelayCommand]
+  async Task Play()
+  {
+    if (!mIsPlaying)
     {
-      await Task.Run( () => DoAnalyze() );
+      OnSetPlayButtonToStop();
+      await Task.Run(() => StartPlatback());
     }
-
-    [RelayCommand]
-    async Task GoBack()
+    else
     {
-      await Shell.Current.GoToAsync("..");
+      OnSetPlayButtonToStart();
+      await Task.Run(() => StopPlayback());
     }
+  }
 
-    Session GetSession()
-    {
-      return Session.FromID(sessionID);
-    }
+  [RelayCommand]
+  async Task GoBack()
+  {
+    await Shell.Current.GoToAsync("..");
+  }
 
-    public async Task LoadSession()
+  UserSession GetSession()
+  {
+    return UserSession.FromID(sessionID);
+  }
+
+
+  void DoAnalyze()
+  {
+    List<string> lProcessors = new List<string>{"TapCode"};
+
+    UserSession lSession = GetSession();
+
+    if ( lSession != null && ! string.IsNullOrEmpty(lSession.WAVFile) && File.Exists(lSession.WAVFile) )
     {
-      await Task.Run(() => 
+      lSession.Summary = Analyzer.Analyze(lSession.Folder, lSession.WAVFile, lProcessors).Summary;
+
+      if ( lSession.Summary != null ) 
       {
-        Session lSession = GetSession();
-        if ( lSession != null && lSession.Analysis != null)
-          PopulateParts( lSession.Analysis );
-      }
-      );
-    }
+        lSession.SaveOutcome();
 
-    void DoAnalyze()
-    {
-      Session lSession = GetSession();
-      if ( lSession != null) 
-      {  
-        lSession.Analysis = new Analytics(new Result("Overall result"));
-
-        lSession.Analysis.AddPart( new Slice("Slice 0"), new Result("Result 0" ) ) ;
-        lSession.Analysis.AddPart( new Slice("Slice 1"), new Result("Result 1" ) ) ;
-        lSession.Analysis.AddPart( new Slice("Slice 2"), new Result("Result 2" ) ) ;
-
-        lSession.SaveAnalysis();
-
-        PopulateParts( lSession.Analysis );
+        PopulateUI(lSession.Summary);
       }
     }
+  }
 
-    void PopulateParts( Analytics aAnalysis )
-    {
-      foreach( var lPart in aAnalysis.Parts ) 
-      {   
-        slices .Add( lPart.Slice  );
-        results.Add( lPart.Result );
-      }
-    }
+  void PopulateUI(OutcomeSummary aOutcome)
+  {
+    //foreach (var lSlice in aOutcome.Pipelines)
+    //{
+    //  slices.Add(lSlice.Name);
+    //  results.Add(lSlice.Name);
+    //}
+  }
+
+  AudioTools  mAudioTools = null ;
+  UserSession mSession    = null ;
+  bool         mIsPlaying  = false ;
 }

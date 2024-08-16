@@ -153,8 +153,8 @@ namespace DIGITC2_ENGINE
           rClusterZero = new Cluster( lZeroL, lMidPoint );
           rClusterOne  = new Cluster( lMidPoint, lMaxDuration );
 
-          Context.WriteLine($"Zero cluster: {rClusterZero}" ) ; 
-          Context.WriteLine($"One  cluster: {rClusterOne}" ) ; 
+          DIGITC_Context.WriteLine($"Zero cluster: {rClusterZero}" ) ; 
+          DIGITC_Context.WriteLine($"One  cluster: {rClusterOne}" ) ; 
         }
 
         return ( rClusterZero, rClusterOne );
@@ -170,17 +170,17 @@ namespace DIGITC2_ENGINE
 
          var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-         Context.WriteLine("Durations distribution...");
-         Context.Indent();
-         lFullRangeHistogram.Points.ToList().ForEach( p => Context.WriteLine($"{p}"));
-         Context.Unindent();
+         DIGITC_Context.WriteLine("Durations distribution...");
+         DIGITC_Context.Indent();
+         lFullRangeHistogram.Points.ToList().ForEach( p => DIGITC_Context.WriteLine($"{p}"));
+         DIGITC_Context.Unindent();
 
          (Cluster lClusterZero, Cluster lClusterOne) = GetClusters( lFullRangeHistogram.Points ) ;  
 
          if ( lClusterZero != null && lClusterOne != null )
          {
-           Context.WriteLine("Classifying...");
-           Context.Indent();  
+           DIGITC_Context.WriteLine("Classifying...");
+           DIGITC_Context.Indent();  
            foreach( var lPulse in lPulses )
            {  
              double lDuration = lPulse.Duration ;
@@ -188,7 +188,7 @@ namespace DIGITC2_ENGINE
              double lDistToZero = lClusterZero.GetDistance(lDuration) ; 
              double lDistToOne  = lClusterOne .GetDistance(lDuration) ; 
 
-             Context.WriteLine($"Pulse duration: {lDuration}. Distance to cluster Zero:{lDistToZero}. Distance to cluster One:{lDistToOne}" ) ; 
+             DIGITC_Context.WriteLine($"Pulse duration: {lDuration}. Distance to cluster Zero:{lDistToZero}. Distance to cluster One:{lDistToOne}" ) ; 
 
              Classification lClassification = new Classification();
 
@@ -218,11 +218,11 @@ namespace DIGITC2_ENGINE
                lClassification.ForBranchB = BitType.Noise ;
              }
 
-             Context.WriteLine($"  Classification: {lClassification}" ) ; 
+             DIGITC_Context.WriteLine($"  Classification: {lClassification}" ) ; 
 
              mClassifiedPulses.Add( new ClassifiedPulse(){ Pulse = lPulse, Classification = lClassification } ) ;
            }
-           Context.Unindent();  
+           DIGITC_Context.Unindent();  
          }
 
          return mClassifiedPulses ;
@@ -243,14 +243,14 @@ namespace DIGITC2_ENGINE
         int lSamplingRate = lBits[0].View.SamplingRate;
         DiscreteSignal lWaveRep = new DiscreteSignal(lSamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
-        lWave.SaveTo( Context.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
+        lWave.SaveTo( DIGITC_Context.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
       }
     }
 
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-       Context.WriteLine("Binarizing Pulses by Duration");
-       Context.Indent();
+       DIGITC_Context.WriteLine("Binarizing Pulses by Duration");
+       DIGITC_Context.Indent();
 
        var lClassifiedPulses = Classifier.Run(aInput);
 
@@ -266,7 +266,7 @@ namespace DIGITC2_ENGINE
        LexicalSignal lSignalA = lBranchA.GetSignal() ;
        LexicalSignal lSignalB = lBranchB.GetSignal() ;
 
-       if ( Context.Session.Args.GetBool("Plot") )
+       if ( DIGITC_Context.Session.Args.GetBool("Plot") )
        {
          PlotBits(lSignalA, lBranchA.Label);
          PlotBits(lSignalB, lBranchB.Label);
@@ -275,7 +275,7 @@ namespace DIGITC2_ENGINE
        rOutput.Add( new Branch(aInputBranch, lSignalA, lBranchA.Label) ) ;
        rOutput.Add( new Branch(aInputBranch, lSignalB, lBranchB.Label) ) ;
 
-       Context.Unindent();  
+       DIGITC_Context.Unindent();  
     }
 
     protected override string Name => "BinarizeByDuration" ;
