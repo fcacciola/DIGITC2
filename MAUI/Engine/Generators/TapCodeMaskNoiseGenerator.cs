@@ -194,38 +194,58 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 
     DIGITC_Context.WriteLine("Generate MaskNoise");
 
-    double lDuration = aArgs.GetOptionalDouble("MaskNoise_CarrierDuration").GetValueOrDefault(120);
-    double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(100);
-    double lBurstDuration = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.5);
-    double lTapCodeSGap = aArgs.GetOptionalDouble("MaskNoise_TapCodeSGap").GetValueOrDefault(0.3);
-    double lTapCodeLGap = aArgs.GetOptionalDouble("MaskNoise_TapCodeLGap").GetValueOrDefault(1);
-    double lTapCodeSeparation = aArgs.GetOptionalDouble("MaskNoise_TapCodeSeparation").GetValueOrDefault(5);
+    // This is the duration of the individual burst pulse of a single tap
+    double lBurstDuration_IN_Seconds = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.3);
 
-    var rResult = BuildNoiseCarrier(lDuration, lLevel);
+    // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
+    double lTapCodeSGap = .5 * lBurstDuration_IN_Seconds ;
+
+    // This is the LONG Gap between the ROW and the COLUMN in a tap code
+    double lTapCodeLGap =  2 * lBurstDuration_IN_Seconds ;
+
+    // This is the separation between two tap codes
+    double lTapCodeSeparation = 5 * lBurstDuration_IN_Seconds ;
+
+    double lMaxTapCodeRowColSize = 3 ;
+
+    double lMaxTapCodeRowColLen = lMaxTapCodeRowColSize * (lBurstDuration_IN_Seconds + lTapCodeSGap);
+    double lMaxTapCodeLen       = lMaxTapCodeRowColLen + lTapCodeLGap + lMaxTapCodeRowColLen ;
+    double lMaxTapCodePeriod    = lMaxTapCodeLen + lTapCodeSeparation ;
+
+    // lMaxTapCodePeriod corresponds to 1 single bit
+
+    double lPerBytePeriod = lMaxTapCodePeriod * 8 ;
+
+    int lTotalLengthInBytes = aArgs.GetOptionalInt("MaskNoise_LengthInBytes").GetValueOrDefault(50);  
+
+    double lTotalSignalDuration_IN_Seconds = lTotalLengthInBytes * lPerBytePeriod ;
+
+    double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(100);
+
+    var rResult = BuildNoiseCarrier(lTotalSignalDuration_IN_Seconds, lLevel);
 
     if (DIGITC_Context.Session.Args.GetBool("Plot"))
     {
       rResult.Save(DIGITC_Context.Session.LogFile($"_carrier.wav"));
     }
 
-    List<TapCode> lCodes = new List<TapCode>(){ new TapCode(2,2)
-                                              , new TapCode(10,2)
-                                              , new TapCode(2,10)
-                                              , new TapCode(10,10)
+    List<TapCode> lCodes = new List<TapCode>(){ new TapCode(1,1)
+                                              , new TapCode(1,3)
+                                              , new TapCode(3,1)
+                                              , new TapCode(3,3)
 
-                                              , new TapCode(6,2)
-                                              , new TapCode(2,6)
-                                              , new TapCode(10,6)
-                                            , new TapCode(6,10) };
+                                              , new TapCode(1,2)
+                                              , new TapCode(2,1)
+                                              , new TapCode(2,3)
+                                              , new TapCode(3,2) };
 
     List<DiscreteSignal> lMasks = new List<DiscreteSignal>();
 
     foreach (var lCode in lCodes)
     {
-      var lMask = new TapCodeMaskSignal(lCode
-      , lBurstDuration, lTapCodeSGap, lTapCodeLGap, lTapCodeSeparation);
+      var lMask = new TapCodeMaskSignal(lCode, lBurstDuration_IN_Seconds, lTapCodeSGap, lTapCodeLGap, lTapCodeSeparation);
 
-      var lMaskSignal = lMask.BuildSignal(rResult.SamplingRate, lDuration);
+      var lMaskSignal = lMask.BuildSignal(rResult.SamplingRate, lTotalSignalDuration_IN_Seconds);
 
       if (DIGITC_Context.Session.Args.GetBool("Plot"))
       {
