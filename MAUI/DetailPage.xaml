@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DIGITC2.DetailPage"
+             xmlns:viewmodel="clr-namespace:DIGITC2.ViewModel"
+             x:DataType="viewmodel:DetailViewModel"
+             Title="Session Details">
+
+    <Grid RowDefinitions="Auto, *"
+            ColumnDefinitions="Auto,Auto,Auto,auto"
+            Padding="10"
+            RowSpacing="10"
+            ColumnSpacing="10">
+
+            <Label Text="{Binding SessionID}"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   FontSize="25"
+                   VerticalOptions="Center" 
+                   HorizontalOptions="Center" />
+
+            <Button x:Name="PlayButton"
+                    Text="Play"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Command="{Binding PlayCommand}"/>
+
+            <Button Text="Analyze"
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Command="{Binding AnalyzeCommand}"/>
+
+            <Button Text="Go Back"
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Command="{Binding GoBackCommand}"/>
+
+            <Grid RowDefinitions="*"
+                    ColumnDefinitions="100,*"
+                    Grid.Row="1"
+                    Padding="10"
+                    RowSpacing="10"
+                    ColumnSpacing="10">
+
+                    <CollectionView Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Slices}">
+                      <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                          <Frame Margin="5" Padding="10" BackgroundColor="LightGray">
+                            <Label Text="{Binding .}" />
+                          </Frame>
+                        </DataTemplate>
+                      </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <CollectionView Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Results}">
+                      <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                          <Frame Margin="5" Padding="10" BackgroundColor="LightGray">
+                            <Label Text="{Binding .}" />
+                          </Frame>
+                        </DataTemplate>
+                      </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+    </Grid>
+  </Grid>
+</ContentPage>
