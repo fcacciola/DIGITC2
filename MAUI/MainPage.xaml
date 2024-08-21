@@ -19,7 +19,7 @@
                 Title="Background Noise Type:" />
     </HorizontalStackLayout>
 
-    <HorizontalStackLayout Padding="10" Grid.Row="2" Grid.ColumnSpan="2">
+    <VerticalStackLayout Padding="10" Grid.Row="2" Grid.ColumnSpan="2">
 
       <Button x:Name="LoadAudioButton"
                 Text="Load Audio File"
@@ -33,12 +33,18 @@
                 Command="{Binding RECCommand}"
                 />
 
-      <Button x:Name="NoiseButton"
+      <Button x:Name="GenerateNoiseButton"
+                Text="GENERARTE Noise Background"
+                BackgroundColor="DarkBlue"
+                Command="{Binding GenerateNoiseCommand}"
+                />
+
+      <Button x:Name="PlayNoiseButton"
                 Text="PLAY Noise Background"
                 BackgroundColor="DarkBlue"
                 Command="{Binding PlayNoiseCommand}"
                 />
-    </HorizontalStackLayout>
+    </VerticalStackLayout>
 
     <Label Text="Sessions:" Grid.Row="3" Grid.ColumnSpan="2"/>
 

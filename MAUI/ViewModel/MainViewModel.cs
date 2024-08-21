@@ -61,6 +61,8 @@ public partial class MainViewModel : ObservableObject
   public event Action SetRecButtonToStop;
   public event Action SetNoisePlayButtonToStart;
   public event Action SetNoisePlayButtonToStop;
+  public event Action SetNoiseGenerateButtonToStart;
+  public event Action SetNoiseGenerateButtonToWorking;
 
   public void OnSetRecButtonToStart()
   {
@@ -81,6 +83,17 @@ public partial class MainViewModel : ObservableObject
   {
     SetNoisePlayButtonToStop?.Invoke();
   } 
+
+  public void OnSetNoiseGenerateButtonToStart()
+  {
+    SetNoiseGenerateButtonToStart?.Invoke();
+  }
+
+  public void OnSetNoiseGenerateButtonToWorking()
+  {
+    SetNoiseGenerateButtonToWorking?.Invoke();
+  } 
+
   [ObservableProperty]
   ObservableCollection<string> noiseSources;
 
@@ -201,15 +214,18 @@ public partial class MainViewModel : ObservableObject
     DoREC();
   }
 
-  //async Task StartRecording(CancellationToken aCT)
+  void DoGenerateNoise()
+  {
+    string lNoiseWAVFile = Path.Combine(mOutputFolder, "Noise.wav"); 
+    NoiseGenerator.Generate(lNoiseWAVFile); 
+  }
+
   void StartNoisePlayback()
   {
     if ( mIsNoisePlaying )
       StopNoisePlayback();
 
     string lNoiseWAVFile = Path.Combine(mOutputFolder, "Noise.wav"); 
-    NoiseGenerator.Generate(lNoiseWAVFile); 
-
     if ( File.Exists(lNoiseWAVFile) )
     {
       mAudioTools.AudioService.Load(lNoiseWAVFile);
@@ -229,6 +245,14 @@ public partial class MainViewModel : ObservableObject
     }
   }
 
+
+  [RelayCommand]
+  async Task GenerateNoise()
+  {
+    OnSetNoiseGenerateButtonToWorking();
+    await Task.Run(() => DoGenerateNoise());
+    OnSetNoiseGenerateButtonToStart();
+  }
 
   [RelayCommand]
   async Task PlayNoise()

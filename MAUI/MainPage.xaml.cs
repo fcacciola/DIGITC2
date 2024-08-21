@@ -10,10 +10,12 @@ public partial class MainPage : ContentPage
   {
     InitializeComponent();
 
-    vm.SetRecButtonToStart       += OnSetRecButtonToStart;
-    vm.SetRecButtonToStop        += OnSetRecButtonToStop;
-    vm.SetNoisePlayButtonToStart += OnSetNoisePlayButtonToStart;
-    vm.SetNoisePlayButtonToStop  += OnSetNoisePlayButtonToStop;
+    vm.SetRecButtonToStart             += OnSetRecButtonToStart;
+    vm.SetRecButtonToStop              += OnSetRecButtonToStop;
+    vm.SetNoiseGenerateButtonToStart   += OnSetNoiseGenerateButtonToStart;
+    vm.SetNoiseGenerateButtonToWorking += OnSetNoiseGenerateButtonToWorking;
+    vm.SetNoisePlayButtonToStart       += OnSetNoisePlayButtonToStart;
+    vm.SetNoisePlayButtonToStop        += OnSetNoisePlayButtonToStop;
 
     BindingContext = vm;
 
@@ -49,14 +51,26 @@ public partial class MainPage : ContentPage
 
   private void OnSetNoisePlayButtonToStart()
   {
-    NoiseButton.BackgroundColor = Colors.DarkBlue;
-    NoiseButton.Text = "PLAY Noise Background";
+    PlayNoiseButton.BackgroundColor = Colors.DarkBlue;
+    PlayNoiseButton.Text = "PLAY Noise Background";
   }
 
   private void OnSetNoisePlayButtonToStop()
   {
-    NoiseButton.BackgroundColor = Colors.DarkCyan;
-    NoiseButton.Text = "STOP Noise Background";
+    PlayNoiseButton.BackgroundColor = Colors.DarkCyan;
+    PlayNoiseButton.Text = "STOP Noise Background";
+  }
+
+  private void OnSetNoiseGenerateButtonToStart()
+  {
+    GenerateNoiseButton.BackgroundColor = Colors.DarkBlue;
+    GenerateNoiseButton.Text = "GENERATE Noise Background";
+  }
+
+  private void OnSetNoiseGenerateButtonToWorking()
+  {
+    GenerateNoiseButton.BackgroundColor = Colors.Gray;
+    GenerateNoiseButton.Text = "In Progress...";
   }
 
   bool mPageInitialized = false ;
