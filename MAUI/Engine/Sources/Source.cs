@@ -67,7 +67,7 @@ namespace DIGITC2_ENGINE
         {
           var waveContainer = new WaveFile(stream);
           mSignal = new WaveSignal(waveContainer[Channels.Average]);
-          mSignal.Name = $"({ Path.GetFileNameWithoutExtension(mFilename)})"; 
+          mSignal.Name = Path.GetFileNameWithoutExtension(mFilename); 
           mSignal.Origin = mFilename; 
         }
       }

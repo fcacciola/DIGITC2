@@ -34,6 +34,10 @@ namespace DIGITC2_ENGINE
 
     public OnsetDetection() 
     { 
+    }
+
+    public override void Setup() 
+    { 
       mThreshold   = DIGITC_Context.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
       mMinTapCount = DIGITC_Context.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
     }

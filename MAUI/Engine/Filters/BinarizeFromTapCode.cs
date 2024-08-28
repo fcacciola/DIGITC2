@@ -21,11 +21,14 @@ public class BinarizeFromTapCode : LexicalFilter
 {
   public BinarizeFromTapCode() 
   { 
+  }
+
+  public override void Setup()
+  {
     mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("BinarizeFromTapCode_Branches"));
 
     mMinBitCount = DIGITC_Context.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
   }
-
 
   protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
   {

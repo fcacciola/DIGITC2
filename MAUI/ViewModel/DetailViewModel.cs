@@ -109,13 +109,19 @@ public partial class DetailViewModel : ObservableObject
 
   void DoAnalyze()
   {
-    List<string> lProcessors = new List<string>{"TapCode"};
-
     UserSession lSession = GetSession();
 
     if ( lSession != null && ! string.IsNullOrEmpty(lSession.WAVFile) && File.Exists(lSession.WAVFile) )
     {
-      lSession.Summary = Analyzer.Analyze(lSession.Folder, lSession.WAVFile, lProcessors).Summary;
+      string lInputFolder  = Path.Combine(FileSystem.AppDataDirectory,"Input") ;
+      string lOutputFolder = Path.Combine(lSession.Folder,"Output");
+      
+      if ( ! Directory.Exists(lOutputFolder) )
+        Directory.CreateDirectory(lOutputFolder); 
+      
+      AnalizerSettings lSettings = new AnalyzerSettings{InputFolder = lInputFolder, OutputFolder = lOutputFolder};
+      
+      lSession.Summary = Analyzer.Analyze(lSettings, lSession.WAVFile).Summary;
 
       if ( lSession.Summary != null ) 
       {

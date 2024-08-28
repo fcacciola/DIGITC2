@@ -14,6 +14,10 @@ namespace DIGITC2_ENGINE
   {
     public BinaryToBytes() : base() 
     { 
+    }
+
+    public override void Setup()
+    {
       mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("BinaryToBytes_Branches"));
     }
 

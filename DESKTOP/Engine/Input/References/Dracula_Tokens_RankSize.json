@@ -1,0 +1,658 @@
+{
+  "$type": "DIGITC2.DTable, DIGITC2_Engine",
+  "mPoints": {
+    "$type": "System.Collections.Generic.List`1[[DIGITC2.DPoint, DIGITC2_Engine]], mscorlib",
+    "$values": [
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "3",
+            "HistogramCount": 0
+          },
+          "Value": 0.0
+        },
+        "Y": 1.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "4",
+            "HistogramCount": 0
+          },
+          "Value": 1.0
+        },
+        "Y": 0.89143936575173877
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "2",
+            "HistogramCount": 0
+          },
+          "Value": 2.0
+        },
+        "Y": 0.84006411173759987
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "5",
+            "HistogramCount": 0
+          },
+          "Value": 3.0
+        },
+        "Y": 0.45754028449583561
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "6",
+            "HistogramCount": 0
+          },
+          "Value": 4.0
+        },
+        "Y": 0.31967142734480092
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "7",
+            "HistogramCount": 0
+          },
+          "Value": 5.0
+        },
+        "Y": 0.25681902744783763
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "1",
+            "HistogramCount": 0
+          },
+          "Value": 6.0
+        },
+        "Y": 0.24179283894788059
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "8",
+            "HistogramCount": 0
+          },
+          "Value": 7.0
+        },
+        "Y": 0.16133833252239618
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "9",
+            "HistogramCount": 0
+          },
+          "Value": 8.0
+        },
+        "Y": 0.13028420962248491
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "10",
+            "HistogramCount": 0
+          },
+          "Value": 9.0
+        },
+        "Y": 0.082085921176908327
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "11",
+            "HistogramCount": 0
+          },
+          "Value": 10.0
+        },
+        "Y": 0.049171413034145225
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "12",
+            "HistogramCount": 0
+          },
+          "Value": 11.0
+        },
+        "Y": 0.034460058959901542
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "13",
+            "HistogramCount": 0
+          },
+          "Value": 12.0
+        },
+        "Y": 0.023841552419931883
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "14",
+            "HistogramCount": 0
+          },
+          "Value": 13.0
+        },
+        "Y": 0.015798963908526288
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "15",
+            "HistogramCount": 0
+          },
+          "Value": 14.0
+        },
+        "Y": 0.011935086865680185
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "16",
+            "HistogramCount": 0
+          },
+          "Value": 15.0
+        },
+        "Y": 0.006840493431409027
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "17",
+            "HistogramCount": 0
+          },
+          "Value": 16.0
+        },
+        "Y": 0.0054094278599845442
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "18",
+            "HistogramCount": 0
+          },
+          "Value": 17.0
+        },
+        "Y": 0.0036349065514181861
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "19",
+            "HistogramCount": 0
+          },
+          "Value": 18.0
+        },
+        "Y": 0.0018317639314233379
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "20",
+            "HistogramCount": 0
+          },
+          "Value": 19.0
+        },
+        "Y": 0.0010589885228541173
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "21",
+            "HistogramCount": 0
+          },
+          "Value": 20.0
+        },
+        "Y": 0.00083001803142619993
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "22",
+            "HistogramCount": 0
+          },
+          "Value": 21.0
+        },
+        "Y": 0.00028621311428489655
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "24",
+            "HistogramCount": 0
+          },
+          "Value": 22.0
+        },
+        "Y": 0.00020034917999942758
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "23",
+            "HistogramCount": 0
+          },
+          "Value": 23.0
+        },
+        "Y": 0.00014310655714244827
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "26",
+            "HistogramCount": 0
+          },
+          "Value": 24.0
+        },
+        "Y": 8.5863934285468964E-05
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "28",
+            "HistogramCount": 0
+          },
+          "Value": 25.0
+        },
+        "Y": 2.8621311428489655E-05
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "0",
+            "HistogramCount": 0
+          },
+          "Value": 26.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "25",
+            "HistogramCount": 0
+          },
+          "Value": 27.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "27",
+            "HistogramCount": 0
+          },
+          "Value": 28.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "29",
+            "HistogramCount": 0
+          },
+          "Value": 29.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "30",
+            "HistogramCount": 0
+          },
+          "Value": 30.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "31",
+            "HistogramCount": 0
+          },
+          "Value": 31.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "32",
+            "HistogramCount": 0
+          },
+          "Value": 32.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "33",
+            "HistogramCount": 0
+          },
+          "Value": 33.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "34",
+            "HistogramCount": 0
+          },
+          "Value": 34.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "35",
+            "HistogramCount": 0
+          },
+          "Value": 35.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "36",
+            "HistogramCount": 0
+          },
+          "Value": 36.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "37",
+            "HistogramCount": 0
+          },
+          "Value": 37.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "38",
+            "HistogramCount": 0
+          },
+          "Value": 38.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "39",
+            "HistogramCount": 0
+          },
+          "Value": 39.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "40",
+            "HistogramCount": 0
+          },
+          "Value": 40.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "41",
+            "HistogramCount": 0
+          },
+          "Value": 41.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "42",
+            "HistogramCount": 0
+          },
+          "Value": 42.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "43",
+            "HistogramCount": 0
+          },
+          "Value": 43.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "44",
+            "HistogramCount": 0
+          },
+          "Value": 44.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "45",
+            "HistogramCount": 0
+          },
+          "Value": 45.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "46",
+            "HistogramCount": 0
+          },
+          "Value": 46.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "47",
+            "HistogramCount": 0
+          },
+          "Value": 47.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "48",
+            "HistogramCount": 0
+          },
+          "Value": 48.0
+        },
+        "Y": 0.0
+      },
+      {
+        "$type": "DIGITC2.DPoint, DIGITC2_Engine",
+        "X": {
+          "$type": "DIGITC2.Sample, DIGITC2_Engine",
+          "Source": {
+            "$type": "DIGITC2.FakeSampleSource, DIGITC2_Engine",
+            "Key": "49",
+            "HistogramCount": 0
+          },
+          "Value": 49.0
+        },
+        "Y": 0.0
+      }
+    ]
+  }
+}

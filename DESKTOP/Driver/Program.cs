@@ -58,6 +58,7 @@ namespace Driver
       RegisterTask( new FromMockAudio_ByDuration() ); 
       RegisterTask( new GenerateNoise() ); 
       RegisterTask( new GenerateTapCodeMaskNoise() ); 
+      RegisterTask( new AnalyzerTask() ) ;
     }
 
     internal void Run( Args aArgs)

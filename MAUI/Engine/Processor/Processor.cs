@@ -25,7 +25,7 @@ namespace DIGITC2_ENGINE
     {
       aNext.mFilters.ForEach( f => Add( f ) ) ;
 
-      Name = $"{Name}->{aNext.Name}";
+      Name = $"{Name}--{aNext.Name}";
 
       return this ;
     }
@@ -34,20 +34,34 @@ namespace DIGITC2_ENGINE
     {
       Result rR = new Result();
 
-      var lStep = rR.AddFirst(aInput) ;
-
-      DIGITC_Context.Watch(lStep) ; 
-
-      foreach( var lFilter in mFilters )
-      { 
-        lStep = lFilter.Apply(lStep);
-
-        rR.Add( lStep ) ;
+      try
+      {
+        var lStep = rR.AddFirst(aInput) ;
 
         DIGITC_Context.Watch(lStep) ; 
+
+        mFilters.ForEach( f => f.Setup() ) ;
+
+        foreach( var lFilter in mFilters )
+        { 
+          lStep = lFilter.Apply(lStep);
+          if ( lStep != null )
+          {
+            rR.Add( lStep ) ;
+
+            DIGITC_Context.Watch(lStep) ; 
+          }
+        }
+
+        mFilters.ForEach( f => f.Cleanup() ) ;
+
+        rR.Setup();
+      }
+      catch( Exception x )
+      {
+        DIGITC_Context.Error(x);
       }
 
-      rR.Setup();
 
       return rR ;  
     }
@@ -117,10 +131,7 @@ namespace DIGITC2_ENGINE
       mMap.Add("TapCode", Processor.FromAudioToBits_ByTapCode().Then(Processor.FromBits()) ) ;
     }
 
-    public Processor Get( string aName )
-    {
-      return mMap.ContainsKey(aName) ? mMap[aName] : null;
-    } 
+    public IEnumerable<Processor> EnumProcessors => mMap.Values ;
 
     Dictionary<string,Processor> mMap = new Dictionary<string,Processor>();
   }

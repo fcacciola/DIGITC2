@@ -21,6 +21,10 @@ namespace DIGITC2_ENGINE
   {
     public ScoreBytesAsLanguageDigits() : base() 
     {
+    }
+
+    public override void Setup()
+    {
       mReference     = DTable.FromFile( DIGITC_Context.Session.ReferenceFile("Dracula_Bytes_Histogram.json") )  ;
       mQuitThreshold = DIGITC_Context.Session.Args.GetOptionalInt("BytesAsLanguageDigits_QuitThreshold").GetValueOrDefault(1);
       mFitnessMap    = new FitnessMap(DIGITC_Context.Session.Args.Get("BytesAsLanguageDigits_FitnessMap"));

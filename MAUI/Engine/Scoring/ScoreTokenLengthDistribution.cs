@@ -18,6 +18,10 @@ namespace DIGITC2_ENGINE
   {
     public ScoreTokenLengthDistribution() : base() 
     {
+    }
+
+    public override void Setup()
+    {
       mReference = DTable.FromFile( DIGITC_Context.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
       mQuitThreshold = DIGITC_Context.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
       mFitnessMap    = new FitnessMap(DIGITC_Context.Session.Args.Get("TokenLengthDistribution_FitnessMap"));

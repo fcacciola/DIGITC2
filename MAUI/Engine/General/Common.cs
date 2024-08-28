@@ -185,16 +185,30 @@ namespace DIGITC2_ENGINE
     
     void Setup_( Session aSession )
     {
-      mSession = aSession ; 
+      if ( aSession == null )
+        return ;
 
-      if ( File.Exists( mSession.TraceFile ) )
-       File.Delete( mSession.TraceFile );  
+      try
+      {
+        mSession = aSession ; 
 
-      var lLogger = new LogStateMonitor();
-      lLogger.Open(mSession.TraceFile);
-      mMonitors.Add( lLogger ) ;
+        if ( !string.IsNullOrEmpty(mSession.TraceFile) )
+        {
+          if ( File.Exists( mSession.TraceFile ) )
+           File.Delete( mSession.TraceFile );  
 
-      WriteLine_("DIGITC 2");
+          var lLogger = new LogStateMonitor();
+          lLogger.Open(mSession.TraceFile);
+          mMonitors.Add( lLogger ) ;
+        }
+
+        WriteLine_("DIGITC 2 - " + DateTime.Now.ToString() );
+
+      }
+      catch( Exception x )
+      {
+
+      }
     }
 
     void Shutdown_()
@@ -247,6 +261,7 @@ namespace DIGITC2_ENGINE
     static public void   Setup( Session aSession ) { Instance.Setup_(aSession) ; } 
     static public void   Shutdown()                { Instance.Shutdown_() ; } 
     static public void   Throw( Exception e )      { Instance.Throw_(e);}
+    static public void   Error( Exception e )      { Instance.Error_(e.ToString());}
     static public void   Error( string aText )     { Instance.Error_(aText);}
     static public void   Watch( IWithState aO )    { Instance.Watch_(aO) ; }
     static public void   Write( string aS )        { Instance.Write_(aS);}

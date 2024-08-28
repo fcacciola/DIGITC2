@@ -8,6 +8,9 @@ namespace DIGITC2_ENGINE
 {
   public abstract class Filter : IWithState
   {
+    public virtual void Setup() {}
+    public virtual void Cleanup() {}
+
     public Step Apply( Step aInput ) 
     {
       if ( mStep == null )
@@ -18,7 +21,15 @@ namespace DIGITC2_ENGINE
         {
           if ( ! lBranch.Quit )
           {
-            DoApply(lBranch, lOutput);
+            try
+            {
+              DoApply(lBranch, lOutput);
+            }
+            catch ( Exception x )
+            {
+              lBranch.Quit = true ;
+              DIGITC_Context.Error(x);
+            }
           }
         }
 

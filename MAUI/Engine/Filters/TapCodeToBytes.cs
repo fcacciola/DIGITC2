@@ -14,6 +14,10 @@ public class TapCodeToBytes : LexicalFilter
 {
   public TapCodeToBytes() : base() 
   { 
+  }
+
+  public override void Setup()
+  { 
     mBranchSelection = new Branch.Selection(DIGITC_Context.Session.Args.Get("TapCodeToBytes_Branches"));
   }
 
