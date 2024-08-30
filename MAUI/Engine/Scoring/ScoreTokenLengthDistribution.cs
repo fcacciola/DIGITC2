@@ -22,9 +22,9 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mReference = DTable.FromFile( DIGITC_Context.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
-      mQuitThreshold = DIGITC_Context.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DIGITC_Context.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
+      mReference = DTable.FromFile( DContext.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
+      mQuitThreshold = DContext.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
     string CreateFakeKey( double i ) => $"{i}";
@@ -47,16 +47,16 @@ namespace DIGITC2_ENGINE
 
       Score lScore = new Score(lLikelihood,lFitness) ;
 
-      if ( DIGITC_Context.Session.Args.GetBool("SaveReference") )
+      if ( DContext.Session.Args.GetBool("SaveReference") )
       {
-        lHistogram.Save(DIGITC_Context.Session.LogFile( Name + "_Histogram.json"));  
-        lRankSize .Save(DIGITC_Context.Session.LogFile( Name + "_RankSize.json"));  
+        lHistogram.Save(DContext.Session.LogFile( Name + "_Histogram.json"));  
+        lRankSize .Save(DContext.Session.LogFile( Name + "_RankSize.json"));  
       }
 
-      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Args.GetBool("Plot") )
       {
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile(Name +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile(Name +"_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile(Name +"_Histogram.png"));
+        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile(Name +"_RankSize.png"));
       }
 
       rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));

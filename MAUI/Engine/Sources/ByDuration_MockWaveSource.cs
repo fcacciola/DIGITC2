@@ -56,7 +56,7 @@ namespace DIGITC2_ENGINE
 
         lWave.NormalizeMax();
 
-        SaveTo(lWave, DIGITC_Context.Session.LogFile( "Wave.wav"));
+        SaveTo(lWave, DContext.Session.LogFile( "Wave.wav"));
 
         mSignal = new WaveSignal(lWave);
       }
@@ -243,6 +243,8 @@ namespace DIGITC2_ENGINE
 
       return new Chunk(lR, aSource.Level);
     }
+
+    public override string Name => "MockWave_ByDuration";  
 
     Random mRND = new Random();  
 

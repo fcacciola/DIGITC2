@@ -57,13 +57,13 @@ namespace DIGITC2_ENGINE
 
     static public void PlotPulses( List<PulseSymbol> aPulses, int aSamplingRate, string aLabel )
     {
-      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Args.GetBool("Plot") )
       {
         List<float> lSamples = new List<float> ();
         aPulses.ForEach( s => s.DumpSamples(lSamples ) );
         DiscreteSignal lWaveRep = new DiscreteSignal(aSamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
-        lWave.SaveTo( DIGITC_Context.Session.LogFile( "Pulses" + aLabel + ".wav") ) ;
+        lWave.SaveTo( DContext.Session.LogFile( "Pulses" + aLabel + ".wav") ) ;
       }
     }
 
@@ -71,10 +71,10 @@ namespace DIGITC2_ENGINE
     {
       (DTable lHistogram, DTable   lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
-      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Args.GetBool("Plot") )
       { 
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile($"{aName}_Durations_Histogram.png"));
-        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile($"{aName}_Durations_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"{aName}_Durations_Histogram.png"));
+        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"{aName}_Durations_RankSize.png"));
       }
 
     }
@@ -102,7 +102,7 @@ namespace DIGITC2_ENGINE
       mStepStart = mPos ;
       mAmplitude = -1 ;
 
-      DIGITC_Context.WriteLine($"Creating steps for pulse from {mPulseStart} to {mPulseEnd}");
+      DContext.WriteLine($"Creating steps for pulse from {mPulseStart} to {mPulseEnd}");
       for ( int i = mPulseStart; i < mPulseEnd ; ++ i )
       {
         float lV = mSource.Samples[i];
@@ -131,7 +131,7 @@ namespace DIGITC2_ENGINE
     {
       if ( mCurrCount > 0 )
       {
-        DIGITC_Context.WriteLine($"  Step of {mAmplitude} from {mStepStart} to {mPos}");
+        DContext.WriteLine($"  Step of {mAmplitude} from {mStepStart} to {mPos}");
         mSteps.Add( new PulseStep(mAmplitude, mStepStart, mPos ) );
         mStepStart = mPos ;
       }
@@ -184,8 +184,8 @@ namespace DIGITC2_ENGINE
       mData.PulseStart = 0 ;
       mData.Pos        = 0 ;
 
-      DIGITC_Context.WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
-      DIGITC_Context.Indent();  
+      DContext.WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
+      DContext.Indent();  
 
       for ( mData.Pos = 0 ; mData.Pos < mInput.Samples.Length ; ++ mData.Pos )
       {
@@ -196,7 +196,7 @@ namespace DIGITC2_ENGINE
           if ( mData.InGap )
           {
             mData.PulseStart = mData.Pos ;
-            DIGITC_Context.WriteLine($"Pulse start at {mData.PulseStart}");
+            DContext.WriteLine($"Pulse start at {mData.PulseStart}");
           }
           mData.InGap = false ;  
         }
@@ -209,7 +209,7 @@ namespace DIGITC2_ENGINE
 
       AddPulse();
 
-      DIGITC_Context.Unindent();  
+      DContext.Unindent();  
       PulseFilterHelper.PlotPulses(mData.RawPulses, mInput.SamplingRate, $"{mData.Options.Label}_Raw");
       PulseFilterHelper.PlotPulseDurationHistogram(mData.RawPulses, $"{mData.Options.Label}_Raw");
     }
@@ -220,7 +220,7 @@ namespace DIGITC2_ENGINE
       {
         var lSteps = PulseStepBuilder.Build(mInput, mData.PulseStart, mData.Pos ) ;
 
-        DIGITC_Context.WriteLine($"Creatign new Pulse from {mData.PulseStart} to {mData.Pos} with {lSteps}");
+        DContext.WriteLine($"Creatign new Pulse from {mData.PulseStart} to {mData.Pos} with {lSteps}");
 
         mData.RawPulses.Add( new PulseSymbol(mData.RawPulses.Count, mInput.SamplingRate, mData.PulseStart, mData.Pos, lSteps ) );
       }
@@ -247,7 +247,7 @@ namespace DIGITC2_ENGINE
 
     List<Run> FindRuns( PulseSymbol aPulse )
     {
-      DIGITC_Context.WriteLine($"Finding runs");
+      DContext.WriteLine($"Finding runs");
       List<Run> lRuns = new List<Run>();
 
       int lC = aPulse.Steps.Count ;
@@ -257,7 +257,7 @@ namespace DIGITC2_ENGINE
 
       for ( int i = 0 ; i < lC  ; ++ i )
       {
-        DIGITC_Context.Unindent();  
+        DContext.Unindent();  
         var lStep = aPulse.Steps[i];
 
         int lLevel = lStep.Level ;
@@ -328,7 +328,7 @@ namespace DIGITC2_ENGINE
                 if ( lRunStart < i )
                   lRuns.Add( new Run{ From = lRunStart, To = i, Gap = false} ) ;
 
-                DIGITC_Context.WriteLine($"Local minima found at step {i}");
+                DContext.WriteLine($"Local minima found at step {i}");
 
                 lRuns.Add( new Run{ From = i, To = k, Gap = true} ) ;
 
@@ -337,7 +337,7 @@ namespace DIGITC2_ENGINE
             }
           }
         }
-        DIGITC_Context.Unindent();  
+        DContext.Unindent();  
       }
 
       if ( lRunStart < lC )
@@ -348,14 +348,14 @@ namespace DIGITC2_ENGINE
 
     void SplitPulse( PulseSymbol aPulse, List<Run> aRuns )
     {
-      DIGITC_Context.WriteLine($"Splittig pulse with {aRuns.Count} runs");
-      DIGITC_Context.Indent();  
+      DContext.WriteLine($"Splittig pulse with {aRuns.Count} runs");
+      DContext.Indent();  
 
       foreach( var lRun in aRuns ) 
       {
         if ( !lRun.Gap )
         {
-          DIGITC_Context.WriteLine($"Loud run from {lRun.From} to {lRun.To}");
+          DContext.WriteLine($"Loud run from {lRun.From} to {lRun.To}");
 
           List<PulseStep> lSteps = new List<PulseStep>();
           for( int i = lRun.From ; i < lRun.To ; ++ i )
@@ -367,18 +367,18 @@ namespace DIGITC2_ENGINE
           mData.SplitPulses.Add(lNewPulse);
         }
       }
-      DIGITC_Context.Unindent();  
+      DContext.Unindent();  
     }
 
     void SplitPulses()
     {
-      DIGITC_Context.WriteLine("Splitting Pulses");
-      DIGITC_Context.Indent();  
+      DContext.WriteLine("Splitting Pulses");
+      DContext.Indent();  
 
       foreach( var lPulse in mData.LoudPulses )
       {
-        DIGITC_Context.WriteLine($"Checking  pulse {lPulse}");
-        DIGITC_Context.Indent();  
+        DContext.WriteLine($"Checking  pulse {lPulse}");
+        DContext.Indent();  
         var lRuns = FindRuns( lPulse );  
         if (  lRuns.Count > 1 )  
         {
@@ -388,12 +388,12 @@ namespace DIGITC2_ENGINE
         {
           mData.SplitPulses.Add( lPulse ); 
         }
-        DIGITC_Context.Unindent();  
+        DContext.Unindent();  
       }
 
       PulseFilterHelper.PlotPulses(mData.SplitPulses, mInput.SamplingRate, $"{mData.Options.Label}_Split");
       PulseFilterHelper.PlotPulseDurationHistogram(mData.SplitPulses, $"{mData.Options.Label}_Split");
-      DIGITC_Context.Unindent();  
+      DContext.Unindent();  
     }
 
     void RemoveUnfitPulses()

@@ -13,9 +13,9 @@ public class ZipfWordDistribution
 {
   public static void Run( Args aArgs )
   {
-    DIGITC_Context.Setup( new Session("ZipfWordDistribution", aArgs) ) ;
+    DContext.Setup( new Session("ZipfWordDistribution", aArgs, Task.BaseFolder) ) ;
 
-    DIGITC_Context.WriteLine("Zipf Word Distribution");
+    DContext.WriteLine("Zipf Word Distribution");
 
     int lBaseSize = 10000 ;
     int lSize     = lBaseSize ;
@@ -38,13 +38,13 @@ public class ZipfWordDistribution
     
     string lSourceText = string.Join(" ", lAll.ToArray() );
 
-    DIGITC_Context.WriteLine("Source text: " + lSourceText );
+    DContext.WriteLine("Source text: " + lSourceText );
 
-    var lSource = BitsSource.FromText(lSourceText);  
+    var lSource = BitsSource.FromText("ZipfWordDistribution", lSourceText);  
 
     var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
 
-    DIGITC_Context.Shutdown(); 
+    DContext.Shutdown(); 
   }
 }
 }

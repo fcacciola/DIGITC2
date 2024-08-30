@@ -7,6 +7,13 @@ using Newtonsoft.Json ;
 namespace DIGITC2_ENGINE
 {
 
+public class SignalSlice
+{
+  public string Name ;
+  public Signal Signal ;
+  public Signal WholeSignal ;
+}
+
 public class OutcomeSummary
 {
   public static OutcomeSummary Load( string aFile )
@@ -39,21 +46,18 @@ public class OutcomeBranch
 
 public class OutcomeSlice
 {
-  public OutcomeSlice( string aName, Signal aInput, Result aResult )
+  public OutcomeSlice( SignalSlice aSlice, Result aResult )
   {
-    Name   = aName ; 
-    Input  = aInput ;  
+    Slice  = aSlice ;
     Result = aResult ;  
   }
 
-  public string Name ;
-
-  public Signal Input ;
-  public Result Result;
+  public SignalSlice Slice ;
+  public Result      Result;
 
   public List<OutcomeBranch> Branches = new List<OutcomeBranch>(); 
 
-  public override string ToString() => Name ;
+  public override string ToString() => Slice.Name ;
 }
 
 public class OutcomePipeline
@@ -100,8 +104,7 @@ public class Outcome
 
 public class AnalyzerSettings
 {
-  public string InputFolder  = null ;
-  public string OutputFolder = null;
+  public string BaseFolder = null ;
 }
 
 public class Analyzer
@@ -119,21 +122,23 @@ public class Analyzer
     return rA.Go(aWaveFile);
   }
 
-  List<Signal> Slice( Signal aInput )
+  List<SignalSlice> Slice( Signal aInput )
   {
-    return new List<Signal> { aInput };
+    return new List<SignalSlice> { new SignalSlice{Name ="WholeSlice", Signal = aInput, WholeSignal = aInput } };
   }
 
   Outcome Go( string aWaveFile )
   {
     Outcome rOutcome = null ;
 
-    try
-    {
-      if ( File.Exists(aWaveFile) )
-      {       
-        var lSource = new WaveFileSource(aWaveFile);
+    if ( File.Exists(aWaveFile) )
+    {       
+      var lSource = new WaveFileSource(aWaveFile);
 
+      DContext.Setup(new Session( lSource.Name, mArgs, mSettings.BaseFolder) );
+
+      try
+      {
         var lInput = lSource.CreateSignal();
 
         if ( lInput != null )
@@ -141,29 +146,23 @@ public class Analyzer
           rOutcome = new Outcome();
           rOutcome.Input = lInput;  
 
-          foreach( var lProcessor in mProcessorFactory.EnumProcessors ) 
-          {  
-            string lName = $"{lInput.Name}_{lProcessor.Name}";
+          var lSlices = Slice(lInput);
 
-            string lOutputFolder = Path.Combine( mSettings.OutputFolder, lName );
+          foreach ( var lSlice in lSlices )
+          {
+            if ( lSlices.Count > 1 )
+              DContext.Session.SetupSlice(lSlice.Name);
 
-            if ( ! Directory.Exists( lOutputFolder ) ) 
+            foreach( var lProcessor in mProcessorFactory.EnumProcessors ) 
             {  
-              Directory.CreateDirectory(lOutputFolder);
-            }
+              OutcomePipeline lPipeline = new OutcomePipeline(lInput, lProcessor);  
+              rOutcome.Pipelines.Add(lPipeline);
 
-            DIGITC_Context.Setup(new Session(lName, mArgs, mSettings.InputFolder, lOutputFolder) );
+              var lResult = lProcessor.Process(lSlice.Signal);
 
-            OutcomePipeline lPipeline = new OutcomePipeline(lInput, lProcessor);  
-            rOutcome.Pipelines.Add(lPipeline);
+              var lReports = lResult.Save();
 
-            var lSlices = Slice(lInput);
-
-            foreach ( var lSlice in lSlices )
-            {
-              var lResult = lProcessor.Process(lSlice);
-
-              OutcomeSlice lOS = new OutcomeSlice("<FullLength>",lInput, lResult);
+              OutcomeSlice lOS = new OutcomeSlice(lSlice, lResult);
 
               lPipeline.Slices.Add(lOS);
 
@@ -173,19 +172,16 @@ public class Analyzer
                 lOS.Branches.Add(lOB);
               } 
             }
-
-            DIGITC_Context.Shutdown();  
-
           }
         }
       }
-    }
-    catch ( Exception e ) 
-    {
-      DIGITC_Context.Error(e.Message);
-    }
+      catch ( Exception e ) 
+      {
+        DContext.Error(e.Message);
+      }
 
-    DIGITC_Context.Shutdown();
+      DContext.Shutdown();
+    }
     
     return rOutcome;
   }

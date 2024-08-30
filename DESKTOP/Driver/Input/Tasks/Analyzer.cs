@@ -30,20 +30,7 @@ public sealed class AnalyzerTask : DecodingTask
   {
     if ( File.Exists( aWaveFilename ) )
     {
-      string lInputFolder  = Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2\\Input") ; 
-      string lOutputFolder = Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2\\Output") ; 
-
-      if ( ! Directory.Exists( lInputFolder ) ) 
-      {  
-        Directory.CreateDirectory(lInputFolder);
-      }
-
-      if ( ! Directory.Exists( lOutputFolder ) ) 
-      {  
-        Directory.CreateDirectory(lOutputFolder);
-      }
-
-      AnalyzerSettings lSettings = new AnalyzerSettings{InputFolder=lInputFolder, OutputFolder=lOutputFolder};
+      AnalyzerSettings lSettings = new AnalyzerSettings{BaseFolder=BaseFolder};
 
       ProcessorFactory lPF = new ProcessorFactory() ;
 

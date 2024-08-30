@@ -8,17 +8,17 @@ public sealed class FromRandomBits : DecodingTask
 {
   public override void Run( Args aArgs )
   {
-    DIGITC_Context.Setup( new Session("FromRandomBits", aArgs) ) ;
-
-    DIGITC_Context.WriteLine("Random binary sequence");
-
     int lLen = aArgs.GetOptionalInt("BitsCount") ?? 512 ;
 
-    var lSource = BitsSource.FromRandom(lLen);
+    var lSource = BitsSource.FromRandom("FromRandomBits",lLen);
+
+    DContext.Setup( new Session(lSource.Name, aArgs, BaseFolder) ) ;
+
+    DContext.WriteLine("Random binary sequence");
 
     var lResult = Processor.FromBits().Process( lSource.CreateSignal() ) ;
    
-    DIGITC_Context.Shutdown(); 
+    DContext.Shutdown(); 
   }
 }
 

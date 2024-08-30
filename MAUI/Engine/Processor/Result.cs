@@ -38,7 +38,7 @@ namespace DIGITC2_ENGINE
 
     public Fitness Fitness = Fitness.Undefined;
 
-    public void Save() 
+    public string Save() 
     {
       Reporter lReporter = new Reporter();
 
@@ -46,9 +46,11 @@ namespace DIGITC2_ENGINE
 
       string lReport = lReporter.GetReport();
 
-      string lOutputFile =  DIGITC_Context.Session.ReportFile(this);
+      string rOutputFile =  DContext.Session.ReportFile(this);
 
-      File.WriteAllText( lOutputFile, lReport );
+      File.WriteAllText( rOutputFile, lReport );
+
+      return rOutputFile;
     }
 
   }
@@ -96,9 +98,9 @@ namespace DIGITC2_ENGINE
     public List<Step>       Steps = new List<Step>();
     public List<ResultPath> Paths = new List<ResultPath>();
 
-    public void Save() 
+    public List<string> Save() 
     {
-      Paths.ForEach( p => p.Save() );
+      return Paths.ConvertAll( p => p.Save() );
     }
   }
 

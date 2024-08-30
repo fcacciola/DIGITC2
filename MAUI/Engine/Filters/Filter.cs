@@ -28,7 +28,7 @@ namespace DIGITC2_ENGINE
             catch ( Exception x )
             {
               lBranch.Quit = true ;
-              DIGITC_Context.Error(x);
+              DContext.Error(x);
             }
           }
         }

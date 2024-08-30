@@ -92,8 +92,8 @@ namespace DIGITC2_ENGINE
 
       var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, rOutput));
 
-      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DIGITC_Context.Session.LogFile( "Discretize" + aGate.Label + ".wav") ) ;
+      if ( DContext.Session.Args.GetBool("Plot") )
+        rR.SaveTo( DContext.Session.LogFile( "Discretize" + aGate.Label + ".wav") ) ;
 
       return rR ;
     }

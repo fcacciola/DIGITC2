@@ -119,7 +119,7 @@
       <Link>Filters\Discretize.cs</Link>
     </Compile>
     <Compile Include="..\..\MAUI\Engine\Filters\BinarizeByDuration.cs">
-      <Link>Filter\BinarizeByDuration.cs</Link>
+      <Link>Filters\BinarizeByDuration.cs</Link>
     </Compile>
     <Compile Include="..\..\MAUI\Engine\Filters\OnsetDetection.cs">
       <Link>Filters\OnsetDetection.cs</Link>
@@ -226,7 +226,9 @@
     <Compile Include="..\..\MAUI\Engine\onset-detection\MemoryAllocator.cs">
       <Link>ThirdParty\onset-detection\MemoryAllocator.cs</Link>
     </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Filter.cs" />
+    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Filter.cs">
+      <Link>ThirdParty\onset-detection\Detector\Filter.cs</Link>
+    </Compile>
     <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Onsets.cs">
       <Link>ThirdParty\onset-detection\Detector\Onsets.cs</Link>
     </Compile>
@@ -242,6 +244,9 @@
     <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Wav.cs">
       <Link>ThirdParty\onset-detection\Detector\Wav.cs</Link>
     </Compile>
+    <Compile Include="General\Args.cs" />
+    <Compile Include="General\Context.cs" />
+    <Compile Include="General\Session.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

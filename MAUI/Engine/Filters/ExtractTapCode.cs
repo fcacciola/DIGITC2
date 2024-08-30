@@ -85,15 +85,15 @@ namespace DIGITC2_ENGINE
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-       DIGITC_Context.WriteLine("Decoding Taps...");
-       DIGITC_Context.Indent();
+       DContext.WriteLine("Decoding Taps...");
+       DContext.Indent();
 
        OnsetDetection.Onset lOnset = aInputBranch.GetData<OnsetDetection.Onset>();
 
        var lTaps = GetTaps(lOnset.Times );
 
-       DIGITC_Context.WriteLine("Raw Taps:");
-       lTaps.ForEach( t => DIGITC_Context.WriteLine(t.ToString()));
+       DContext.WriteLine("Raw Taps:");
+       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
        var lDurations = lTaps.ConvertAll( t => t.Duration ) ;
 
@@ -101,31 +101,31 @@ namespace DIGITC2_ENGINE
 
        lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
-       DIGITC_Context.WriteLine("Classified Taps:");
-       lTaps.ForEach( t => DIGITC_Context.WriteLine(t.ToString()));
+       DContext.WriteLine("Classified Taps:");
+       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
        SetTapCounters(lTaps); 
 
-       DIGITC_Context.WriteLine("Counted Taps:");
-       lTaps.ForEach( t => DIGITC_Context.WriteLine(t.ToString()));
+       DContext.WriteLine("Counted Taps:");
+       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
        var lCodes = GetCodes(lTaps);
 
-       DIGITC_Context.WriteLine( $"Code: {string.Join(",", lCodes )}");
+       DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
 
        int lIdx = 0 ;
        var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
        rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
 
-       DIGITC_Context.Unindent();  
+       DContext.Unindent();  
     }
 
     public class TapClassifier
     {
       public TapClassifier( double aShortDurationIntervalL, double aShortDurationIntervalR )
       {
-        DIGITC_Context.WriteLine($"TaClassifier. Short duration interval: {aShortDurationIntervalL}->{aShortDurationIntervalR}");
+        DContext.WriteLine($"TaClassifier. Short duration interval: {aShortDurationIntervalL}->{aShortDurationIntervalR}");
         ShortDurationIntervalL = aShortDurationIntervalL ;
         ShortDurationIntervalR = aShortDurationIntervalR ;
       }
@@ -145,28 +145,28 @@ namespace DIGITC2_ENGINE
 
       var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      if ( DIGITC_Context.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Args.GetBool("Plot") )
       { 
-        lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DIGITC_Context.Session.LogFile($"_Durations_Histogram.png"));
+        lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"_Durations_Histogram.png"));
       }
 
       var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
       var lPeak = lXPs.Find( xp => xp.IsPeak ) ;
 
-      DIGITC_Context.WriteLine($"Very First Peak: {lPeak}");
+      DContext.WriteLine($"Very First Peak: {lPeak}");
 
       double lShortDurationReference ;
 
       if ( lPeak != null)
       {
         lShortDurationReference = lPeak.Value.X.Value ;
-        DIGITC_Context.WriteLine($"Short duration referenc (from peak): {lShortDurationReference}");
+        DContext.WriteLine($"Short duration referenc (from peak): {lShortDurationReference}");
       }
       else
       { 
         lShortDurationReference = aDurations.Minimum();
-        DIGITC_Context.WriteLine($"Short duration reference ( from minimum): {lShortDurationReference}");
+        DContext.WriteLine($"Short duration reference ( from minimum): {lShortDurationReference}");
       }
 
       var lDurationIntervalL = lShortDurationReference - lShortDurationReference * .50 ; 
@@ -224,7 +224,7 @@ namespace DIGITC2_ENGINE
 
       List<TapCode> rCodes = new List<TapCode> ();
 
-      DIGITC_Context.WriteLine( $"Counts: {string.Join(",", lCounts )}");
+      DContext.WriteLine( $"Counts: {string.Join(",", lCounts )}");
 
       if ( ! IsEven(lCounts.Count) )
         lCounts.Add(1);

@@ -17,9 +17,9 @@ public sealed class FromMockAudio_ByDuration : DecodingTask
 {
   public override void Run( Args aArgs )
   {
-    DIGITC_Context.Setup( new Session("FromMockAudio_ByDuration", aArgs) ) ;
+    DContext.Setup( new Session("FromMockAudio_ByDuration", aArgs, BaseFolder) ) ;
 
-    DIGITC_Context.WriteLine("From MockAudio ByDuration");
+    DContext.WriteLine("From MockAudio ByDuration");
 
     //string lSourceText = File.ReadAllText( DIGITC_Context.Session.SampleFile( DIGITC_Context.Session.Args.Get("LargeText") ) );
 
@@ -29,7 +29,7 @@ public sealed class FromMockAudio_ByDuration : DecodingTask
 
     Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
 
-    DIGITC_Context.Shutdown(); 
+    DContext.Shutdown(); 
   }
 }
 

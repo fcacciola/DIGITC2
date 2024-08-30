@@ -53,14 +53,21 @@ namespace DIGITC2_ENGINE
       return rSignal; 
     }
 
+    public override string Name => "Bytes";  
+
     byte[] mBytes ;
   }
 
   public class BitsSource : LexicalSource
   {
-    public static BitsSource FromBytes( IEnumerable<byte> aBytes)
+    BitsSource( string aName )
     {
-      BitsSource rSource = new BitsSource();
+      mName = aName;
+    }
+
+    public static BitsSource FromBytes( string aName, IEnumerable<byte> aBytes)
+    {
+      BitsSource rSource = new BitsSource(aName);
 
       byte[] lInBuffer  = new byte[1];
       bool[] lOutBuffer = new bool[8];
@@ -76,23 +83,21 @@ namespace DIGITC2_ENGINE
       return rSource; 
     }
 
-    public static BitsSource FromRandom( int aLen )
+    public static BitsSource FromRandom(string aName, int aLen )
     {
       var lRNG = RandomNumberGenerator.Create();
       byte[] lBytes = new byte[aLen]; 
       lRNG.GetBytes(lBytes);
-      return FromBytes(lBytes); 
+      return FromBytes(aName, lBytes); 
     }
 
-    public static BitsSource FromText( string aText, string aCharSet = "us-ascii")
+    public static BitsSource FromText( string aName, string aText, string aCharSet = "us-ascii")
     {
       Encoding lEncoding = Encoding.GetEncoding(aCharSet);
 
-      BitsSource rSource = new BitsSource();
-
       byte[] lBytes = lEncoding.GetBytes(aText);
        
-      return FromBytes( lBytes );
+      return FromBytes( aName, lBytes );
     }
 
     protected override Signal DoCreateSignal() 
@@ -108,6 +113,10 @@ namespace DIGITC2_ENGINE
       rSignal.Name="Bits";
       return rSignal; 
     }
+
+    public override string Name => mName;  
+
+    string mName ;
 
     List<bool> mBits = new List<bool>();
   }

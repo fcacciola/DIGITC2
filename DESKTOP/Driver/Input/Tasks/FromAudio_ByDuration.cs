@@ -27,7 +27,7 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
 
   void RunWithFile( Args aArgs, string aWaveFilename  )
   {
-    DIGITC_Context.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs) ) ;
+    DContext.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, Task.BaseFolder) ) ;
 
     if ( File.Exists( aWaveFilename ) )
     {
@@ -37,10 +37,10 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
     }
     else
     {
-      DIGITC_Context.Error("Could not find audio file: [" + aWaveFilename + "]");
+      DContext.Error("Could not find audio file: [" + aWaveFilename + "]");
     }
 
-    DIGITC_Context.Shutdown(); 
+    DContext.Shutdown(); 
   }
 
 }

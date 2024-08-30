@@ -21,7 +21,11 @@ namespace DIGITC2_ENGINE
       return rSignal;
     }
 
+    public abstract string Name { get; }
+
     protected abstract Signal DoCreateSignal() ;
+
+    public override string ToString() => Name;
   }
   
   public class DirectCopyingSource : Source
@@ -34,6 +38,8 @@ namespace DIGITC2_ENGINE
     public static DirectCopyingSource From ( Signal aSignal ) { return new DirectCopyingSource ( aSignal ) ; }
    
     protected override Signal DoCreateSignal() => mSource.Copy();
+
+    public override  string Name => mSource.Name;
 
     Signal mSource ;  
   }
@@ -75,6 +81,7 @@ namespace DIGITC2_ENGINE
       return mSignal ;
     }
 
+    public override  string Name => Path.GetFileNameWithoutExtension(mFilename);
 
     readonly string mFilename ;
   }

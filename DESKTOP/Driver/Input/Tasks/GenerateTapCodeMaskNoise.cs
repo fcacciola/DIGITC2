@@ -39,9 +39,9 @@ namespace DIGITC2
       var rPulse = lSincL.Concatenate(lSincR);
 
 
-      if (DIGITC_Context.Session.Args.GetBool("Plot"))
+      if (DContext.Session.Args.GetBool("Plot"))
       {
-        Task.Save(rPulse, DIGITC_Context.Session.LogFile("_pulse.wav"));
+        Task.Save(rPulse, DContext.Session.LogFile("_pulse.wav"));
       }
 
 
@@ -192,9 +192,9 @@ namespace DIGITC2
   {
     public override void Run(Args aArgs)
     {
-      DIGITC_Context.Setup(new Session("Generate MaskNoise", aArgs));
+      DContext.Setup(new Session("Generate MaskNoise", aArgs, BaseFolder));
 
-      DIGITC_Context.WriteLine("Generate MaskNoise");
+      DContext.WriteLine("Generate MaskNoise");
 
       double lDuration = aArgs.GetOptionalDouble("MaskNoise_CarrierDuration").GetValueOrDefault(120);
       double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(100);
@@ -206,9 +206,9 @@ namespace DIGITC2
 
       var lCarrier = BuildNoiseCarrier(lDuration, lLevel);
 
-      if (DIGITC_Context.Session.Args.GetBool("Plot"))
+      if (DContext.Session.Args.GetBool("Plot"))
       {
-        Save(lCarrier, DIGITC_Context.Session.LogFile($"_carrier.wav"));
+        Save(lCarrier, DContext.Session.LogFile($"_carrier.wav"));
       }
 
       List<TapCode> lCodes = new List<TapCode>(){ new TapCode(2,2)
@@ -230,9 +230,9 @@ namespace DIGITC2
 
         var lMaskSignal = lMask.BuildSignal(lCarrier.SamplingRate, lDuration);
 
-        if (DIGITC_Context.Session.Args.GetBool("Plot"))
+        if (DContext.Session.Args.GetBool("Plot"))
         {
-          Save(lMaskSignal, DIGITC_Context.Session.LogFile($"mask_{lCode.Row}_{lCode.Col}.wav"));
+          Save(lMaskSignal, DContext.Session.LogFile($"mask_{lCode.Row}_{lCode.Col}.wav"));
 
         }
 
@@ -241,9 +241,9 @@ namespace DIGITC2
 
       ModulateCarrier(lCarrier, lMasks);
 
-      if (DIGITC_Context.Session.Args.GetBool("Plot"))
+      if (DContext.Session.Args.GetBool("Plot"))
       {
-        Save(lCarrier, DIGITC_Context.Session.Args.Get("MaskNoise_TapCodeOutputFile"));
+        Save(lCarrier, DContext.Session.Args.Get("MaskNoise_TapCodeOutputFile"));
 
       }
 
@@ -254,7 +254,7 @@ namespace DIGITC2
 
     DiscreteSignal BuildNoiseCarrier(double aDuration, double aLevel)
     {
-      DIGITC_Context.WriteLine("Building Noise Carrier");
+      DContext.WriteLine("Building Noise Carrier");
 
       var rNoise = GenerateNoise(aDuration, aLevel);
 

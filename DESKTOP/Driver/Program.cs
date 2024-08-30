@@ -31,6 +31,8 @@ namespace DIGITC2
         aWF.SaveTo(stream);
       }
     }
+
+    public static string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
   }
 
   public abstract class DecodingTask : Task

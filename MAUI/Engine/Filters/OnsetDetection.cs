@@ -38,8 +38,8 @@ namespace DIGITC2_ENGINE
 
     public override void Setup() 
     { 
-      mThreshold   = DIGITC_Context.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
-      mMinTapCount = DIGITC_Context.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
+      mThreshold   = DContext.Session.Args.GetOptionalDouble("OnsetDetection_Threshold")  .GetValueOrDefault(0.4);
+      mMinTapCount = DContext.Session.Args.GetOptionalInt   ("OnsetDetection_MinTapCount").GetValueOrDefault(16);
     }
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
@@ -52,7 +52,7 @@ namespace DIGITC2_ENGINE
       var onsetDetector = new OnsetDetector(options, null);
       var onsets = onsetDetector.Detect(aInput.Origin);
 
-      DIGITC_Context.WriteLine($"Onset Count: {onsets.Count}");
+      DContext.WriteLine($"Onset Count: {onsets.Count}");
 
       if ( onsets.Count >= mMinTapCount )
       {
@@ -77,8 +77,8 @@ namespace DIGITC2_ENGINE
 
         var rR = aInput.CopyWith(new DiscreteSignal(aInput.SamplingRate, lOutSignal));
 
-        if ( DIGITC_Context.Session.Args.GetBool("Plot") )
-          rR.SaveTo( DIGITC_Context.Session.LogFile( $"_OnsetSequence.wav") ) ;
+        if ( DContext.Session.Args.GetBool("Plot") )
+          rR.SaveTo( DContext.Session.LogFile( $"_OnsetSequence.wav") ) ;
 
         rOutput.Add( new Branch(aInputBranch, rR, "OnsetSequence", null, false, lOnset));
       }

@@ -34,11 +34,13 @@ namespace DIGITC2_ENGINE
     {
       Result rR = new Result();
 
+      DContext.Session.SetupProcessor(Name);
+
       try
       {
         var lStep = rR.AddFirst(aInput) ;
 
-        DIGITC_Context.Watch(lStep) ; 
+        DContext.Watch(lStep) ; 
 
         mFilters.ForEach( f => f.Setup() ) ;
 
@@ -49,7 +51,13 @@ namespace DIGITC2_ENGINE
           {
             rR.Add( lStep ) ;
 
-            DIGITC_Context.Watch(lStep) ; 
+            DContext.Watch(lStep) ; 
+
+            if ( lStep.Quit )
+            {
+              DContext.WriteLine("Quitting processor because of Quit flag");
+              break ;
+            }
           }
         }
 
@@ -59,9 +67,8 @@ namespace DIGITC2_ENGINE
       }
       catch( Exception x )
       {
-        DIGITC_Context.Error(x);
+        DContext.Error(x);
       }
-
 
       return rR ;  
     }

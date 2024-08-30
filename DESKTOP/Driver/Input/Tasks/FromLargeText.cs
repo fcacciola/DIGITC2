@@ -17,17 +17,17 @@ public sealed class FromLargeText : DecodingTask
 {
   public override void Run( Args aArgs )
   {
-    DIGITC_Context.Setup( new Session("FromLargeText", aArgs) ) ;
+    string lSourceText = File.ReadAllText( DContext.Session.Args.Get("LargeText") );
 
-    DIGITC_Context.WriteLine("From large text");
+    var lSource = BitsSource.FromText("FromLargeText",lSourceText);  
 
-    string lSourceText = File.ReadAllText( DIGITC_Context.Session.SampleFile( DIGITC_Context.Session.Args.Get("LargeText") ) );
+    DContext.Setup( new Session(lSource.Name, aArgs, BaseFolder) ) ;
 
-    var lSource = BitsSource.FromText(lSourceText);  
+    DContext.WriteLine("From large text");
 
     Processor.FromBits().Process( lSource.CreateSignal() ).Save() ;
 
-    DIGITC_Context.Shutdown(); 
+    DContext.Shutdown(); 
   }
 }
 

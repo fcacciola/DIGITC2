@@ -16,9 +16,7 @@ public sealed class FromMultipleTextSizes : DecodingTask
 {
   public override void Run( Args aArgs )
   {
-    var lOuterSession = new Session("FromMultipleTextSizes", aArgs) ;
-
-    var lAllWords = File.ReadAllText( lOuterSession.SampleFile(aArgs.Get("LargeText")) ).Split('\n','\r',' ');
+    var lAllWords = File.ReadAllText( aArgs.Get("LargeText") ).Split('\n','\r',' ');
 
     var lSlices = aArgs.Get("TextSlices").Split(',').Select( s => int.Parse(s) ).ToList();
 
@@ -41,15 +39,15 @@ public sealed class FromMultipleTextSizes : DecodingTask
 
       string lSliceSessionName = "FromMultipleTextSizes_Slice_" + lSlice;
 
-      DIGITC_Context.Setup( new Session(lSliceSessionName, aArgs) ) ;
+      var lSource = BitsSource.FromText(lSliceSessionName, lSourceText);  
 
-      DIGITC_Context.WriteLine("Text slice: " + lSlice);
+      DContext.Setup( new Session(lSliceSessionName, aArgs, BaseFolder) ) ;
 
-      var lSource = BitsSource.FromText(lSourceText);  
+      DContext.WriteLine("Text slice: " + lSlice);
 
       Processor.FromBits().Process( lSource.CreateSignal() ).Save() ;
 
-      DIGITC_Context.Shutdown(); 
+      DContext.Shutdown(); 
     }
 
   }

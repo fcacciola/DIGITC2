@@ -91,12 +91,14 @@ namespace DIGITC2_ENGINE
       return rS ;
     }
 
+    public bool Quit => Branches.All( b => b.Quit );
+
     public override string ToString() => Filter.ToString();
 
     public int          Idx ;
     public Filter       Filter ;
     public List<Branch> Branches = new List<Branch>();
-
+    
   }
  
 }

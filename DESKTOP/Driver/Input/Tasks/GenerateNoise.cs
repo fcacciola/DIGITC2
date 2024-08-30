@@ -32,9 +32,9 @@ public sealed class GenerateNoise : NoiseGeneratorTaskBase
 {
   public override void Run( Args aArgs  )
   {
-    DIGITC_Context.Setup( new Session("Generate Noise", aArgs) ) ;
+    DContext.Setup( new Session("Generate Noise", aArgs, BaseFolder) ) ;
 
-    DIGITC_Context.WriteLine("Generate Noise");
+    DContext.WriteLine("Generate Noise");
 
     double lDuration = aArgs.GetDouble("NoiseDuration");
     double lLevel    = aArgs.GetDouble("NoiseLevel");
