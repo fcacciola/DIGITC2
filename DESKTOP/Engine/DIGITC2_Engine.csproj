@@ -103,6 +103,21 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\MAUI\Engine\Generators\NoiseGenerator.cs">
+      <Link>Generators\NoiseGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\Generators\TapCodeMaskNoiseGenerator.cs">
+      <Link>Generators\TapCodeMaskNoiseGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\Sources\Source.cs">
+      <Link>Sources\Source.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\Sources\BitsSource.cs">
+      <Link>Sources\BitsSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\Sources\BytesSource.cs">
+      <Link>Sources\BytesSource.cs</Link>
+    </Compile>
     <Compile Include="..\..\MAUI\Engine\Filters\PolybiusSquare.cs">
       <Link>Filters\PolybiusSquare.cs</Link>
     </Compile>
@@ -157,9 +172,6 @@
     <Compile Include="..\..\MAUI\Engine\Signals\State.cs">
       <Link>General\State.cs</Link>
     </Compile>
-    <Compile Include="..\..\MAUI\Engine\Sources\ByDuration_MockWaveSource.cs">
-      <Link>Sources\ByDuration_MockWaveSource.cs</Link>
-    </Compile>
     <Compile Include="..\..\MAUI\Engine\Statistics\MultiModal.cs">
       <Link>Statistics\MultiModal.cs</Link>
     </Compile>
@@ -171,6 +183,15 @@
     </Compile>
     <Compile Include="..\..\MAUI\Engine\Statistics\Histogram.cs">
       <Link>Statistics\Histogram.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\General\Args.cs">
+      <Link>General\Args.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\General\Context.cs">
+      <Link>General\Context.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MAUI\Engine\General\Session.cs">
+      <Link>General\Session.cs</Link>
     </Compile>
     <Compile Include="..\..\MAUI\Engine\General\Plot.cs">
       <Link>General\Plot.cs</Link>
@@ -208,17 +229,11 @@
     <Compile Include="..\..\MAUI\Engine\Signals\LexicalSignal.cs">
       <Link>Signals\LexicalSignal.cs</Link>
     </Compile>
-    <Compile Include="..\..\MAUI\Engine\Sources\MockSource.cs">
-      <Link>Sources\MockSource.cs</Link>
-    </Compile>
     <Compile Include="..\..\MAUI\Engine\Signals\WaveSignal.cs">
       <Link>Signals\WaveSignal.cs</Link>
     </Compile>
     <Compile Include="..\..\MAUI\Engine\Signals\Signal.cs">
       <Link>Signals\Signal.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\Sources\Source.cs">
-      <Link>Sources\Source.cs</Link>
     </Compile>
     <Compile Include="..\..\MAUI\Engine\onset-detection\OnsetDetector.cs">
       <Link>ThirdParty\onset-detection\OnsetDetector.cs</Link>
@@ -244,9 +259,6 @@
     <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Wav.cs">
       <Link>ThirdParty\onset-detection\Detector\Wav.cs</Link>
     </Compile>
-    <Compile Include="General\Args.cs" />
-    <Compile Include="General\Context.cs" />
-    <Compile Include="General\Session.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -58,8 +58,7 @@ namespace Driver
       RegisterTask( new FromAudio_ByTapCode_Binary() ); 
       RegisterTask( new FromAudio_ByTapCode_DirectLetters() ); 
       RegisterTask( new FromMockAudio_ByDuration() ); 
-      RegisterTask( new GenerateNoise() ); 
-      RegisterTask( new GenerateTapCodeMaskNoise() ); 
+      RegisterTask( new FromMockAudio_ByTapCode() ); 
       RegisterTask( new AnalyzerTask() ) ;
     }
 

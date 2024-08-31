@@ -86,4 +86,8 @@ namespace DIGITC2_ENGINE
     readonly string mFilename ;
   }
 
+  public abstract class LexicalSource : Source
+  {
+    protected List<Symbol> mSymbols = new List<Symbol>();
+  }
 }

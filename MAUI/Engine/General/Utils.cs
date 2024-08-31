@@ -15,6 +15,19 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
+  public static class DSX
+  {
+    public static DiscreteSignal Concatenate( this IList<DiscreteSignal> aSignals )
+    {
+      List<float> lSamples = new List<float>();
+      foreach (var lSignal in aSignals)
+      {
+        lSamples.AddRange(lSignal.Samples);
+      }
+      return new DiscreteSignal(aSignals[0].SamplingRate, lSamples.ToArray());
+    }
+  }
+
   public static class MathX
   {
     public static double LERP( double aL, double aH, double aF )  

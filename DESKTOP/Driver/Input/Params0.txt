@@ -5,9 +5,10 @@ xFromAudio_ByPulseDuration=true
 xFromAudio_ByTapCode_Binary=true
 xFromMockAudio_ByDuration=true
 xFromAudio_ByTapCode_DirectLetters=true
+FromMockAudio_ByTapCode=true
 xGenerateNoise=true
 xGenerateTapCodeMaskNoise=true
-AnalyzerTask=true
+xAnalyzerTask=true
 
 NoiseFile=./Input/Samples/Noise
 NoiseDuration=120

@@ -37,15 +37,13 @@ public class BurstPulse
     var rPulse = lSincL.Concatenate(lSincR);
 
 
-    if (DIGITC_Context.Session.Args.GetBool("Plot"))
+    if ( DContext.Session.Args.GetBool("Plot") )
     {
-      rPulse.Save(DIGITC_Context.Session.LogFile("_pulse.wav"));
+      rPulse.Save(DContext.Session.LogFile("_pulse.wav"));
     }
-
 
     return rPulse;
   }
-
 }
 
 public class BurstEvent
@@ -62,9 +60,11 @@ public class BurstEvent
 
 public class TapCodeEvents
 {
-  public TapCodeEvents(TapCode aCode, double aBurstDuration,
-      double aTapCodeSGap,
-          double aTapCodeLGap)
+  public TapCodeEvents( TapCode aCode
+                      , double  aBurstDuration
+                      , double  aTapCodeSGap
+                      , double  aTapCodeLGap
+                      )
   {
     Code = aCode;
 
@@ -72,11 +72,10 @@ public class TapCodeEvents
 
     mTapCodeSGap = aTapCodeSGap;
     mTapCodeLGap = aTapCodeLGap;
-
   }
 
-
   public TapCode Code;
+
   public List<BurstEvent> BurstEvents = new List<BurstEvent>();
 
   double AddCount(double aBaseTime, int aCount)
@@ -85,12 +84,7 @@ public class TapCodeEvents
 
     for (int i = 0; i < aCount; ++i)
     {
-      var lEvent = new BurstEvent()
-      {
-        Time = rTime
-                                    ,
-        Duration = mBurstDuration
-      };
+      var lEvent = new BurstEvent() { Time = rTime, Duration = mBurstDuration };
 
       BurstEvents.Add(lEvent);
 
@@ -114,22 +108,68 @@ public class TapCodeEvents
   double mTapCodeLGap;
 }
 
+public class TapCodeSignal
+{
+  public TapCodeSignal( TapCode aCode
+                      , double  aBurtDuration
+                      , double  aTapCodeSGap
+                      , double  aTapCodeLGap
+                      )
+  {
+    mCode              = aCode;
+    mBurstDuration     = aBurtDuration;
+    mTapCodeSGap       = aTapCodeSGap;
+    mTapCodeLGap       = aTapCodeLGap;
+  }
+
+  public DiscreteSignal BuildSignal(double aBaseTime, int aSamplingRate)
+  {
+    BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration, SamplingRate = aSamplingRate };
+    DiscreteSignal lPulseSignal = lPulse.BuildPulse();
+
+    //int lTapCount = mCode.Row + mCode.Col;
+
+    //double lTapCodeDuration =   (lTapCount * mBurstDuration)
+    //                          + ( (lTapCount - 2) * mTapCodeSGap) 
+    //                          + mTapCodeLGap;
+
+    List<float> lSamples = new List<float>();
+
+    var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap);
+
+    lEvent.BuildEvents(aBaseTime);
+
+    foreach (BurstEvent lBurstEvent in lEvent.BurstEvents)
+    {
+      for (int i = lBurstEvent.StartSampleIdx(aSamplingRate), k = 0; i < lBurstEvent.EndSampleIdx(aSamplingRate); i++, k++)
+      {
+        lSamples.Add( lPulseSignal[k] ) ;
+      }
+    }
+
+    return new DiscreteSignal(aSamplingRate, lSamples);
+  }
+
+  TapCode mCode;
+  double  mBurstDuration;
+  double  mTapCodeSGap;
+  double  mTapCodeLGap;
+  double  mTapCodeSeparation;
+}
+
 public class TapCodeMaskSignal
 {
-
-  public TapCodeMaskSignal(TapCode aCode
-  , double aBurtDuration
-  , double aTapCodeSGap
-  , double aTapCodeLGap
-  , double aTapCodeSeparation)
+  public TapCodeMaskSignal( TapCode aCode
+                          , double  aBurtDuration
+                          , double  aTapCodeSGap
+                          , double  aTapCodeLGap
+                          , double  aTapCodeSeparation)
   {
-    mCode = aCode;
-    mBurstDuration = aBurtDuration;
-
-    mTapCodeSGap = aTapCodeSGap;
-    mTapCodeLGap = aTapCodeLGap;
+    mCode              = aCode;
+    mBurstDuration     = aBurtDuration;
+    mTapCodeSGap       = aTapCodeSGap;
+    mTapCodeLGap       = aTapCodeLGap;
     mTapCodeSeparation = aTapCodeSeparation;
-
   }
 
   public DiscreteSignal BuildSignal(int aSamplingRate, double aDuration)
@@ -141,12 +181,13 @@ public class TapCodeMaskSignal
     float[] lSamples = new float[lLength];
 
     int lTapCount = mCode.Row + mCode.Col;
-    double lTapCodeDuration = (lTapCount * mBurstDuration)
-                              + ((lTapCount - 2) * mTapCodeSGap) + mTapCodeLGap;
+    double lTapCodeDuration =   (lTapCount * mBurstDuration)
+                              + ( (lTapCount - 2) * mTapCodeSGap)
+                              + mTapCodeLGap;
 
-    double lTapCodePeriod = lTapCodeDuration + mTapCodeSeparation;
+    double lTapCodePeriodWithSeparation = lTapCodeDuration + mTapCodeSeparation;
 
-    int lEventCount = (int)Math.Floor(aDuration / lTapCodePeriod);
+    int lEventCount = (int)Math.Floor(aDuration / lTapCodePeriodWithSeparation);
 
     double lTime = 0;
 
@@ -159,7 +200,7 @@ public class TapCodeMaskSignal
 
       lTapCodeEvents.Add(lEvent);
 
-      lTime += lTapCodePeriod;
+      lTime += lTapCodePeriodWithSeparation;
     }
 
     foreach (TapCodeEvents lTapCodeEvent in lTapCodeEvents)
@@ -174,25 +215,21 @@ public class TapCodeMaskSignal
     }
 
     return new DiscreteSignal(aSamplingRate, lSamples);
-
   }
 
   TapCode mCode;
-  double mBurstDuration;
-  double mTapCodeSGap;
-  double mTapCodeLGap;
-  double mTapCodeSeparation;
+  double  mBurstDuration;
+  double  mTapCodeSGap;
+  double  mTapCodeLGap;
+  double  mTapCodeSeparation;
 }
-
 
 
 public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 {
   public override DiscreteSignal Generate(Args aArgs)
   {
-    DIGITC_Context.Setup(new Session("TapCodeMaskNoiseGenerator", aArgs));
-
-    DIGITC_Context.WriteLine("Generate MaskNoise");
+    DContext.WriteLine("Generate MaskNoise");
 
     // This is the duration of the individual burst pulse of a single tap
     double lBurstDuration_IN_Seconds = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.3);
@@ -224,9 +261,9 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 
     var rResult = BuildNoiseCarrier(lTotalSignalDuration_IN_Seconds, lLevel);
 
-    if (DIGITC_Context.Session.Args.GetBool("Plot"))
+    if (DContext.Session.Args.GetBool("Plot"))
     {
-      rResult.Save(DIGITC_Context.Session.LogFile($"_carrier.wav"));
+      rResult.Save(DContext.Session.LogFile($"_carrier.wav"));
     }
 
     List<TapCode> lCodes = new List<TapCode>(){ new TapCode(1,1)
@@ -247,9 +284,9 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 
       var lMaskSignal = lMask.BuildSignal(rResult.SamplingRate, lTotalSignalDuration_IN_Seconds);
 
-      if (DIGITC_Context.Session.Args.GetBool("Plot"))
+      if (DContext.Session.Args.GetBool("Plot"))
       {
-        lMaskSignal.Save( DIGITC_Context.Session.LogFile($"mask_{lCode.Row}_{lCode.Col}.wav"));
+        lMaskSignal.Save( DContext.Session.LogFile($"mask_{lCode.Row}_{lCode.Col}.wav"));
       }
 
       lMasks.Add(lMaskSignal);
@@ -262,7 +299,7 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 
   DiscreteSignal BuildNoiseCarrier(double aDuration, double aLevel)
   {
-    DIGITC_Context.WriteLine("Building Noise Carrier");
+    DContext.WriteLine("Building Noise Carrier");
 
     var rNoise = GenerateNoise(aDuration, aLevel);
 

@@ -14,103 +14,31 @@ using NWaves.Signals.Builders;
 namespace DIGITC2_ENGINE
 {
 
-  public class ByDuration_MockWaveSource : WaveSource
+  public class MockWaveSource_ByDuration : MockWaveSource_FromBits
   {
     public class Params
     {
-      public string Text ;
       public double EnvelopeAttackTime ;
       public double EnvelopeReleaseTime ;
       public double AmplitudeGateThreshold ;
       public double ExtractGatedlSymbolsMinDuration ;
       public double ExtractGatedlSymbolsMergeGap ;
       public double BinarizeByDurationThreshold ;
-
-      public int    BitsPerByte  = 8;
-      public bool   LittleEndian = true;
-      public string CharSet      = "us-ascii";
     }
 
-    public ByDuration_MockWaveSource( Params aParams ) 
+    public MockWaveSource_ByDuration( BaseParams aBaseParams, Params aParams ) : base(aBaseParams)
     {
       mParams = aParams ;
     }
 
-    public static ByDuration_MockWaveSource FromText( string aText )
+    public static MockWaveSource_ByDuration FromText( string aText )
     {
+      var lBaseParams = new BaseParams() ;
+      lBaseParams.Text = aText ;
+
       var lParams = new Params() ;
-      lParams.Text = aText ;
 
-      return new ByDuration_MockWaveSource(lParams);
-    }
-
-    protected override Signal DoCreateSignal()
-    {
-      if ( mSignal == null ) 
-      {
-        var lChars = TextToChars(mParams.Text);
-        var lBytes = CharsToBytes(lChars); 
-        var lBits  = BytesToBits(lBytes);
-
-        var lWave = ModulateBits(lBits);
-
-        lWave.NormalizeMax();
-
-        SaveTo(lWave, DContext.Session.LogFile( "Wave.wav"));
-
-        mSignal = new WaveSignal(lWave);
-      }
-
-      return mSignal ;
-    }
-
-    char[] TextToChars( string aText )
-    {
-      return aText.ToCharArray() ;  
-    }
-
-    List<byte> CharsToBytes( char[] aChars) 
-    {
-      Encoding lEncoding = Encoding.GetEncoding( mParams.CharSet);
-      List<byte> rBytes = new List<byte>();
-      char[] lBuffer = new char[1];
-      foreach( char lChar in aChars )
-      {
-        lBuffer[0]=lChar;
-        rBytes.AddRange( lEncoding.GetBytes(lBuffer) ) ;
-      }
-      return rBytes ;
-    }
-
-    List<bool> BytesToBits( List<byte> aBytes )
-    {
-      List<bool> rBits = new List<bool>();
-
-      byte[] lBuffer = new byte[1];
-
-      foreach( byte lByte in aBytes ) 
-      {
-        lBuffer[0]=lByte; 
-
-        BitArray lBA = new BitArray( lBuffer ); 
-
-        int lC = lBA.Length;
-
-        if ( mParams.LittleEndian )
-        {
-          for ( int i = lC - 1 ; i >= 0 ; -- i ) 
-            rBits.Add(lBA[i]);
-   
-        }
-        else
-        {
-          for ( int i = 0; i < lC; ++ i ) 
-            rBits.Add(lBA[i]);
-        }
-      }
-
-      return rBits ;
-
+      return new MockWaveSource_ByDuration(lBaseParams, lParams);
     }
 
     internal class Chunk
@@ -191,7 +119,7 @@ namespace DIGITC2_ENGINE
       return new DiscreteSignal(mSamplingRate, lAllSamples);
     }
 
-    DiscreteSignal ModulateBits( List<bool> aBits )
+    protected override DiscreteSignal ModulateBits( List<bool> aBits )
     {
       List<Chunk> lChunks = BuildChunks( aBits );
 
@@ -260,8 +188,6 @@ namespace DIGITC2_ENGINE
 
     double mOneMinDuration = .5 ; 
     double mOneMaxDuration = .8 ;  
-
-    int mSamplingRate => 44100 ;
 
     readonly Params mParams ;
 

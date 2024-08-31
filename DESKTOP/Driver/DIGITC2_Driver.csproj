@@ -93,6 +93,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Sources\MockWaveSource_ByTapCode.cs" />
+    <Compile Include="Sources\MockWaveSource_ByDuration.cs" />
+    <Compile Include="Sources\MockWaveSource_FromBits.cs" />
     <Content Include="Input\Params0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -135,40 +138,37 @@
     <Content Include="Input\Samples\Sample-9.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Input\Tasks\Analyzer.cs">
+    <Compile Include="Tasks\Analyzer.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\GenerateNoise.cs">
+    <Compile Include="Tasks\FromAudio_ByTapCode_DirectLetters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\GenerateTapCodeMaskNoise.cs">
+    <Compile Include="Tasks\FromAudio_ByTapCode_Binary.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromAudio_ByTapCode_DirectLetters.cs">
+    <Compile Include="Tasks\FromMockAudio_ByTapCode.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromAudio_ByTapCode_Binary.cs">
+    <Compile Include="Tasks\FromMockAudio_ByDuration.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromMockAudio_ByDuration.cs">
+    <Compile Include="Tasks\FromMultipleTextSizes.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromMultipleTextSizes.cs">
+    <Compile Include="Tasks\ZipfWordDistribution.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\ZipfWordDistribution.cs">
+    <Compile Include="Tasks\FromRandomBits.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromRandomBits.cs">
+    <Compile Include="Tasks\FromLargeText.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromLargeText.cs">
+    <Compile Include="Tasks\FromAudio_ByDuration.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Input\Tasks\FromAudio_ByDuration.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Input\Tasks\BitsToTokens_Sample0.cs">
+    <Compile Include="Tasks\BitsToTokens_Sample0.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Program.cs" />
@@ -176,7 +176,7 @@
     <Content Include="Input\Samples\words.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Input\Tasks\WaveToTextParams_0.txt">
+    <Content Include="Tasks\WaveToTextParams_0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

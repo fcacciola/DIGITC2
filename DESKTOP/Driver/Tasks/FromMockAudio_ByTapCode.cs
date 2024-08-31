@@ -13,21 +13,21 @@ using DIGITC2_ENGINE ;
 namespace DIGITC2 {
 
 
-public sealed class FromMockAudio_ByDuration : DecodingTask
+public sealed class FromMockAudio_ByTapCode : DecodingTask
 {
   public override void Run( Args aArgs )
   {
-    DContext.Setup( new Session("FromMockAudio_ByDuration", aArgs, BaseFolder) ) ;
+    DContext.Setup( new Session("FromMockAudio_ByTapCode", aArgs, BaseFolder) ) ;
 
-    DContext.WriteLine("From MockAudio ByDuration");
+    DContext.WriteLine("From MockAudio ByTapCode");
 
     //string lSourceText = File.ReadAllText( DIGITC_Context.Session.SampleFile( DIGITC_Context.Session.Args.Get("LargeText") ) );
 
     string lSourceText = "H W";
 
-    var lSource = ByDuration_MockWaveSource.FromText(lSourceText);  
+    var lSource = MockWaveSource_ByTapCode.FromText(aArgs, lSourceText);  
 
-    Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
+    Processor.FromAudioToBits_ByTapCode().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
 
     DContext.Shutdown(); 
   }
