@@ -8,6 +8,74 @@ using NWaves.Audio;
 
 namespace DIGITC2_ENGINE {
 
+
+public class NoiseLab
+{
+  const int SamplingRate = 44100 ;
+
+  static public DiscreteSignal GenerateNoise( int aSamples, double aLevel )
+  {
+    DContext.WriteLine("Generating Noise");
+    
+    //double lAmplitud = aLevel / 200.0 ;
+    DiscreteSignal rNoise = new WhiteNoiseBuilder()
+                                .SetParameter("min", - aLevel)
+                                .SetParameter("max", aLevel)
+                                .OfLength(aSamples)
+                                .SampledAt(SamplingRate)
+                                .Build();
+
+    return rNoise;
+  }
+
+  static public DiscreteSignal GenerateNoise( double aDuration, double aLevel )
+  {
+    DContext.WriteLine("Generating Noise");
+    
+    return GenerateNoise((int)Math.Ceiling(SamplingRate * aDuration), aLevel);
+  }
+
+  static public void ModulateNoise(DiscreteSignal rCarrier, List<DiscreteSignal> aMasks )
+  {
+    for (int i = 0; i < rCarrier.Length; i++)
+    {
+      float lSample = rCarrier[i];
+      foreach (var lMask in aMasks)
+      {
+        lSample = lSample * Math.Abs(lMask[i]);
+      }
+
+      rCarrier[i] = lSample;
+    }
+  }
+
+  static public void _ModulateNoise(DiscreteSignal rCarrier, List<DiscreteSignal> aMasks, float aNoiseWeight )
+  {
+    float lAllMasksWeights = 1.0f - aNoiseWeight;
+    float lSingleMaskWeight = lAllMasksWeights / aMasks.Count;
+
+    for (int i = 0; i < rCarrier.Length; i++)
+    {
+      float lSample = aNoiseWeight * rCarrier[i];
+      float lSign = lSample > 0 ? 1.0f : -1.0f;
+      foreach (var lMask in aMasks)
+      {
+        float lMaskSample = lSign * lSingleMaskWeight * lMask[i];
+
+        lSample += lMaskSample;
+      }
+
+      rCarrier[i] = lSample;
+    }
+  }
+
+  static public void ModulateNoise(DiscreteSignal rCarrier, DiscreteSignal aMask )
+  {
+    ModulateNoise(rCarrier, new List<DiscreteSignal> { aMask });
+  }
+
+}
+
 public abstract class AudioGenerator
 {
   public abstract DiscreteSignal Generate(Args aArgs) ;
@@ -16,23 +84,8 @@ public abstract class AudioGenerator
 
 public abstract class NoiseGenerator : AudioGenerator
 {
-  protected DiscreteSignal GenerateNoise( double aDuration, double aLevel )
-  {
-    int lRate = 44100 ;
-    int lSamples = (int)Math.Ceiling(lRate * aDuration);
 
-    double lAmplitud = aLevel / 200.0 ;
-    DiscreteSignal rNoise = new WhiteNoiseBuilder()
-                                .SetParameter("min", - lAmplitud)
-                                .SetParameter("max", lAmplitud)
-                                .OfLength(lSamples)
-                                .SampledAt(lRate)
-                                .Build();
-
-    return rNoise;
-  }
 }
-
 
 
 }

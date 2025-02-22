@@ -11,6 +11,74 @@ using NWaves.Signals.Builders;
 namespace DIGITC2_ENGINE
 {
 
+public class DynamicFloatArray
+{
+  public DynamicFloatArray( int aEstimatedCapacity )    
+  {
+    mBuffer = new float[aEstimatedCapacity]; 
+  }
+
+  public float this[int index]
+  {
+    get { return Get(index); }
+    set { Put(index,value); }
+  }
+
+  public int PutRange( int index, IEnumerable<float> values )
+  {
+    foreach(var lValue in values)
+    {
+      Put(index++, lValue);
+    }
+
+    return index;
+  }
+
+  public float[] ToArray( int aTotalLength = -1 )
+  {
+    if (aTotalLength == -1)
+      return mBuffer;
+
+    float[] rResult = new float[aTotalLength];
+
+    Array.Copy(mBuffer, rResult, aTotalLength);
+
+    return rResult;
+  }
+
+  float Get( int index)
+  {
+    if ( index >= mBuffer.Length )
+      Allocate(index);
+
+    return mBuffer[index];
+  }
+
+  void Put( int index, float aV )
+  {
+    if ( index >= mBuffer.Length )
+      Allocate(index);
+
+    mBuffer[index] = aV;
+     
+  }
+
+  void Allocate(int aIndex)
+  {
+    int lNewLength = Math.Max(aIndex + 1, mBuffer.Length * 2);
+
+    float[] lNewBuffer = new float[lNewLength];
+
+    Array.Copy(mBuffer, lNewBuffer, mBuffer.Length);
+
+    mBuffer = lNewBuffer;
+  }
+
+  float[] mBuffer ;
+}
+
+
+
 public class BurstPulse
 {
   public double Duration;
@@ -39,7 +107,7 @@ public class BurstPulse
 
     if ( DContext.Session.Args.GetBool("Plot") )
     {
-      rPulse.Save(DContext.Session.LogFile("_pulse.wav"));
+      rPulse.Save(DContext.Session.LogFile("BurstPulseEnvelope.wav"));
     }
 
     return rPulse;
@@ -122,32 +190,38 @@ public class TapCodeSignal
     mTapCodeLGap       = aTapCodeLGap;
   }
 
-  public DiscreteSignal BuildSignal(double aBaseTime, int aSamplingRate)
+  public DiscreteSignal BuildEnvelope( int aSamplingRate)
   {
     BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration, SamplingRate = aSamplingRate };
     DiscreteSignal lPulseSignal = lPulse.BuildPulse();
 
-    //int lTapCount = mCode.Row + mCode.Col;
-
-    //double lTapCodeDuration =   (lTapCount * mBurstDuration)
-    //                          + ( (lTapCount - 2) * mTapCodeSGap) 
-    //                          + mTapCodeLGap;
-
-    List<float> lSamples = new List<float>();
-
     var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap);
 
-    lEvent.BuildEvents(aBaseTime);
+    double lTotalTime = lEvent.BuildEvents(0);
+
+    DynamicFloatArray lSamples = new DynamicFloatArray( (int)Math.Ceiling(lTotalTime * aSamplingRate) + 1 ) ;
 
     foreach (BurstEvent lBurstEvent in lEvent.BurstEvents)
     {
       for (int i = lBurstEvent.StartSampleIdx(aSamplingRate), k = 0; i < lBurstEvent.EndSampleIdx(aSamplingRate); i++, k++)
       {
-        lSamples.Add( lPulseSignal[k] ) ;
+        lSamples[i] = lPulseSignal[k] ;
       }
     }
 
-    return new DiscreteSignal(aSamplingRate, lSamples);
+    return new DiscreteSignal(aSamplingRate, lSamples.ToArray() );
+  }
+
+  public DiscreteSignal BuildSignal( int aSamplingRate, double aNoiseLevel = .95 )
+  {
+    var lEnvelope = BuildEnvelope(aSamplingRate);
+
+    var rSignal = NoiseLab.GenerateNoise(lEnvelope.Length, aNoiseLevel);
+
+    NoiseLab.ModulateNoise(rSignal, lEnvelope);
+
+    return rSignal; 
+
   }
 
   TapCode mCode;
@@ -257,9 +331,9 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
 
     double lTotalSignalDuration_IN_Seconds = lTotalLengthInBytes * lPerBytePeriod ;
 
-    double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(100);
+    double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(1);
 
-    var rResult = BuildNoiseCarrier(lTotalSignalDuration_IN_Seconds, lLevel);
+    var rResult = NoiseLab.GenerateNoise(lTotalSignalDuration_IN_Seconds, lLevel);
 
     if (DContext.Session.Args.GetBool("Plot"))
     {
@@ -292,44 +366,10 @@ public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
       lMasks.Add(lMaskSignal);
     }
 
-    ModulateCarrier(rResult, lMasks);
+    NoiseLab.ModulateNoise(rResult, lMasks);
 
     return rResult ;
   }
-
-  DiscreteSignal BuildNoiseCarrier(double aDuration, double aLevel)
-  {
-    DContext.WriteLine("Building Noise Carrier");
-
-    var rNoise = GenerateNoise(aDuration, aLevel);
-
-    return rNoise;
-
-  }
-
-  void ModulateCarrier(DiscreteSignal rCarrier, List<DiscreteSignal> aMasks)
-  {
-    float lCarrierWeight = .65f;
-    float lAllMasksWeights = 1.0f - lCarrierWeight;
-    float lSingleMaskWeight = lAllMasksWeights / aMasks.Count;
-
-    for (int i = 0; i < rCarrier.Length; i++)
-    {
-      float lSample = lCarrierWeight * rCarrier[i];
-      float lSign = lSample > 0 ? 1.0f : -1.0f;
-      foreach (var lMask in aMasks)
-      {
-        float lMaskSample = lSign * lSingleMaskWeight * lMask[i];
-
-        lSample += lMaskSample;
-      }
-
-      rCarrier[i] = lSample;
-    }
-  }
-
-
-
 }
 
 }

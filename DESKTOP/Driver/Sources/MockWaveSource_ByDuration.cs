@@ -149,7 +149,7 @@ namespace DIGITC2_ENGINE
     {
       var lADSR = GetEnvelope(aSource.Wave, aSource.Level);
 
-      lADSR.NormalizeMax();
+      lADSR.NormalizeMax2();
 
       int lC = aSource.Wave.Length;
       int lC2 = lADSR.Length;

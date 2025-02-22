@@ -39,11 +39,15 @@ namespace DIGITC2_ENGINE
 
         var lWave = ModulateBits(lBits);
 
-        lWave.NormalizeMax();
+        lWave.NormalizeMax2();
 
-        SaveTo(lWave, DContext.Session.LogFile( "Wave.wav"));
+        string lWaveFile = DContext.Session.LogFile("Wave.wav");  
+
+        SaveTo(lWave, lWaveFile);
 
         mSignal = new WaveSignal(lWave);
+
+        mSignal.Origin = lWaveFile; 
       }
 
       return mSignal ;

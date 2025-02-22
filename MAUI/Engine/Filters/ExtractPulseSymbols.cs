@@ -69,7 +69,7 @@ namespace DIGITC2_ENGINE
 
     static public void PlotPulseDurationHistogram( List<PulseSymbol> aPulses, string aName )
     {
-      (DTable lHistogram, DTable   lRankSize) = GetHistogramAndRankSize(aPulses) ;  
+      (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
       if ( DContext.Session.Args.GetBool("Plot") )
       { 

@@ -235,36 +235,15 @@
     <Compile Include="..\..\MAUI\Engine\Signals\Signal.cs">
       <Link>Signals\Signal.cs</Link>
     </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\OnsetDetector.cs">
-      <Link>ThirdParty\onset-detection\OnsetDetector.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\MemoryAllocator.cs">
-      <Link>ThirdParty\onset-detection\MemoryAllocator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Filter.cs">
-      <Link>ThirdParty\onset-detection\Detector\Filter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Onsets.cs">
-      <Link>ThirdParty\onset-detection\Detector\Onsets.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\PythonCompatibilityUtilities.cs">
-      <Link>ThirdParty\onset-detection\Detector\PythonCompatibilityUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\SpectralODF.cs">
-      <Link>ThirdParty\onset-detection\Detector\SpectralODF.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Spectrogram.cs">
-      <Link>ThirdParty\onset-detection\Detector\Spectrogram.cs</Link>
-    </Compile>
-    <Compile Include="..\..\MAUI\Engine\onset-detection\Detector\Wav.cs">
-      <Link>ThirdParty\onset-detection\Detector\Wav.cs</Link>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ar1st0crat.SciColorMaps">
+      <Version>1.0.2</Version>
+    </PackageReference>
     <PackageReference Include="CSCore">
       <Version>1.2.1.2</Version>
     </PackageReference>
@@ -329,6 +308,8 @@
       <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="ThirdParty\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

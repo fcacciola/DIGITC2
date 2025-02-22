@@ -134,7 +134,7 @@ namespace OnsetDetection
         /// <param name="epsilon">add epsilon to avoid division by 0</param>
         public Vector<float> MKL(float epsilon=0.000001f)
         {
-            if (epsilon > 0) throw new ArgumentOutOfRangeException("epsilon", "epsilon must be a positive value");
+            //if (epsilon > 0) throw new ArgumentOutOfRangeException("epsilon", "epsilon must be a positive value");
             var mkl = Matrix<float>.Build.SameAs<float>(_s.Spec);
             var set = _s.Spec.SubMatrix(1, _s.Spec.RowCount - 1, 0, _s.Spec.ColumnCount).PointwiseDivide(_s.Spec.SubMatrix(0, _s.Spec.RowCount - 1, 0, _s.Spec.ColumnCount).Map(f => f + epsilon));
             mkl.SetSubMatrix(1, 0, set);

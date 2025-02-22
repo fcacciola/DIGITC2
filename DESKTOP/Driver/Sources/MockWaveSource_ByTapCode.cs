@@ -46,10 +46,10 @@ namespace DIGITC2_ENGINE
 
       var lParams = new Params() ;
 
-      lParams.BurstDuration = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.3);
+      lParams.BurstDuration = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.1);
 
       // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
-      lParams.TapCodeSGap = .5 * lParams.BurstDuration ;
+      lParams.TapCodeSGap = .3 * lParams.BurstDuration ;
 
       // This is the LONG Gap between the ROW and the COLUMN in a tap code
       lParams.TapCodeLGap =  2 * lParams.BurstDuration ;
@@ -62,9 +62,11 @@ namespace DIGITC2_ENGINE
 
     protected override DiscreteSignal ModulateBits( List<bool> aBits )
     {
-      List<DiscreteSignal> lTaps = new List<DiscreteSignal>();
+      int lEstimatedLength = aBits.Count * 10 * mSamplingRate;
+      DynamicFloatArray lSamples = new DynamicFloatArray(lEstimatedLength);
 
-      double lTime = 0 ;
+      // Leave a gap at the beginning
+      double lTime = 0.5 ;
 
       foreach (var lBit in aBits)
       {
@@ -72,25 +74,37 @@ namespace DIGITC2_ENGINE
 
         var lTPS = new TapCodeSignal(lCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
 
-        var lTap = lTPS.BuildSignal(lTime, mSamplingRate);
+        var lTapEnvelope = lTPS.BuildEnvelope(mSamplingRate);
 
-        lTaps.Add(lTap);
+        var lTap = lTPS.BuildSignal(mSamplingRate,.5);
+
+        if (DContext.Session.Args.GetBool("Plot"))
+        {
+          string lCodeWaveFile = DContext.Session.LogFile($"TapCodeSignal_{lCode.Row}_{lCode.Col}.wav");
+          if ( !File.Exists(lCodeWaveFile))
+            lTap.Save(lCodeWaveFile);
+        }
+
+        int lIndex = (int)Math.Ceiling(lTime * mSamplingRate) ;
+
+        lSamples.PutRange(lIndex, lTap.Samples);
 
         lTime += lTap.Duration + mParams.TapCodeSeparation ;
       }
 
-      DiscreteSignal rModulated = lTaps.Concatenate(); 
+      int lTotalSampleCount = (int)Math.Ceiling(lTime * mSamplingRate) + 1 ;
 
-      if (DContext.Session.Args.GetBool("Plot"))
-      {
-        rModulated.Save( DContext.Session.LogFile($"TapCodeMock.wav"));
-      }
+      DiscreteSignal rModulated = new DiscreteSignal(mSamplingRate, lSamples.ToArray(lTotalSampleCount));
 
-      return rModulated;
+      DiscreteSignal rNoisy = rModulated.AddWHiteNoise(.3);
+
+      return rNoisy;
     }
 
-    TapCode GetZeroCode() => mParams.ZeroCodes[mRND.Next(mParams.ZeroCodes.Count)];
-    TapCode GetOneCode()  => mParams.OneCodes [mRND.Next(mParams.OneCodes .Count)];
+    //TapCode GetZeroCode() => mParams.ZeroCodes[mRND.Next(mParams.ZeroCodes.Count)];
+    //TapCode GetOneCode()  => mParams.OneCodes [mRND.Next(mParams.OneCodes .Count)];
+    TapCode GetZeroCode() => mParams.ZeroCodes[0];
+    TapCode GetOneCode()  => mParams.OneCodes [0];
 
     TapCode GetCode( bool aBit) => aBit ? GetOneCode() : GetZeroCode();
 

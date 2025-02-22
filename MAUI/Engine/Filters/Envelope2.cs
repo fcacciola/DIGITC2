@@ -51,7 +51,7 @@ namespace DIGITC2_ENGINE
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      aInput.Rep.NormalizeMax();
+      aInput.Rep.NormalizeMax2();
 
       List<Iteration> lIterationsA = new List<Iteration>
       {
