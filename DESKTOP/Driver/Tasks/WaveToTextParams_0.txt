@@ -1,9 +1,0 @@
-Envelop_AttackTime=0.1
-Envelope_ReleaseTime=0.1
-AmplitudeGate_Threshold=0.65
-ExtractGatedlSymbols_MinDuration=0.05
-ExtractGatedlSymbols_MergeGap=0.1
-BinarizeByDuration_Threshold=0.4
-BinaryToBytes_BitsPerByte=8
-BinaryToBytes_LittleEndian=true
-BytesToText_CharSet=us-ascii
