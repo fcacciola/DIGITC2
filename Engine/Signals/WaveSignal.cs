@@ -261,7 +261,7 @@ namespace DIGITC2_ENGINE
           }
       }
 
-      superimposed.NormalizeMax2(); // Normalized BUT in [-.98,.98] because some soft like Audacity has trouble when the calculations endup rounding on ULP above or below 1
+      superimposed.NormalizeMaxWithPeak(); // Normalized BUT in [-.98,.98] because some soft like Audacity has trouble when the calculations endup rounding on ULP above or below 1
 
       return superimposed ;
 

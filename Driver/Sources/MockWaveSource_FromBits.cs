@@ -39,7 +39,7 @@ namespace DIGITC2_ENGINE
 
         var lWave = ModulateBits(lBits);
 
-        lWave.NormalizeMax2();
+        lWave.NormalizeMaxWithPeak();
 
         string lWaveFile = DContext.Session.LogFile("Wave.wav");  
 

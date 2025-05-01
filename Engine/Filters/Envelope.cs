@@ -26,7 +26,7 @@ namespace DIGITC2_ENGINE
 
       internal string Label ;
 
-      WaveSignal.EnvelopeParams EnvelopeParams ;
+      public WaveSignal.EnvelopeParams EnvelopeParams ;
 
       public override string ToString() => Label;
 
@@ -61,9 +61,11 @@ namespace DIGITC2_ENGINE
 
     WaveSignal Apply ( WaveSignal aInput, Iteration aIteration )
     {
-      double lFreq = aIteration.Freq / ( 0.5 * X.SamplingRate ) ;
+      var lParams = aIteration.EnvelopeParams ;
 
-      var ellip = new NWaves.Filters.Elliptic.LowPassFilter(lFreq, aIteration.Order, aIteration.RipplePassDb, aIteration.AttenuateDB);
+      double lFreq = lParams.Freq / ( 0.5 * X.SamplingRate ) ;
+
+      var ellip = new NWaves.Filters.Elliptic.LowPassFilter(lFreq, lParams.Order, lParams.RipplePassDb, lParams.AttenuateDB);
 
       aInput.Rep.SquareRectify(); 
 
