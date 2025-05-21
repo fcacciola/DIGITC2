@@ -77,7 +77,7 @@ namespace DIGITC2_ENGINE
     {
       var rProcessor = new Processor("FromAudioToBits_ByPulseDuration");
 
-      rProcessor.Add( new EnvelopeB() )
+      rProcessor.Add( new Envelope() )
                 .Add( new Discretize() )
                 .Add( new ExtractPulseSymbols() )
                 .Add( new BinarizeByDuration() ) ;
@@ -89,7 +89,9 @@ namespace DIGITC2_ENGINE
     {
       var rProcessor = new Processor("FromAudioToBits_ByTapCode");
 
-      rProcessor.Add( new OnsetDetection() )
+      rProcessor.Add( new Envelope() )
+                .Add( new Discretize() )
+                .Add( new ExtractPulseSymbols() )
                 .Add( new ExtractTapCode() )  
                 .Add( new BinarizeFromTapCode() ) ;
 
@@ -114,7 +116,9 @@ namespace DIGITC2_ENGINE
     {
       var rProcessor = new Processor("FromAudio_ByCode_ToDirectLetters");
 
-      rProcessor.Add( new OnsetDetection() )
+      rProcessor.Add( new Envelope() )
+                .Add( new Discretize() )
+                .Add( new ExtractPulseSymbols() )
                 .Add( new ExtractTapCode() )  
                 .Add( new TapCodeToBytes())
                 .Add( new ScoreBytesAsLanguageDigits())

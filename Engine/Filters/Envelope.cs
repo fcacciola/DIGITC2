@@ -12,25 +12,22 @@ using NWaves.Signals;
 
 using OxyPlot.Annotations;
 
+using LowPassFilter = NWaves.Filters.Elliptic.LowPassFilter ;
+
+
 namespace DIGITC2_ENGINE
 {
   public class Envelope : WaveFilter
   {
-    class Iteration
+    public class Params 
     {
-      internal Iteration( string aLabel, WaveSignal.EnvelopeParams aEnvelopeParams )
-      {
-        Label = aLabel; 
-        EnvelopeParams = aEnvelopeParams;
-      }
-
-      internal string Label ;
-
-      public WaveSignal.EnvelopeParams EnvelopeParams ;
-
-      public override string ToString() => Label;
-
-      internal bool Plot => true ;
+      public double LowPassFreqInHerz   = 500;
+      public double LowPassDeltaPass    = 0.96;
+      public double LowPassDeltaStop    = 0.04;
+      public int    LowPassOrder        = 5;
+      public float  FollowerAttackTime  = 0.005f;
+      public float  FollowerReleaseTime = 0.01f;
+      public bool   Plot                = true ;
     }
 
     public Envelope() 
@@ -39,49 +36,52 @@ namespace DIGITC2_ENGINE
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      List<Iteration> lIterationsA = new List<Iteration>
-      {
-        new Iteration( "A", new WaveSignal.EnvelopeParams() )
-      };
+      var lLowPass = CreateLowPassFilter();
 
-      Process(lIterationsA, aInput, aInputBranch, rOutput ) ;
-    }
+      var lNewRep = Apply(aInput.Rep, mParams, lLowPass) ; 
 
-    void Process ( List<Iteration> aIterations, WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
-    {
-      WaveSignal rR = aInput;
+      var rR = aInput.CopyWith(lNewRep);
 
-      aIterations.ForEach( lI => rR = Apply(rR,lI) ) ;
+      string lLabel = $"{aInput.Name}_Envelope";
 
       if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.LogFile( $"_Envelope.wav") ) ;
+        rR.SaveTo( DContext.Session.LogFile( $"{lLabel}.wav") ) ;
 
-      rOutput.Add( new Branch(aInputBranch, rR, "Envelope"));
+      rOutput.Add( new Branch(aInputBranch, rR, lLabel));
     }
 
-    WaveSignal Apply ( WaveSignal aInput, Iteration aIteration )
+    LowPassFilter CreateLowPassFilter() 
     {
-      var lParams = aIteration.EnvelopeParams ;
+      var Freq         = SIG.ToDigitalFrequency(mParams.LowPassFreqInHerz) ;
+      var RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / mParams.LowPassDeltaPass ) ;
+      var AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / mParams.LowPassDeltaStop ) ;
 
-      double lFreq = lParams.Freq / ( 0.5 * X.SamplingRate ) ;
-
-      var ellip = new NWaves.Filters.Elliptic.LowPassFilter(lFreq, lParams.Order, lParams.RipplePassDb, lParams.AttenuateDB);
-
-      aInput.Rep.SquareRectify(); 
-
-      var lFiltered = ellip.ApplyTo(aInput.Rep);
-
-      lFiltered.Sanitize();
-      
-      var lES = aInput.CopyWith(lFiltered);
-
-      if ( aIteration.Plot && DContext.Session.Args.GetBool("Plot") )
-        lES.SaveTo( DContext.Session.LogFile( aIteration.Label + ".wav") ) ;
-
-      return lES ;
+      return new LowPassFilter(Freq, mParams.LowPassOrder, RipplePassDb, AttenuateDB);
     }
 
-    protected override string Name => "Envelope2" ;
+    public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams, LowPassFilter aFilter )
+    {
+      aInput.NormalizeMaxWithPeak();
+      aInput.SquareRectify();
+
+      var lLowPassed = aFilter.ApplyTo(aInput);
+
+      lLowPassed.Sanitize();
+
+      EnvelopeFollower envelopeFollower = new EnvelopeFollower(SIG.SamplingRate, aParams.FollowerAttackTime, aParams.FollowerReleaseTime);
+
+      var lNewSamples = aInput.Samples.Select(s => envelopeFollower.Process(s));
+
+      var rR = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
+
+      rR.Sanitize();
+
+      return rR ;
+    }
+
+    Params mParams = new Params();
+
+    protected override string Name => "Envelope" ;
 
   }
 

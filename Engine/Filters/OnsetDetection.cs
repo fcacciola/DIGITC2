@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
+using DocumentFormat.OpenXml.Presentation;
+
 using MathNet.Numerics.Statistics;
 
 using NWaves.Operations;
@@ -58,8 +60,9 @@ namespace DIGITC2_ENGINE
 
     public Result Detect(WaveSignal aSignal)
     {
-      double[] lBandCenters = new double[]{0.0};
-      double lOverlap = 0.2 ;
+//      double[] lBandCenters = new double[]{2500,5000,7500,10000,12500,15000};
+      double[] lBandCenters = new double[]{7500,10000};
+      double lOverlap = .2 ;
 
       var lSplitter = new BandSplitter(lBandCenters,lOverlap);
 
@@ -67,7 +70,10 @@ namespace DIGITC2_ENGINE
 
       foreach (var lBand in lBands)
       {
-        var lBandOnsets = Detect(lBand.Signal);
+        if ( DContext.Session.Args.GetBool("Plot") )
+          lBand.Signal.SaveTo( DContext.Session.LogFile( $"{aSignal.Name}_{lBand.Label}.wav") ) ;
+
+        var lBandOnsets = Detect(lBand.Signal, $"{aSignal.Name}_{lBand.Label}");
       }
 
       List<Onset> lOnsets = new List<Onset>();
@@ -75,9 +81,37 @@ namespace DIGITC2_ENGINE
       return new Result(lOnsets);
     } 
 
-    List<Onset> Detect(DiscreteSignal aSignal)
+    List<Onset> Detect(DiscreteSignal aSignal, string aBaseName )
     {
       List<Onset> lOnsets = new List<Onset>();
+
+      var lELP_Params = new Envelope_LowPass.Params(500, 0.96, 0.04, 5);
+
+      aSignal.SquareRectify();
+
+      var lEnvelope1 = Envelope_LowPass.Apply(aSignal, lELP_Params);  
+
+      lEnvelope1.Sanitize();  
+
+      if ( DContext.Session.Args.GetBool("Plot") )
+        lEnvelope1.SaveTo( DContext.Session.LogFile( $"{aBaseName}_Envelope1.wav") ) ;
+
+      var lEF_Params = new Envelope_Following.Params(0.005f, .01f);
+
+      var lEnvelope2 = Envelope_Following.Apply(lEnvelope1, lEF_Params);
+
+      lEnvelope2.Sanitize();
+
+      if ( DContext.Session.Args.GetBool("Plot") )
+        lEnvelope2.SaveTo( DContext.Session.LogFile( $"{aBaseName}_Envelope2.wav") ) ;
+
+      var lGate = Discretize.CreateGate(3);
+
+      var lGated = Discretize.Apply( lEnvelope2, lGate) ;
+
+      if ( DContext.Session.Args.GetBool("Plot") )
+        lGated.SaveTo( DContext.Session.LogFile( $"{aBaseName}_Gated.wav") ) ;
+
       return lOnsets;
     }
 
@@ -126,7 +160,7 @@ namespace DIGITC2_ENGINE
         if ( lTimes[0] == 0.0 )
           lTimes.RemoveAt(0);
 
-        var lPositions = lTimes.ConvertAll( t => (int)Math.Round(t * (double)X.SamplingRate) ) ;
+        var lPositions = lTimes.ConvertAll( t => (int)Math.Round(t * (double)SIG.SamplingRate) ) ;
 
         Onset lOnset = new Onset(lTimes, lPositions) ;
 
@@ -140,7 +174,7 @@ namespace DIGITC2_ENGINE
         foreach( int lPos in lPositions )
           lOutSignal[lPos] = 1 ;  
 
-        var rR = aInput.CopyWith(new DiscreteSignal(X.SamplingRate, lOutSignal));
+        var rR = aInput.CopyWith(new DiscreteSignal(SIG.SamplingRate, lOutSignal));
 
         if ( DContext.Session.Args.GetBool("Plot") )
           rR.SaveTo( DContext.Session.LogFile( $"_OnsetSequence.wav") ) ;

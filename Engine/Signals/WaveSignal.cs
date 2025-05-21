@@ -13,10 +13,13 @@ using NWaves.Windows;
 
 namespace DIGITC2_ENGINE
 {
-  public static class X
+  public static class SIG
   {
     public static int SamplingRate = 44100 ;
-    public static double NormalizeFrequencyInHerz( double aFrequencyInHerz ) => aFrequencyInHerz / SamplingRate;
+
+    static public double ToDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz / ( 0.5 * SamplingRate ) ;
+
+    static public double ToNormalizedDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz /  SamplingRate ;
   }
 
   public class WaveSignal : Signal
@@ -50,24 +53,15 @@ namespace DIGITC2_ENGINE
       return new Distribution(lSamples);
     }
 
-    public void SaveTo( Stream aStream ) 
-    {
-      var lWF = new WaveFile(Rep);
-      lWF.SaveTo( aStream );  
-    }
-
-    public void SaveTo( string aFilename )  
-    {
-      using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
-        SaveTo( lStream );  
-    }
+    public void SaveTo( Stream aStream   ) => Rep.SaveTo(aStream);
+    public void SaveTo( string aFilename ) => Rep.SaveTo(aFilename);
 
     public WaveSignal Transform(Func<float, float> Transformation)
     {
       float[] lTransformedSamples = new float[Samples.Length];
       for (int i = 0; i < Samples.Length; i++)
         lTransformedSamples[i] = Transformation(Samples[i]);
-      return CopyWith(new DiscreteSignal(X.SamplingRate, lTransformedSamples));
+      return CopyWith(new DiscreteSignal(SIG.SamplingRate, lTransformedSamples));
     }
 
     public WaveSignal ZeroPaddedToNextPowerOfTwo()
@@ -77,7 +71,7 @@ namespace DIGITC2_ENGINE
       {
         float[] lPadded = new float[lProperLen];
         Rep.Samples.FastCopyTo(lPadded, Rep.Length);
-        return new WaveSignal( new DiscreteSignal(X.SamplingRate, lPadded) ) ;
+        return new WaveSignal( new DiscreteSignal(SIG.SamplingRate, lPadded) ) ;
       }
       else
       {
@@ -109,7 +103,7 @@ namespace DIGITC2_ENGINE
         if (aWindowType != WindowType.Rectangular)
           lCFrameBuffer.ApplyWindow(lWindowSamples);
 
-        rR.Add( CopyWith(new DiscreteSignal(X.SamplingRate, lCFrameBuffer)) ) ;
+        rR.Add( CopyWith(new DiscreteSignal(SIG.SamplingRate, lCFrameBuffer)) ) ;
       }
 
       var lFrameBuffer = new float[lProperFrameSize];
@@ -117,44 +111,9 @@ namespace DIGITC2_ENGINE
       if (aWindowType != WindowType.Rectangular)
         lFrameBuffer.ApplyWindow(lWindowSamples);
 
-      rR.Add( CopyWith(new DiscreteSignal(X.SamplingRate, lFrameBuffer)) );
+      rR.Add( CopyWith(new DiscreteSignal(SIG.SamplingRate, lFrameBuffer)) );
 
       return rR ;
-    }
-
-    static public double ToDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz / ( 0.5 * X.SamplingRate ) ;
-
-    public class EnvelopeParams
-    {
-      public EnvelopeParams( double aFreqInHerz = 100, double aDeltaPass = 0.96, double aDeltaStop = 0.04, int aOrder = 5 )
-      {
-        Freq         = ToDigitalFrequency(aFreqInHerz) ;
-        RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / aDeltaPass ) ;
-        AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / aDeltaStop ) ;
-        Order = aOrder ;
-      }
-
-      public NWaves.Filters.Elliptic.LowPassFilter CreateFilter() => new NWaves.Filters.Elliptic.LowPassFilter(Freq, Order, RipplePassDb, AttenuateDB);
-      
-      public double Freq; 
-      public double RipplePassDb  ;
-      public double AttenuateDB  ;
-      public int    Order ;
-    }
-
-    public WaveSignal Envelope ( EnvelopeParams aParams = null )
-    {
-      EnvelopeParams lParams = aParams ?? new EnvelopeParams();
-
-      var lFilter = aParams.CreateFilter();
-
-      Rep.SquareRectify(); 
-
-      var lFiltered = lFilter.ApplyTo(Rep);
-
-      lFiltered.Sanitize();
-      
-      return CopyWith(lFiltered);
     }
 
     protected override void UpdateState( State rS ) 
@@ -166,6 +125,18 @@ namespace DIGITC2_ENGINE
 
   public static class DiscreteSignalExtensions2
   {
+    public static void SaveTo( this DiscreteSignal aDS, Stream aStream ) 
+    {
+      var lWF = new WaveFile(aDS);
+      lWF.SaveTo( aStream );  
+    }
+
+    public static void SaveTo( this DiscreteSignal aDS, string aFilename )  
+    {
+      using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
+        aDS.SaveTo( lStream );  
+    }
+
     public static void ClampOutliers(this DiscreteSignal signal, float aFloor = 1e-4f, float aCeiling = .99f)
     {
       for (int i = 0; i < signal.Samples.Length; i++)
@@ -285,7 +256,7 @@ namespace DIGITC2_ENGINE
         lModulated[i] = aSignal.Samples[i] * lAmplitudeEnvelope[i];
       }
 
-      return new DiscreteSignal(X.SamplingRate, lModulated);
+      return new DiscreteSignal(SIG.SamplingRate, lModulated);
     }
 
     public static DiscreteSignal AddWHiteNoise(this DiscreteSignal aSignal, double aLevel)
@@ -295,7 +266,7 @@ namespace DIGITC2_ENGINE
                       .SetParameter("min", -aLevel)
                       .SetParameter("max", aLevel)
                       .OfLength(lLength)
-                      .SampledAt(X.SamplingRate)
+                      .SampledAt(SIG.SamplingRate)
                       .Build();
 
 

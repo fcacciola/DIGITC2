@@ -103,6 +103,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Filters\Envelope.cs" />
     <Compile Include="Filters\SplitBands.cs" />
     <Compile Include="Generators\NoiseGenerator.cs">
     </Compile>
@@ -128,7 +129,7 @@
     </Compile>
     <Compile Include="Filters\OnsetDetection.cs">
     </Compile>
-    <Compile Include="Filters\Envelope.cs">
+    <Compile Include="Filters\Envelope_LowPass.cs">
     </Compile>
     <Compile Include="Scoring\ScoreTokenLengthDistribution.cs">
     </Compile>
@@ -184,7 +185,7 @@
     </Compile>
     <Compile Include="Processor\Processor.cs">
     </Compile>
-    <Compile Include="Filters\EnvelopeB.cs">
+    <Compile Include="Filters\Envelope_Following.cs">
     </Compile>
     <Compile Include="Signals\LexicalSignal.cs">
     </Compile>

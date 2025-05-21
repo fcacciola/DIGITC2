@@ -41,9 +41,14 @@ namespace DIGITC2_ENGINE
       {
         double lCenterF = lExtendedCenters[i];
 
-        // Geometric mean with overlap control
-        double lLowF  = lCenterF * Math.Pow(lExtendedCenters[i - 1] / lCenterF, (1 + aOverlapFactor) / 2);
-        double lHighF = lCenterF * Math.Pow(lExtendedCenters[i + 1] / lCenterF, (1 - aOverlapFactor) / 2);
+        double lDPrev_ = lExtendedCenters[i    ] - lExtendedCenters[i - 1];
+        double lDNext_ = lExtendedCenters[i + 1] - lExtendedCenters[i];  
+
+        double lDPrev = ( 1.0 + aOverlapFactor) * lDPrev_;
+        double lDNext = ( 1.0 + aOverlapFactor) * lDNext_;
+
+        double lLowF  = lCenterF - lDPrev / 2;
+        double lHighF = lCenterF + lDNext / 2;
 
         mFrequencies[i-1] = (lLowF, lCenterF, lHighF); 
       }
@@ -71,6 +76,9 @@ namespace DIGITC2_ENGINE
       mFrequencies = FilterBanks.HerzBands(aNumberOfBands, 44100, 100, 22.000, true); // 100hz -> 22khz as frequency range.
     }
 
+    string BandFrequenecyToString( double aD ) => $"{(int)(aD)}";
+    string BandFrequenecyToString((double, double, double) aD) => $"[{BandFrequenecyToString(aD.Item1)}_{BandFrequenecyToString(aD.Item2)}_{BandFrequenecyToString(aD.Item3)}]";
+
     public List<Band> Split(DiscreteSignal aSignal)
     {
       List<Band> rBands = new List<Band>();
@@ -78,21 +86,20 @@ namespace DIGITC2_ENGINE
       foreach(var lBand in mFrequencies)
       {
         var lFiltered = FilterBand(aSignal, lBand.Item1, lBand.Item3);
-        rBands.Add(new Band { Signal = lFiltered, Label = $"[{lBand.Item1}|{lBand.Item2}|{lBand.Item3}]" });
+        rBands.Add(new Band { Signal = lFiltered, Label = BandFrequenecyToString(lBand) });
       } 
       return rBands;
     }
 
     DiscreteSignal FilterBand( DiscreteSignal aSignal, double aLowInHz, double aHighInHz )
     {
-      double lNormalizedLow  = X.NormalizeFrequencyInHerz(aLowInHz);
-      double lNormalizedHigh = X.NormalizeFrequencyInHerz(aHighInHz);
+      double lNormalizedLow  = SIG.ToNormalizedDigitalFrequency(aLowInHz );
+      double lNormalizedHigh = SIG.ToNormalizedDigitalFrequency(aHighInHz);
 
       int lOrder = 6;
 
       var lFilter = new NWaves.Filters.Butterworth.BandPassFilter(lNormalizedLow, lNormalizedHigh, lOrder);
 
-      // Apply the filter
       var rFiltered = lFilter.ApplyTo(aSignal);
 
       return rFiltered; 

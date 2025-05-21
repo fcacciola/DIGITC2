@@ -62,7 +62,7 @@ namespace DIGITC2_ENGINE
 
     protected override DiscreteSignal ModulateBits( List<bool> aBits )
     {
-      int lEstimatedLength = aBits.Count * 10 * X.SamplingRate;
+      int lEstimatedLength = aBits.Count * 10 * SIG.SamplingRate;
       DynamicFloatArray lSamples = new DynamicFloatArray(lEstimatedLength);
 
       // Leave a gap at the beginning
@@ -74,9 +74,9 @@ namespace DIGITC2_ENGINE
 
         var lTPS = new TapCodeSignal(lCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
 
-        var lTapEnvelope = lTPS.BuildEnvelope(X.SamplingRate);
+        var lTapEnvelope = lTPS.BuildEnvelope(SIG.SamplingRate);
 
-        var lTap = lTPS.BuildSignal(X.SamplingRate,.5);
+        var lTap = lTPS.BuildSignal(SIG.SamplingRate,.5);
 
         if (DContext.Session.Args.GetBool("Plot"))
         {
@@ -85,16 +85,16 @@ namespace DIGITC2_ENGINE
             lTap.Save(lCodeWaveFile);
         }
 
-        int lIndex = (int)Math.Ceiling(lTime * X.SamplingRate) ;
+        int lIndex = (int)Math.Ceiling(lTime * SIG.SamplingRate) ;
 
         lSamples.PutRange(lIndex, lTap.Samples);
 
         lTime += lTap.Duration + mParams.TapCodeSeparation ;
       }
 
-      int lTotalSampleCount = (int)Math.Ceiling(lTime * X.SamplingRate) + 1 ;
+      int lTotalSampleCount = (int)Math.Ceiling(lTime * SIG.SamplingRate) + 1 ;
 
-      DiscreteSignal rModulated = new DiscreteSignal(X.SamplingRate, lSamples.ToArray(lTotalSampleCount));
+      DiscreteSignal rModulated = new DiscreteSignal(SIG.SamplingRate, lSamples.ToArray(lTotalSampleCount));
 
       DiscreteSignal rNoisy = rModulated.AddWHiteNoise(.3);
 

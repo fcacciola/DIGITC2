@@ -94,7 +94,7 @@ public class BurstPulse
 
                               .SetParameter("min", 0.5)
                               .SetParameter("max", 0.95)
-                              .SampledAt(X.SamplingRate)
+                              .SampledAt(SIG.SamplingRate)
                               .OfLength(lLength)
                               .Build();
 
@@ -121,8 +121,8 @@ public class BurstEvent
   public double StartTime => Time;
   public double EndTime => Time + Duration;
 
-  public int StartSampleIdx => (int)Math.Ceiling(StartTime * X.SamplingRate);
-  public int EndSampleIdx   => (int)Math.Floor  (EndTime   * X.SamplingRate);
+  public int StartSampleIdx => (int)Math.Ceiling(StartTime * SIG.SamplingRate);
+  public int EndSampleIdx   => (int)Math.Floor  (EndTime   * SIG.SamplingRate);
 }
 
 public class TapCodeEvents
@@ -287,7 +287,7 @@ public class TapCodeMaskSignal
       }
     }
 
-    return new DiscreteSignal(X.SamplingRate, lSamples);
+    return new DiscreteSignal(SIG.SamplingRate, lSamples);
   }
 
   TapCode mCode;

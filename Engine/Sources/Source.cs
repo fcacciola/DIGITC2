@@ -74,7 +74,7 @@ namespace DIGITC2_ENGINE
         {
           var waveContainer = new WaveFile(stream);
           var lRep = waveContainer[Channels.Average];
-          Guard.AgainstInequality(lRep.SamplingRate, X.SamplingRate, "Sampling rate");
+          Guard.AgainstInequality(lRep.SamplingRate, SIG.SamplingRate, "Sampling rate");
           mSignal = new WaveSignal(lRep);
           mSignal.Name = Path.GetFileNameWithoutExtension(mFilename); 
           mSignal.Origin = mFilename; 

@@ -24,7 +24,7 @@ namespace DIGITC2_ENGINE
       {
         lSamples.AddRange(lSignal.Samples);
       }
-      return new DiscreteSignal(X.SamplingRate, lSamples.ToArray());
+      return new DiscreteSignal(SIG.SamplingRate, lSamples.ToArray());
     }
   }
 
@@ -35,7 +35,7 @@ namespace DIGITC2_ENGINE
       return ( 1.0 - aF ) * aL + aF * aH;
     }
 
-    public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * X.SamplingRate) ;
+    public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * SIG.SamplingRate) ;
   }
 
   public class Textualizer

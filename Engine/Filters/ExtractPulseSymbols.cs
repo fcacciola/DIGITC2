@@ -61,7 +61,7 @@ namespace DIGITC2_ENGINE
       {
         List<float> lSamples = new List<float> ();
         aPulses.ForEach( s => s.DumpSamples(lSamples ) );
-        DiscreteSignal lWaveRep = new DiscreteSignal(X.SamplingRate, lSamples);
+        DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
         lWave.SaveTo( DContext.Session.LogFile( "Pulses" + aLabel + ".wav") ) ;
       }

@@ -28,7 +28,7 @@ namespace DIGITC2_ENGINE
     {
       mBaseParams = aParams ;
     }
-
+     
     protected override Signal DoCreateSignal()
     {
       if ( mSignal == null ) 
@@ -41,12 +41,14 @@ namespace DIGITC2_ENGINE
 
         lWave.NormalizeMaxWithPeak();
 
-        string lWaveFile = DContext.Session.LogFile("Wave.wav");  
+        string lName = "MockWaveSource_FromBits" ;
 
-        SaveTo(lWave, lWaveFile);
+        string lWaveFile = DContext.Session.LogFile($"{lName}.wav");  
 
-        mSignal = new WaveSignal(lWave);
+        lWave.SaveTo(lWaveFile);  
 
+        mSignal        = new WaveSignal(lWave);
+        mSignal.Name   = lName;
         mSignal.Origin = lWaveFile; 
       }
 

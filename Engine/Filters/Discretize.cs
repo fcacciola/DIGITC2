@@ -15,22 +15,22 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    class Gate
+    public class Gate
     {
-      internal Gate( string aLabel,  params float[] aThresholds)
+      public Gate( string aLabel, params float[] aThresholds)
       {
         Thresholds = new List<float>();
         Thresholds.AddRange( aThresholds ); 
         Label = aLabel; 
       }
 
-      internal Gate( string aLabel, List<float> aThresholds)
+      public  Gate( string aLabel, List<float> aThresholds)
       {
         Thresholds = aThresholds;
         Label = aLabel; 
       }
 
-      internal float Apply( float aV )
+      public float Apply( float aV )
       {
         for( int i = 1; i < Thresholds.Count ; ++ i )
         {
@@ -53,7 +53,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    Gate CreateGate( int aResolution )
+    static public Gate CreateGate( int aResolution )
     {
       List<float> lThresholds = new List<float>();  
       float lStep = 1.0f / aResolution; 
@@ -61,7 +61,7 @@ namespace DIGITC2_ENGINE
         lThresholds.Add( lU );  
       lThresholds.Add(.98f);
       lThresholds.Reverse();
-      return new Gate($"", lThresholds);
+      return new Gate($"{aResolution}_steps", lThresholds);
     }
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
@@ -78,7 +78,19 @@ namespace DIGITC2_ENGINE
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )
     {
-      float lMax = aInput.ComputeMax();
+      var rDiscrete = Apply(aInput.Rep, aGate) ;
+      
+      var rR = aInput.CopyWith(rDiscrete);
+
+      if ( DContext.Session.Args.GetBool("Plot") )
+        rR.SaveTo( DContext.Session.LogFile( $"{aInput.Name}_Gated_" + aGate.Label + ".wav") ) ;
+
+      return rR ;
+    }
+
+    public static DiscreteSignal Apply ( DiscreteSignal aInput, Gate aGate )
+    {
+      float lMax = aInput.GetPeak();
 
       aGate.Max = lMax ;
       
@@ -90,12 +102,7 @@ namespace DIGITC2_ENGINE
       for ( int i = 0 ; i < lLen ; i++ )  
         rOutput[i] = aGate.Apply(lSrc[i]) ;  
 
-      var rR = aInput.CopyWith(new DiscreteSignal(X.SamplingRate, rOutput));
-
-      if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.LogFile( "Discretize" + aGate.Label + ".wav") ) ;
-
-      return rR ;
+      return new DiscreteSignal(SIG.SamplingRate, rOutput);
     }
 
     protected override string Name => "Discretize" ;

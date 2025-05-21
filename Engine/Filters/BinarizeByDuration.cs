@@ -240,7 +240,7 @@ namespace DIGITC2_ENGINE
       { 
         List<float> lSamples = new List<float> ();
         lBits.ForEach( b => b.View.DumpSamples(lSamples ) );
-        DiscreteSignal lWaveRep = new DiscreteSignal(X.SamplingRate, lSamples);
+        DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
         lWave.SaveTo( DContext.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
       }

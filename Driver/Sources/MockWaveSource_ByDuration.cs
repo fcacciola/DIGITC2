@@ -116,7 +116,7 @@ namespace DIGITC2_ENGINE
       foreach( var lChunk in aChunks )
         lAllSamples.AddRange( lChunk.Wave.Samples );  
 
-      return new DiscreteSignal(X.SamplingRate, lAllSamples);
+      return new DiscreteSignal(SIG.SamplingRate, lAllSamples);
     }
 
     protected override DiscreteSignal ModulateBits( List<bool> aBits )
@@ -128,13 +128,13 @@ namespace DIGITC2_ENGINE
 
     DiscreteSignal GetNoise( double aDuration, double aLevel )
     {
-      int lLength = (int)Math.Ceiling(aDuration * X.SamplingRate) ;
+      int lLength = (int)Math.Ceiling(aDuration * SIG.SamplingRate) ;
 
       return new WhiteNoiseBuilder()
                   .SetParameter("min", - aLevel)
                   .SetParameter("max",   aLevel)
                   .OfLength(lLength)
-                  .SampledAt(X.SamplingRate)
+                  .SampledAt(SIG.SamplingRate)
                   .Build();
     }
 
@@ -167,7 +167,7 @@ namespace DIGITC2_ENGINE
         lNewSamples[i] = lSE;
       }
 
-      DiscreteSignal lR = new DiscreteSignal(X.SamplingRate, lNewSamples) ;
+      DiscreteSignal lR = new DiscreteSignal(SIG.SamplingRate, lNewSamples) ;
 
       return new Chunk(lR, aSource.Level);
     }

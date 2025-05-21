@@ -20,7 +20,7 @@ public class NoiseLab
                                 .SetParameter("min", - aLevel)
                                 .SetParameter("max", aLevel)
                                 .OfLength(aSamples)
-                                .SampledAt(X.SamplingRate)
+                                .SampledAt(SIG.SamplingRate)
                                 .Build();
 
     return rNoise;
@@ -30,7 +30,7 @@ public class NoiseLab
   {
     DContext.WriteLine("Generating Noise");
     
-    return GenerateNoise((int)Math.Ceiling(X.SamplingRate * aDuration), aLevel);
+    return GenerateNoise((int)Math.Ceiling(SIG.SamplingRate * aDuration), aLevel);
   }
 
   static public void ModulateNoise(DiscreteSignal rCarrier, List<DiscreteSignal> aMasks )

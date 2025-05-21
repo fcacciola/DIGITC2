@@ -95,11 +95,11 @@ namespace DIGITC2_ENGINE
 
     public int    Length => End - Start ;
 
-    public double Duration => (double)Length / (double)X.SamplingRate;
+    public double Duration => (double)Length / (double)SIG.SamplingRate;
 
     public override string Type => "Pulse" ;
 
-    public override string Meaning => $"{Duration:F2} pulse at {(double)Start/(double)X.SamplingRate:F2} " ;
+    public override string Meaning => $"{Duration:F2} pulse at {(double)Start/(double)SIG.SamplingRate:F2} " ;
 
     public override double Value => MaxAmplitude ;
 
