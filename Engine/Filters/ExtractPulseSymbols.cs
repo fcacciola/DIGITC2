@@ -156,8 +156,15 @@ namespace DIGITC2_ENGINE
 
     protected override void Process (WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      Process( new Options(){ Label = "A", DullThreshold = 35, SplitThreshold = 25, SplitLevelDiff = 20 }
-             , aInput, aInputBranch, rOutput );
+      Process( new Options(){ Label = "A"
+                            , VeryShortThreshold = 441 // 10 ms
+                            , DullThreshold = 35
+                            , SplitThreshold = 25
+                            , SplitLevelDiff = 20
+                            }
+             , aInput
+             , aInputBranch
+             , rOutput );
 
     }
 
@@ -168,7 +175,7 @@ namespace DIGITC2_ENGINE
       mData = new Data(){ Options = aOptions } ;
 
       CreatePulses();
-      RemoveDullPulses();
+      SelectValidPulses();
       SplitPulses();  
       RemoveUnfitPulses();
 
@@ -226,16 +233,16 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    void RemoveDullPulses()
+    void SelectValidPulses()
     {
       foreach( var lPulse in mData.RawPulses )
       {
-        if ( lPulse.MaxLevel > mData.Options.DullThreshold )
-          mData.LoudPulses.Add(lPulse );
+        if ( lPulse.Length > mData.Options.VeryShortThreshold &&  lPulse.MaxLevel > mData.Options.DullThreshold )
+          mData.ValidPulses.Add(lPulse );
       }
 
-      PulseFilterHelper.PlotPulses(mData.LoudPulses, $"{mData.Options.Label}_Loud");
-      PulseFilterHelper.PlotPulseDurationHistogram(mData.LoudPulses, $"{mData.Options.Label}_Loud");
+      PulseFilterHelper.PlotPulses(mData.ValidPulses, $"{mData.Options.Label}_Loud");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.ValidPulses, $"{mData.Options.Label}_Loud");
     }
 
     struct Run
@@ -375,7 +382,7 @@ namespace DIGITC2_ENGINE
       DContext.WriteLine("Splitting Pulses");
       DContext.Indent();  
 
-      foreach( var lPulse in mData.LoudPulses )
+      foreach( var lPulse in mData.ValidPulses )
       {
         DContext.WriteLine($"Checking  pulse {lPulse}");
         DContext.Indent();  
@@ -404,6 +411,7 @@ namespace DIGITC2_ENGINE
     class Options
     {
       internal string Label ;
+      internal int    VeryShortThreshold ;
       internal int    DullThreshold ;
       internal int    SplitThreshold ;
       internal int    SplitLevelDiff ;
@@ -413,7 +421,7 @@ namespace DIGITC2_ENGINE
     {
       internal Options           Options ;
       internal List<PulseSymbol> RawPulses   = new List<PulseSymbol>();
-      internal List<PulseSymbol> LoudPulses  = new List<PulseSymbol>();
+      internal List<PulseSymbol> ValidPulses = new List<PulseSymbol>();
       internal List<PulseSymbol> SplitPulses = new List<PulseSymbol>();
       internal List<PulseSymbol> FinalPulses = new List<PulseSymbol>() ;
       internal bool              InGap ;

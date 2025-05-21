@@ -110,6 +110,14 @@ namespace DIGITC2_ENGINE
 
   public class SplitBands : WaveFilter
   {
+    public SplitBands() 
+    {
+      double[] lBandCenters = new double[]{7500,10000};
+      double lOverlap = .2 ;
+
+      mSplitter = new BandSplitter(lBandCenters,lOverlap);
+
+    }
     public SplitBands( BandSplitter aSplitter ) 
     {
       mSplitter = aSplitter;  
@@ -119,8 +127,6 @@ namespace DIGITC2_ENGINE
     {
       var lBands = mSplitter.Split(aInput.Rep); 
 
-      List<Branch> lBranches = new List<Branch>();
-
       foreach ( var lBand in lBands)
       {
         var lES = aInput.CopyWith(lBand.Signal);
@@ -129,10 +135,8 @@ namespace DIGITC2_ENGINE
         if ( DContext.Session.Args.GetBool("Plot") )
           lES.SaveTo( DContext.Session.LogFile( $"{lES.Name}.wav") ) ;
 
-        lBranches.Add(new Branch(aInputBranch, lES, lES.Name) ) ;
+        rOutput.Add(new Branch(aInputBranch, lES, lES.Name) ) ;
       }
-
-
     }
 
     protected override string Name => "SplitBands" ;

@@ -45,10 +45,15 @@ namespace DIGITC2_ENGINE
 
   }
 
-  public class ExtractTapCode : WaveFilter
+  public class ExtractTapCode : LexicalFilter
   {
     public ExtractTapCode() 
     { 
+    }
+
+    public override void Setup() 
+    { 
+      mMinTapCount = DContext.Session.Args.GetOptionalInt("ExtractTapCode_MinTapCount").GetValueOrDefault(16);
     }
 
     double Interval( double aET, double aST )
@@ -73,52 +78,68 @@ namespace DIGITC2_ENGINE
       public override string ToString() => $"[{Time}s|{Duration}s {(IsShort?"S":"L")} {Counter}]";
     }
 
+    double PulseOnsetTime( PulseSymbol aPulse ) => ( aPulse.StartTime + aPulse.EndTime ) / 2.0 ;
 
-    List<Tap> GetTaps( List<double> aTimes )
+    Tap TapFromPulse( PulseSymbol aCurrPulse, PulseSymbol aPrevPulse = null ) 
+    {
+      return new Tap( PulseOnsetTime( aCurrPulse )
+                    , Interval( PulseOnsetTime(aCurrPulse), aPrevPulse != null ? PulseOnsetTime(aPrevPulse) : 0 )  
+                    ) ;
+    }
+
+    List<Tap> GetTaps( List<PulseSymbol> aPulses )
     {
       List<Tap> rTaps = new List<Tap> ();
-      rTaps.Add( new Tap(aTimes[0], Interval(0,aTimes[0]) ) ) ;
-      for( int i = 1 ; i < aTimes.Count; ++ i )
-        rTaps.Add( new Tap(aTimes[i], Interval(aTimes[i],aTimes[i-1]) ) ) ;
+      if ( aPulses.Count >= mMinTapCount )
+      {
+        rTaps.Add( TapFromPulse( aPulses[0] ) ) ;
+        for( int i = 1 ; i < aPulses.Count; ++ i )
+          rTaps.Add( TapFromPulse(aPulses[i], aPulses[i-1]) ) ;
+      }
       return rTaps ; 
     }
 
-    protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-       DContext.WriteLine("Decoding Taps...");
-       DContext.Indent();
+      DContext.WriteLine("Decoding Taps...");
+      DContext.Indent();
 
-       OnsetDetection.Onset lOnset = aInputBranch.GetData<OnsetDetection.Onset>();
+      var lPulses = aInput.GetSymbols<PulseSymbol>() ;
 
-       var lTaps = GetTaps(lOnset.Times );
+      var lTaps = GetTaps(lPulses);
+      if ( lTaps.Count == 0 )
+      {
+        rOutput.Add( Branch.Quit(aInputBranch, "TapCodes") ) ;
+        return ;
+      }
 
-       DContext.WriteLine("Raw Taps:");
-       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      DContext.WriteLine("Raw Taps:");
+      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-       var lDurations = lTaps.ConvertAll( t => t.Duration ) ;
+      var lDurations = lTaps.ConvertAll( t => t.Duration ) ;
 
-       var lTapClassifier = BuildTapClassifier(lDurations);
+      var lTapClassifier = BuildTapClassifier(lDurations);
 
-       lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
+      lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
-       DContext.WriteLine("Classified Taps:");
-       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      DContext.WriteLine("Classified Taps:");
+      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-       SetTapCounters(lTaps); 
+      SetTapCounters(lTaps); 
 
-       DContext.WriteLine("Counted Taps:");
-       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      DContext.WriteLine("Counted Taps:");
+      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-       var lCodes = GetCodes(lTaps);
+      var lCodes = GetCodes(lTaps);
 
-       DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
+      DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
 
-       int lIdx = 0 ;
-       var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
+      int lIdx = 0 ;
+      var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
 
-       DContext.Unindent();  
+      DContext.Unindent();  
     }
 
     public class TapClassifier
@@ -130,7 +151,7 @@ namespace DIGITC2_ENGINE
         ShortDurationIntervalR = aShortDurationIntervalR ;
       }
 
-      public void ClassifyTap( Tap aTap )
+      public void ClassifyTap( Tap aTap ) 
       {
         aTap.IsShort = ShortDurationIntervalL <= aTap.Duration && aTap.Duration <= ShortDurationIntervalR;
       }
@@ -238,6 +259,8 @@ namespace DIGITC2_ENGINE
     }
 
     protected override string Name => "ExtractTapCode" ;
+
+    int mMinTapCount ;
 
   }
 

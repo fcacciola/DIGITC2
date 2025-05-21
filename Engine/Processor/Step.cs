@@ -37,15 +37,17 @@ namespace DIGITC2_ENGINE
       List<string> mActiveBranches = new List<string>();
     }
 
-    public Branch( Branch aPrev, Signal aSignal, string aLabel, Score aScore = null, bool aQuit = false, IWithState aData = null )
+    public Branch( Branch aPrev, Signal aSignal, string aLabel, Score aScore = null, bool aShouldQuit = false, IWithState aData = null )
     {
-      Prev   = aPrev ;
-      Signal = aSignal;
-      Label  = aLabel ;
-      Score  = aScore;
-      Quit   = aQuit;
-      Data   = aData;
+      Prev       = aPrev ;
+      Signal     = aSignal;
+      Label      = aLabel ;
+      Score      = aScore;
+      ShouldQuit = aShouldQuit;
+      Data       = aData;
     }
+
+    static public Branch Quit( Branch aPrev, string aLabel ) => new Branch(aPrev, null, aLabel, null, true, null );
 
     public T GetData<T>() where T : class => Data as T ;
 
@@ -65,13 +67,13 @@ namespace DIGITC2_ENGINE
       return rS ;
     }
 
-    public Branch     Prev   ;
-    public Signal     Signal ;
-    public string     Label  ;
-    public Score      Score  ;
-    public bool       Quit   ;
-    public IWithState Data   ;
-    public int        Idx    ;
+    public Branch     Prev       ;
+    public Signal     Signal     ;
+    public string     Label      ;
+    public Score      Score      ;
+    public bool       ShouldQuit ;
+    public IWithState Data       ;
+    public int        Idx        ;
   }
 
   public class Step : IWithState
@@ -91,7 +93,7 @@ namespace DIGITC2_ENGINE
       return rS ;
     }
 
-    public bool Quit => Branches.All( b => b.Quit );
+    public bool ShouldQuit => Branches.All( b => b.ShouldQuit );
 
     public override string ToString() => Filter.ToString();
 

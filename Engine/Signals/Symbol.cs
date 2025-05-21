@@ -95,7 +95,9 @@ namespace DIGITC2_ENGINE
 
     public int    Length => End - Start ;
 
-    public double Duration => (double)Length / (double)SIG.SamplingRate;
+    public double StartTime => (double)Start  / (double)SIG.SamplingRate;
+    public double EndTime   => (double)End    / (double)SIG.SamplingRate;
+    public double Duration  => (double)Length / (double)SIG.SamplingRate;
 
     public override string Type => "Pulse" ;
 

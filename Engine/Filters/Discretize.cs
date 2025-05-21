@@ -11,8 +11,9 @@ namespace DIGITC2_ENGINE
 {
   public class Discretize : WaveFilter
   {
-    public Discretize() 
+    public Discretize( int aResolution = 10 ) 
     { 
+      mResolution = aResolution;
     }
 
     public class Gate
@@ -66,7 +67,7 @@ namespace DIGITC2_ENGINE
 
     protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
     {
-      Process(10, aInput, aInputBranch, rOuput);
+      Process(mResolution, aInput, aInputBranch, rOuput);
     }
 
     void Process ( int aResolution, WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
@@ -104,6 +105,8 @@ namespace DIGITC2_ENGINE
 
       return new DiscreteSignal(SIG.SamplingRate, rOutput);
     }
+
+    int mResolution = 10 ;
 
     protected override string Name => "Discretize" ;
 

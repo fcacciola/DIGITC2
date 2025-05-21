@@ -53,9 +53,9 @@ namespace DIGITC2_ENGINE
 
             DContext.Watch(lStep) ; 
 
-            if ( lStep.Quit )
+            if ( lStep.ShouldQuit )
             {
-              DContext.WriteLine("Quitting processor because of Quit flag");
+              DContext.WriteLine("Filter asked to Quit Processor");
               break ;
             }
           }
@@ -89,8 +89,9 @@ namespace DIGITC2_ENGINE
     {
       var rProcessor = new Processor("FromAudioToBits_ByTapCode");
 
-      rProcessor.Add( new Envelope() )
-                .Add( new Discretize() )
+      rProcessor.Add( new SplitBands() )
+                .Add( new Envelope() )
+                .Add( new Discretize(3) )
                 .Add( new ExtractPulseSymbols() )
                 .Add( new ExtractTapCode() )  
                 .Add( new BinarizeFromTapCode() ) ;

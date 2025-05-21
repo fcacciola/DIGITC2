@@ -127,10 +127,6 @@
     </Compile>
     <Compile Include="Filters\BinarizeByDuration.cs">
     </Compile>
-    <Compile Include="Filters\OnsetDetection.cs">
-    </Compile>
-    <Compile Include="Filters\Envelope_LowPass.cs">
-    </Compile>
     <Compile Include="Scoring\ScoreTokenLengthDistribution.cs">
     </Compile>
     <Compile Include="Scoring\ScoreBytesAsLanguageDigits.cs">
@@ -184,8 +180,6 @@
     <Compile Include="Filters\Filter.cs">
     </Compile>
     <Compile Include="Processor\Processor.cs">
-    </Compile>
-    <Compile Include="Filters\Envelope_Following.cs">
     </Compile>
     <Compile Include="Signals\LexicalSignal.cs">
     </Compile>

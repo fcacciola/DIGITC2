@@ -19,7 +19,7 @@ namespace DIGITC2_ENGINE
 
         foreach ( Branch lBranch in aInput.Branches ) 
         {
-          if ( ! lBranch.Quit )
+          if ( ! lBranch.ShouldQuit )
           {
             try
             {
@@ -27,7 +27,7 @@ namespace DIGITC2_ENGINE
             }
             catch ( Exception x )
             {
-              lBranch.Quit = true ;
+              lBranch.ShouldQuit = true ;
               DContext.Error(x);
             }
           }
