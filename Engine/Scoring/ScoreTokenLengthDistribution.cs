@@ -27,11 +27,9 @@ namespace DIGITC2_ENGINE
       mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
-    string CreateFakeKey( double i ) => $"{i}";
-
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      var lDist = aInput.GetDistribution().ExtendedWithBaseline(0,50,1,CreateFakeKey);
+      var lDist = aInput.GetDistribution().ExtendedWithBaseline(0,50,1);
 
       var lRawHistogram = new Histogram(lDist) ;
 

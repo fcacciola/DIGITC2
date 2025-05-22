@@ -23,7 +23,7 @@ public sealed class FromMockAudio_ByTapCode : DecodingTask
 
     //string lSourceText = File.ReadAllText( DIGITC_Context.Session.SampleFile( DIGITC_Context.Session.Args.Get("LargeText") ) );
 
-    string lSourceText = "H";
+    string lSourceText = "Hello World";
 
     var lSource = MockWaveSource_ByTapCode.FromText(aArgs, lSourceText);  
 

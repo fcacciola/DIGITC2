@@ -97,10 +97,22 @@ public class PolybiusSquare
   static public PolybiusSquare Binary_3_1             => new PolybiusSquare(sBinary_3_1            , "Binary_3_1");
   static public PolybiusSquare Binary_3_1_Guarded     => new PolybiusSquare(sBinary_3_1_Guarded    , "Binary_3_1_Guarded");
 
+  public TapCode Encode( string s )
+  {
+    int lSize = (int)Math.Sqrt(Alphabet.Count);
+
+    for( int lRow = 0 ; lRow < lSize ; ++ lRow )
+      for( int lCol = 0 ; lCol < lSize ; ++ lCol )
+        if ( Alphabet[(lRow*Size)+lCol] == s )
+          return new TapCode(lRow+1,lCol+1); // Tap counts must start at 1, not 0
+
+    return null ;
+  }
+
   public string Decode( TapCode aCode )
   {
-    int lCol = aCode.Col % Size ;
-    int lRow = aCode.Row % Size ;
+    int lRow = ( aCode.Row % Size ) - 1 ; // Tap counts start at 1, not 0
+    int lCol = ( aCode.Col % Size ) - 1 ;
     return Alphabet[(lRow*Size)+lCol];
   }
 

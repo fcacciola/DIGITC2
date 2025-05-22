@@ -23,95 +23,71 @@ namespace DIGITC2_ENGINE
 
     protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
     {
-      if ( mBranchSelection.IsActive("Little5") )
-        Process(true , 5, aInput, aInputBranch, rOutput);
+      if ( mBranchSelection.IsActive("5") )
+        Process(5, aInput, aInputBranch, rOutput);
 
-      if ( mBranchSelection.IsActive("Little8") )
-        Process(true , 8, aInput, aInputBranch, rOutput);
+      if ( mBranchSelection.IsActive("8") )
+        Process( 8, aInput, aInputBranch, rOutput);
 
-      if ( mBranchSelection.IsActive("Big5") )
-        Process(false, 5, aInput, aInputBranch, rOutput);
-
-      if ( mBranchSelection.IsActive("Big85") )
-        Process(false, 8, aInput, aInputBranch, rOutput);
     }
 
-    void Process ( bool aLittleEndian, int aBitsPerByte, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
-    {
-      mBitValues  = new List<bool>(); 
 
+    // NOTE: Windows uses LSB, so we CANNOT use something like BitArray.
+    // Must do this manually.
+    byte ToByte_MSB( byte[] aBits )
+    {
+      byte rByte = 0;
+      for (int i = 0; i < 8; i++)
+      {
+        rByte <<= 1;             // shift left by 1
+        rByte |= aBits[i] ;  // add the next bit
+      }
+
+      return rByte;
+    }
+
+    void Process ( int aBitsPerByte, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    {
       var lSymbols = aInput.GetSymbols<BitSymbol>() ;
 
-      int lLen = aInput.Length ;
-      int lByteCount = 0; 
+      int lLen = lSymbols.Count ;
+
+      List<byte> lBytes = new List<byte>(); 
+
       int i = 0;
+
+      byte[] lBitValues = new byte[8];
 
       do
       { 
-        mDEBUG_ByteString = "" ;
-
         int lRem = lLen - i ;
 
-        if ( aLittleEndian )
-          AddPadding(aBitsPerByte);
+        int j = 0 ;
+        for ( int k = aBitsPerByte ; k < 8 ; k ++ , j ++ )
+          lBitValues[j] = 0 ;  
 
-        for ( int j = 0 ; i < lLen && j < aBitsPerByte ; j++, i ++ )
+        for ( ; i < lLen && j < aBitsPerByte ; j++, i ++ )
+          lBitValues[j] = (byte)( lSymbols[i].One ? 1 : 0 ) ;  
+
+        if ( lRem < aBitsPerByte )
         {
-          mDEBUG_ByteString += $"[{(lSymbols[i].One ? "1" : "0")}]";
-          mBitValues.Add( lSymbols[i].One ) ;  
+          for( int k = lRem ; k < aBitsPerByte ; k++ ) 
+            lBitValues[j] = 0 ;  
         }
-        
-        AddRemainder(aBitsPerByte, lRem);
 
-        if ( !aLittleEndian )
-          AddPadding(aBitsPerByte);
-
-        lByteCount ++ ;
+        lBytes.Add( ToByte_MSB(lBitValues) ) ;
       }
       while ( i < lLen ) ;
-
-      BitArray lBits = new BitArray(mBitValues.ToArray());
-        
-      byte[] lBytes = new byte[lByteCount]; 
-      lBits.CopyTo( lBytes, 0 ) ;
 
       List<ByteSymbol> lByteSymbols = new List<ByteSymbol>();
 
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), $"{(aLittleEndian ? "LittleEndian" : "BigEndian")}|{aBitsPerByte} BitsPerByte") ) ;
+      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
     }
 
     protected override string Name => "BinaryToBytes" ;
-
-    void AddPadding( int aBitsPerByte )
-    {
-      if ( aBitsPerByte < 8 )
-      {
-        for( int k = aBitsPerByte ; k < 8 ; k++ ) 
-        {
-          mDEBUG_ByteString += $"[P:0]";
-          mBitValues.Add( false ) ;
-        }
-      }
-    }
-
-    void AddRemainder( int aBitsPerByte, int aRem )
-    {
-      if ( aRem < aBitsPerByte )
-      {
-        for( int k = aRem ; k < aBitsPerByte ; k++ ) 
-        {
-          mDEBUG_ByteString += $"[R:0]";
-          mBitValues.Add( false ) ;
-        }
-      }
-    }
-
-    List<bool> mBitValues ;
-
-    string mDEBUG_ByteString ;
 
     Branch.Selection mBranchSelection ;
   }

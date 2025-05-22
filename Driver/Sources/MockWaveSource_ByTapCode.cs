@@ -18,16 +18,6 @@ namespace DIGITC2_ENGINE
   {
     public class Params
     {
-      public List<TapCode> ZeroCodes = new List<TapCode>{ new TapCode(1,1)
-                                                        , new TapCode(1,3)
-                                                        , new TapCode(3,1)
-                                                        , new TapCode(3,3)}; 
-
-      public List<TapCode> OneCodes  = new List<TapCode>{ new TapCode(1,2)
-                                                        , new TapCode(2,1)
-                                                        , new TapCode(2,3)
-                                                        , new TapCode(3,2)};
-
       public double BurstDuration ;
       public double TapCodeSGap ;
       public double TapCodeLGap ;
@@ -68,9 +58,12 @@ namespace DIGITC2_ENGINE
       // Leave a gap at the beginning
       double lTime = 0.5 ;
 
+      var lPS = PolybiusSquare.Binary ;
       foreach (var lBit in aBits)
       {
-        var lCode = GetCode(lBit);
+        string lBitStr = lBit?"1":"0";
+
+        var lCode = lPS.Encode(lBitStr);
 
         var lTPS = new TapCodeSignal(lCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
 
@@ -101,16 +94,7 @@ namespace DIGITC2_ENGINE
       return rNoisy;
     }
 
-    //TapCode GetZeroCode() => mParams.ZeroCodes[mRND.Next(mParams.ZeroCodes.Count)];
-    //TapCode GetOneCode()  => mParams.OneCodes [mRND.Next(mParams.OneCodes .Count)];
-    TapCode GetZeroCode() => mParams.ZeroCodes[0];
-    TapCode GetOneCode()  => mParams.OneCodes [0];
-
-    TapCode GetCode( bool aBit) => aBit ? GetOneCode() : GetZeroCode();
-
     public override string Name => "MockWaveSource_ByTapCode";  
-
-    Random mRND = new Random();  
 
     readonly Params mParams ;
 

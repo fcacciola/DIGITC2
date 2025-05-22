@@ -63,28 +63,39 @@ namespace DIGITC2_ENGINE
 
     public class Tap
     {
-      public Tap( double aTime, double aDuration) 
+      public enum LagTypeE { Space, Bridge, Internal, UNKNOWN } ;
+
+      public Tap( double aTime, double aLagFromPrev) 
       {
-        Time = aTime; 
-        Duration = aDuration; 
-        Counter = 0 ;
+        LagFromPrev = aLagFromPrev; 
+        Time        = aTime; 
+        Counter     = 0 ;
       }
 
-      public double Time ;
-      public double Duration ;
-      public bool   IsShort ;
-      public int    Counter ;
+      public double   LagFromPrev ;
+      public double   Time ;
+      public LagTypeE LagType = LagTypeE.UNKNOWN ;
+      public int      Counter ;
 
-      public override string ToString() => $"[{Time}s|{Duration}s {(IsShort?"S":"L")} {Counter}]";
+      public override string ToString() => $"[{LagFromPrev}s->{Time}s {LagType} {Counter}]";
+    }
+
+    // All taps separated by Spaces
+    public class TapGroup
+    {
+      public List<Tap> Taps = new List<Tap>();
     }
 
     double PulseOnsetTime( PulseSymbol aPulse ) => ( aPulse.StartTime + aPulse.EndTime ) / 2.0 ;
 
     Tap TapFromPulse( PulseSymbol aCurrPulse, PulseSymbol aPrevPulse = null ) 
     {
-      return new Tap( PulseOnsetTime( aCurrPulse )
-                    , Interval( PulseOnsetTime(aCurrPulse), aPrevPulse != null ? PulseOnsetTime(aPrevPulse) : 0 )  
-                    ) ;
+      double lPrevTime = aPrevPulse != null ? PulseOnsetTime(aPrevPulse) : 0 ;  
+      double lCurrTime = PulseOnsetTime( aCurrPulse ) ;
+
+      double lLagFromPrev = Math.Ceiling( (lCurrTime - lPrevTime) * 100 ) ;
+
+      return new Tap( lCurrTime, lLagFromPrev) ;
     }
 
     List<Tap> GetTaps( List<PulseSymbol> aPulses )
@@ -116,7 +127,7 @@ namespace DIGITC2_ENGINE
       DContext.WriteLine("Raw Taps:");
       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-      var lDurations = lTaps.ConvertAll( t => t.Duration ) ;
+      var lDurations = lTaps.ConvertAll( t => t.LagFromPrev ) ;
 
       var lTapClassifier = BuildTapClassifier(lDurations);
 
@@ -125,12 +136,37 @@ namespace DIGITC2_ENGINE
       DContext.WriteLine("Classified Taps:");
       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-      SetTapCounters(lTaps); 
+      List<TapGroup> lGroups = new List<TapGroup>();
 
-      DContext.WriteLine("Counted Taps:");
-      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      TapGroup lCurrTG = new TapGroup() ;
 
-      var lCodes = GetCodes(lTaps);
+      foreach( var lTap in lTaps )
+      {
+        if ( lTap.LagType == Tap.LagTypeE.Space )
+        {
+          if ( lCurrTG != null && lCurrTG.Taps.Count > 0 )
+            lGroups.Add(lCurrTG);
+
+          lCurrTG = new TapGroup();  
+        }
+        lCurrTG.Taps.Add(lTap);
+      }
+      if ( lCurrTG != null && lCurrTG.Taps.Count > 0 )
+        lGroups.Add(lCurrTG);
+ 
+      List<TapCode> lCodes = new List<TapCode>();
+      
+      foreach( var lTG in lGroups )
+      {
+        SetTapCounters(lTG.Taps); 
+
+        DContext.WriteLine("Counted Taps:");
+        lTG.Taps.ForEach( t => DContext.WriteLine(t.ToString()));
+
+        var lCode = GetCode(lTG.Taps);
+
+        lCodes.Add(lCode);
+      }
 
       DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
 
@@ -142,27 +178,51 @@ namespace DIGITC2_ENGINE
       DContext.Unindent();  
     }
 
+    public class DurationInterval
+    {
+      public DurationInterval( double aL, double aH )
+      {
+        L = aL ;
+        H = aH ;
+      }
+
+      public DurationInterval( double aC )
+      {
+      }
+
+      public double L ;
+      public double H ;
+
+      public bool IsInside( double t ) { return ( L <= t ) && ( t <= H ); } 
+    }
+
+    // Taps are arranged into a single TapCode, based on the duration from the previous Tap
+    // There are 3 types of durations: Space, Bride and Internal.
+    // For example, the codes (2x1) (1x2) would be encoded as tap with the following sequence of "from 
+    // 
+    //  Space | Internal | Internal | Bridge | Space | Bridge | Internal | Internal
     public class TapClassifier
     {
-      public TapClassifier( double aShortDurationIntervalL, double aShortDurationIntervalR )
-      {
-        DContext.WriteLine($"TaClassifier. Short duration interval: {aShortDurationIntervalL}->{aShortDurationIntervalR}");
-        ShortDurationIntervalL = aShortDurationIntervalL ;
-        ShortDurationIntervalR = aShortDurationIntervalR ;
-      }
-
       public void ClassifyTap( Tap aTap ) 
       {
-        aTap.IsShort = ShortDurationIntervalL <= aTap.Duration && aTap.Duration <= ShortDurationIntervalR;
+        if ( Bridge.IsInside(aTap.LagFromPrev) )
+             aTap.LagType= Tap.LagTypeE.Bridge ;
+        else if( aTap.LagFromPrev < Bridge.L )
+             aTap.LagType = Tap.LagTypeE.Internal ;
+        else aTap.LagType = Tap.LagTypeE.Space ;
       }
 
-      public double ShortDurationIntervalL ;
-      public double ShortDurationIntervalR ;
+      public DurationInterval Bridge   ;
+      public DurationInterval Internal ;
     }
 
     TapClassifier BuildTapClassifier( List<double> aDurations ) 
     { 
-      var lDist = new Distribution(aDurations) ;
+      var lDist0 = new Distribution(aDurations) ;
+
+      double lMax = aDurations.Max();
+
+      var lDist = lDist0.ExtendedWithBaseline(0,lMax+10,1);
 
       var lFullRangeHistogram = new Histogram(lDist).Table ;
 
@@ -173,42 +233,74 @@ namespace DIGITC2_ENGINE
 
       var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
-      var lPeak = lXPs.Find( xp => xp.IsPeak ) ;
+      var lPeaksByH = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
+      var lBest3    = lPeaksByH.Take(3).ToList();
+      var lPeaks    = lBest3.OrderBy( xp => xp.Value.X.Value ).ToList();
 
-      DContext.WriteLine($"Very First Peak: {lPeak}");
+      var lPeak1 = lPeaks.Count > 0 ? lPeaks[0] : null ;
+      var lPeak2 = lPeaks.Count > 1 ? lPeaks[1] : null ;
+      var lPeak3 = lPeaks.Count > 2 ? lPeaks[2] : null ;
 
-      double lShortDurationReference ;
+      DContext.WriteLine($"Peaks: {lPeak1}, {lPeak2}, {lPeak3}");
 
-      if ( lPeak != null)
+      double lInternalLag ;
+      double lBridgeLag ;
+      double lSpaceLag ;
+
+      if ( lPeak1 != null)
       {
-        lShortDurationReference = lPeak.Value.X.Value ;
-        DContext.WriteLine($"Short duration referenc (from peak): {lShortDurationReference}");
+        lInternalLag = lPeak1.Value.X.Value ;
+        DContext.WriteLine($"Internal Lag (from peak): {lInternalLag}");
       }
       else
       { 
-        lShortDurationReference = aDurations.Minimum();
-        DContext.WriteLine($"Short duration reference ( from minimum): {lShortDurationReference}");
+        lInternalLag = aDurations.Minimum();
+        DContext.WriteLine($"Internal Lag (from minimum): {lInternalLag}");
       }
 
-      var lDurationIntervalL = lShortDurationReference - lShortDurationReference * .50 ; 
-      var lDurationIntervalR = lShortDurationReference + lShortDurationReference * .25 ; 
+      if ( lPeak2 != null)
+      {
+        lBridgeLag = lPeak2.Value.X.Value ;
+        DContext.WriteLine($"Bridge Lag (from peak): {lBridgeLag}");
+      }
+      else
+      { 
+        lBridgeLag = lInternalLag * 2.5;
+        DContext.WriteLine($"Bridge Lag (from minimum): {lBridgeLag}");
+      }
 
-      return new TapClassifier(lDurationIntervalL, lDurationIntervalR) ;
+      if ( lPeak3 != null)
+      {
+        lSpaceLag = lPeak3.Value.X.Value ;
+        DContext.WriteLine($"Space Lag (from peak): {lSpaceLag}");
+      }
+      else
+      { 
+        lSpaceLag = lBridgeLag * 2.5;
+        DContext.WriteLine($"Space Lag (from minimum): {lSpaceLag}");
+      }
+
+      var lInternalH = ( ( lInternalLag + lBridgeLag ) / 2 ) * 1.1; 
+      var lSpaceL    = ( ( lBridgeLag   + lSpaceLag  ) / 2 ) * 0.9; 
+
+      var lBridge = new DurationInterval(lInternalH,lSpaceL) ;
+
+      return new TapClassifier{ Internal = null, Bridge = lBridge };
     } 
 
     void SetTapCounters( List<Tap> aTaps )
     {
-      int lCounter = 0 ;
+      int lCounter = 1 ;
 
       foreach (var lTap in aTaps)
       {
-        if ( lTap.IsShort )           
+        if ( lTap.LagType == Tap.LagTypeE.Internal )           
         {
           lTap.Counter = lCounter ++ ; 
         }
         else
         {
-          lCounter = 0 ;
+          lCounter = 1 ;
           lTap.Counter = lCounter ++ ;
         }
       }
@@ -216,7 +308,7 @@ namespace DIGITC2_ENGINE
     
     bool IsEven ( int aN ) { return aN % 2 == 0 ; }
 
-    List<TapCode> GetCodes( List<Tap> aTaps ) 
+    TapCode GetCode( List<Tap> aTaps ) 
     {
       List<int> lCounts = new List<int>();
 
@@ -255,7 +347,7 @@ namespace DIGITC2_ENGINE
         rCodes.Add( new TapCode(lCounts[i],lCounts[i+1]) ) ;
       }
 
-      return rCodes ;
+      return rCodes.First() ;
     }
 
     protected override string Name => "ExtractTapCode" ;

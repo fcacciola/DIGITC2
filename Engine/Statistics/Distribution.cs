@@ -96,11 +96,15 @@ namespace DIGITC2_ENGINE
       return new Distribution( Samples.Select( s => s.Transformed(f)));
     }
 
-    public Distribution ExtendedWithBaseline( double aLower, double aHigher, double aStep, Func<double,string> CreateKey )
+    string CreateFakeKey( double i ) => $"{i}";
+
+    public Distribution ExtendedWithBaseline( double aLower, double aHigher, double aStep, Func<double,string> CreateKey = null )
     {
+      var CK = CreateKey ?? CreateFakeKey ;
+
       List<Sample> lSamples = new List<Sample>();
       for( double v = aLower; v < aHigher; v += aStep )  
-        lSamples.Add( new Sample( new FakeSampleSource( CreateKey(v), 0 ) ,v));
+        lSamples.Add( new Sample( new FakeSampleSource( CK(v), 0 ) ,v));
 
       lSamples.AddRange(Samples);
 
