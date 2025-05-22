@@ -12,7 +12,7 @@ using DIGITC2_ENGINE ;
 namespace DIGITC2 {
 
 
-public sealed class FromMultipleTextSizes : DecodingTask
+public sealed class TEST_ONLY_FromMultipleTextSizes : DecodingTask
 {
   public override void Run( Args aArgs )
   {

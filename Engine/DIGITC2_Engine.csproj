@@ -107,8 +107,7 @@
     <Compile Include="Filters\SplitBands.cs" />
     <Compile Include="Generators\NoiseGenerator.cs">
     </Compile>
-    <Compile Include="Generators\TapCodeMaskNoiseGenerator.cs">
-    </Compile>
+    <Compile Include="Processor\Branch.cs" />
     <Compile Include="Sources\Source.cs">
     </Compile>
     <Compile Include="Sources\BitsSource.cs">

@@ -21,6 +21,8 @@ namespace DIGITC2_ENGINE
         {
           if ( ! lBranch.ShouldQuit )
           {
+            DContext.Session.PushFolder(lBranch.Name);
+
             try
             {
               DoApply(lBranch, lOutput);
@@ -30,6 +32,8 @@ namespace DIGITC2_ENGINE
               lBranch.ShouldQuit = true ;
               DContext.Error(x);
             }
+
+            DContext.Session.PopFolder();
           }
         }
 
@@ -50,7 +54,7 @@ namespace DIGITC2_ENGINE
 
     protected virtual void UpdateState( State rS ) {}
 
-    protected abstract string Name { get; } 
+    public abstract string Name { get; } 
 
     public override string ToString() => Name ;
 

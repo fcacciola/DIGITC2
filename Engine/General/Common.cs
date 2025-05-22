@@ -16,6 +16,11 @@ namespace DIGITC2_ENGINE
       if ( ! Directory.Exists( aFolder ) ) 
         Directory.CreateDirectory( aFolder );  
     }
+
+    static public void SetupFolderInFullPath ( string aPath ) 
+    {
+      SetupFolder( Path.GetDirectoryName(aPath) );
+    }
   }
 
 }

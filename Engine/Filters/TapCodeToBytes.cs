@@ -59,7 +59,7 @@ public class TapCodeToBytes : LexicalFilter
   }
 
 
-  protected override string Name => "TapCodeToBytes" ;
+  public override string Name => this.GetType().Name ;
 
   Branch.Selection mBranchSelection ;
 }

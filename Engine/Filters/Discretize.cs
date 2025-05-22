@@ -108,7 +108,7 @@ namespace DIGITC2_ENGINE
 
     int mResolution = 10 ;
 
-    protected override string Name => "Discretize" ;
+    public override string Name => this.GetType().Name ;
 
   }
 

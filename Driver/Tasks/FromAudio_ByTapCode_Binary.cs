@@ -9,7 +9,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 { 
   public override void Run( Args aArgs  )
   {
-    string lArg = aArgs.Get("Audio" ) ;
+    string lArg = aArgs.Get("InputAudioFileList") ;
 
     List<string> lFiles = new List<string>() ;
 
@@ -27,7 +27,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 
   void RunWithFile( Args aArgs, string aWaveFilename  )
   {
-    DContext.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder) ) ;
+    DContext.Setup( new Session("FromAudio_ByTapCode_Binary_using_file_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder) ) ;
 
     if ( File.Exists( aWaveFilename ) )
     {

@@ -151,7 +151,7 @@ public class Analyzer
           foreach ( var lSlice in lSlices )
           {
             if ( lSlices.Count > 1 )
-              DContext.Session.SetupSlice(lSlice.Name);
+              DContext.Session.PushFolder(lSlice.Name);
 
             foreach( var lProcessor in mProcessorFactory.EnumProcessors ) 
             {  
@@ -172,6 +172,10 @@ public class Analyzer
                 lOS.Branches.Add(lOB);
               } 
             }
+
+            if ( lSlices.Count > 1 )
+              DContext.Session.PopFolder();
+
           }
         }
       }

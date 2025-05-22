@@ -182,7 +182,7 @@ namespace DIGITC2_ENGINE
       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
     }
     
-    protected override string Name => "ExtractPulses" ;
+    public override string Name => this.GetType().Name ;
 
     void CreatePulses()
     {

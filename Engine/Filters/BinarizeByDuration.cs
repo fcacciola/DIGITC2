@@ -277,7 +277,7 @@ namespace DIGITC2_ENGINE
        DContext.Unindent();  
     }
 
-    protected override string Name => "BinarizeByDuration" ;
+    public override string Name => this.GetType().Name ;
 
   }
 

@@ -19,6 +19,11 @@ namespace DIGITC2
   {
     public abstract void Run( Args aArgs ) ;
 
+    public static void Save( WaveSignal aS, string aFilename )
+    {
+      Save( aS.Rep, aFilename );
+    }
+
     public static void Save( DiscreteSignal aS, string aFilename )
     {
       Save( new WaveFile(aS), aFilename );
@@ -26,13 +31,27 @@ namespace DIGITC2
 
     public static void Save( WaveFile aWF, string aFilename )
     {
-      using (var stream = new FileStream(aFilename, FileMode.Create))
+      try
       {
-        aWF.SaveTo(stream);
+        using (var stream = new FileStream(aFilename, FileMode.Create))
+        {
+          aWF.SaveTo(stream);
+        }
+      }
+      catch( Exception ex)
+      {
+        DContext.Error($"Failed to save .WAV file to:[{aFilename}]\n{ex.ToString()}");
       }
     }
 
     public static string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
+
+    public string ExpandRelativeFilePath ( string aPath )
+    {
+      if ( aPath.StartsWith("@") )
+           return BaseFolder + aPath.Substring(1);
+      else return aPath ;
+    }
   }
 
   public abstract class DecodingTask : Task
@@ -51,14 +70,10 @@ namespace Driver
   {
     internal TaskTable() 
     {
-      RegisterTask( new FromRandomBits() ) ;
-      RegisterTask( new FromLargeText() );
-      RegisterTask( new FromMultipleTextSizes() ); 
       RegisterTask( new FromAudio_ByPulseDuration() ); 
       RegisterTask( new FromAudio_ByTapCode_Binary() ); 
       RegisterTask( new FromAudio_ByTapCode_DirectLetters() ); 
-      RegisterTask( new FromMockAudio_ByDuration() ); 
-      RegisterTask( new FromMockAudio_ByTapCode() ); 
+      RegisterTask( new Generate_MockAudio_WithTapCode() ); 
       RegisterTask( new AnalyzerTask() ) ;
     }
 

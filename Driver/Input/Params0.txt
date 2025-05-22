@@ -1,31 +1,52 @@
-xFromRandomBits=true
-xFromLargeText=true
-xFromMultipleTextSizes=true
-xFromAudio_ByPulseDuration=true
-xFromAudio_ByTapCode_Binary=true
-xFromMockAudio_ByDuration=true
-xFromAudio_ByTapCode_DirectLetters=true
-FromMockAudio_ByTapCode=true
-xGenerateNoise=true
-xGenerateTapCodeMaskNoise=true
-xAnalyzerTask=true
+// ** NOTE **
+// Every line that starts with a # is DISABLED
+// Every line that starts with // is just information and not configuration
+
+
+// Below is a list of "Tasks".
+// All "enabled" tasks (with the leading #) will be executed IN NO PARTICULAR ORDER
+//
+// Typically, you enable the tasks that start with "FromAudio_"
+// in order to process a (common) input WAV file and try to extract 
+// a text message from it using a particular strategy
+//
+// Alternatively, for testing and calibration purposes
+// you can run a "Generate_" task (or the Analyzer).
+
+# FromAudio_ByPulseDuration=true
+FromAudio_ByTapCode_Binary=true
+# FromAudio_ByTapCode_DirectLetters=true
+
+# Generate_MockAudio_WithTapCode=true
+
+# AnalyzerTask=true
+
+// The next section contains general and task specific parameters
+// ** NOTE ** File names that start with @ are relative to the 
+// "Base Folder" of this application.
+// This is the "Local Application Folder" assigned by Windows.
+// In a typical windows machine, that folder is
+// 
+//   C:\Users\<<YOUR USER>>\AppData\Local\DIGITC2
+//
+//
+
+
+// This specifies the "comma separated" list of input audio files to process
+
+InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode.wav
+
+
+MockAudio_WithTapCode_Text=Hello World
+MockAudio_WithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode.wav
+MockAudio_WithTapCode_TapBurstDuration=.1
+
 
 NoiseFile=./Input/Samples/Noise
 NoiseDuration=120
 NoiseLevel=100
-MaskNoise_TapCodeOutputFile=./Input/Samples/MaskNoise_TapCodeOutputFile.wav
-MaskNoise_CarrierDuration=120
-MaskNoise_CarrierLevel=1
-MaskNoise_BurstDuration=.1
-MaskNoise_TapCodeSGap=.03
-MaskNoise_TapCodeLGap=.2
-MaskNoise_TapCodeSeparation=.5
-Audio=C:\Users\User\AppData\Local\Packages\com.companyname.DIGITC2_9zz4h110yvjzm\LocalState\Sessions\Session_0\audio.wav
-xxxAudio=./Input/Samples/Sample-1_5.wav,./Input/Samples/Sample-2.wav,./Input/Samples/Sample-3.wav,./Input/Samples/Sample-4.wav,./Input/Samples/Sample-5.wav,./Input/Samples/Sample-6.wav,./Input/Samples/Sample-7.wav
-xAudio=./Input/Samples/Sample-4.wav
-xxAudio=./Input/Samples/Sample-1_5.wav
-OnsetDetection_Threshold=0.4
-OnsetDetection_MinTapCount=4
+
+
 BinarizeFromTapCode_MinBitCount=4
 BitsCount=1024
 LargeText=dracula.txt

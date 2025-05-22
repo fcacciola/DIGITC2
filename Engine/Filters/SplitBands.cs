@@ -139,7 +139,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    protected override string Name => "SplitBands" ;
+    public override string Name => this.GetType().Name ;
 
     BandSplitter mSplitter ;
 

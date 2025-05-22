@@ -81,7 +81,7 @@ namespace DIGITC2_ENGINE
 
     Params mParams = new Params();
 
-    protected override string Name => "Envelope" ;
+    public override string Name => this.GetType().Name ;
 
   }
 

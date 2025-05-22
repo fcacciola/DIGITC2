@@ -96,9 +96,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Sources\MockWaveSource_ByTapCode.cs" />
-    <Compile Include="Sources\MockWaveSource_ByDuration.cs" />
-    <Compile Include="Sources\MockWaveSource_FromBits.cs" />
+    <Compile Include="MockAudio\MockWaveSource_WithTapCode.cs" />
+    <Compile Include="MockAudio\MockWaveSource_ByDuration.cs" />
+    <Compile Include="MockAudio\MockWaveSource_FromBits.cs" />
     <Content Include="Input\Params0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -150,36 +150,30 @@
     <Compile Include="Tasks\FromAudio_ByTapCode_Binary.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\FromMockAudio_ByTapCode.cs">
+    <Compile Include="Tasks\Generate_MockAudio_WithTapCode.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\FromMockAudio_ByDuration.cs">
+    <Compile Include="Tasks\TEST_ONLY_FromMultipleTextSizes.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\FromMultipleTextSizes.cs">
+    <Compile Include="Tasks\TEST_ONLY_ZipfWordDistribution.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\ZipfWordDistribution.cs">
+    <Compile Include="Tasks\TEST_ONLY_FromRandomBits.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\FromRandomBits.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Tasks\FromLargeText.cs">
+    <Compile Include="Tasks\TEST_ONLY_FromLargeText.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Tasks\FromAudio_ByDuration.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\BitsToTokens_Sample0.cs">
+    <Compile Include="Tasks\TEST_ONLY_BitsToTokens_Sample0.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Input\Samples\words.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Tasks\WaveToTextParams_0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -192,6 +186,9 @@
       <Project>{c1026332-c0bb-44ec-a49a-a18ff0444292}</Project>
       <Name>DIGITC2_Engine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

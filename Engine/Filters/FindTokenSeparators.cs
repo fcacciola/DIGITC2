@@ -21,7 +21,7 @@ namespace DIGITC2_ENGINE
       rOutput.Add(aInputBranch);
     }
 
-    protected override string Name => "FindTokenSeparators" ;
+    public override string Name => this.GetType().Name ;
 
 
 

@@ -82,7 +82,7 @@ namespace DIGITC2_ENGINE
     }
 
 
-    protected override string Name => "Tokenize" ;
+    public override string Name => this.GetType().Name ;
 
 
 

@@ -58,7 +58,7 @@ namespace DIGITC2_ENGINE
 
     }
 
-    protected override string Name => "ScoreBytesAsLanguageDigits" ;
+    public override string Name => this.GetType().Name ;
 
     int        mQuitThreshold;
     FitnessMap mFitnessMap ;

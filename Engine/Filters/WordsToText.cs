@@ -48,7 +48,7 @@ namespace DIGITC2_ENGINE
       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
     }
 
-    protected override string Name => "WordsToText" ;
+    public override string Name => this.GetType().Name ;
 
   }
 

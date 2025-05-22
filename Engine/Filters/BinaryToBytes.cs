@@ -87,7 +87,7 @@ namespace DIGITC2_ENGINE
       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
     }
 
-    protected override string Name => "BinaryToBytes" ;
+    public override string Name => this.GetType().Name ;
 
     Branch.Selection mBranchSelection ;
   }

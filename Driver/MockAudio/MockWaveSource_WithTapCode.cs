@@ -1,10 +1,13 @@
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
-using NWaves.Effects.Base;
-using NWaves.Filters.Base;
+using NWaves.Audio;
 using NWaves.Signals;
 using NWaves.Signals.Builders;
 
@@ -227,148 +230,92 @@ public class TapCodeSignal
   double  mBurstDuration;
   double  mTapCodeSGap;
   double  mTapCodeLGap;
-  double  mTapCodeSeparation;
 }
 
-public class TapCodeMaskSignal
-{
-  public TapCodeMaskSignal( TapCode aCode
-                          , double  aBurtDuration
-                          , double  aTapCodeSGap
-                          , double  aTapCodeLGap
-                          , double  aTapCodeSeparation)
+
+  public class MockWaveSource_WithTapCode : MockWaveSource_FromBits
   {
-    mCode              = aCode;
-    mBurstDuration     = aBurtDuration;
-    mTapCodeSGap       = aTapCodeSGap;
-    mTapCodeLGap       = aTapCodeLGap;
-    mTapCodeSeparation = aTapCodeSeparation;
-  }
-
-  public DiscreteSignal BuildSignal( double aDuration)
-  {
-    BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration };
-    DiscreteSignal lPulseSignal = lPulse.BuildPulse();
-
-    int lLength = MathX.SampleIdx(aDuration);
-    float[] lSamples = new float[lLength];
-
-    int lTapCount = mCode.Row + mCode.Col;
-    double lTapCodeDuration =   (lTapCount * mBurstDuration)
-                              + ( (lTapCount - 2) * mTapCodeSGap)
-                              + mTapCodeLGap;
-
-    double lTapCodePeriodWithSeparation = lTapCodeDuration + mTapCodeSeparation;
-
-    int lEventCount = (int)Math.Floor(aDuration / lTapCodePeriodWithSeparation);
-
-    double lTime = 0;
-
-    List<TapCodeEvents> lTapCodeEvents = new List<TapCodeEvents>();
-    for (int i = 0; i < lEventCount; ++i)
+    public class Params
     {
-      var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap);
-
-      lEvent.BuildEvents(lTime);
-
-      lTapCodeEvents.Add(lEvent);
-
-      lTime += lTapCodePeriodWithSeparation;
+      public double BurstDuration ;
+      public double TapCodeSGap ;
+      public double TapCodeLGap ;
+      public double TapCodeSeparation ;
     }
 
-    foreach (TapCodeEvents lTapCodeEvent in lTapCodeEvents)
+    public MockWaveSource_WithTapCode( BaseParams aBaseParams, Params aParams ) : base(aBaseParams)
     {
-      foreach (BurstEvent lBurstEvent in lTapCodeEvent.BurstEvents)
+      mParams = aParams ;
+    }
+
+    public static MockWaveSource_WithTapCode FromText( Args aArgs, string aText )
+    {
+      var lBaseParams = new BaseParams() ;
+      lBaseParams.Text = aText ;
+
+      var lParams = new Params() ;
+
+      lParams.BurstDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode_TapBurstDuration").GetValueOrDefault(0.1);
+
+      // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
+      lParams.TapCodeSGap = .3 * lParams.BurstDuration ;
+
+      // This is the LONG Gap between the ROW and the COLUMN in a tap code
+      lParams.TapCodeLGap =  2 * lParams.BurstDuration ;
+
+      // This is the separation between two tap codes
+      lParams.TapCodeSeparation = 5 * lParams.BurstDuration ;
+
+      return new MockWaveSource_WithTapCode(lBaseParams, lParams);
+    }
+
+    protected override DiscreteSignal ModulateBits( List<bool> aBits )
+    {
+      int lEstimatedLength = aBits.Count * 10 * SIG.SamplingRate;
+      DynamicFloatArray lSamples = new DynamicFloatArray(lEstimatedLength);
+
+      // Leave a gap at the beginning
+      double lTime = 0.5 ;
+
+      var lPS = PolybiusSquare.Binary ;
+      foreach (var lBit in aBits)
       {
-        for (int i = lBurstEvent.StartSampleIdx, k = 0; i < lBurstEvent.EndSampleIdx; i++, k++)
+        string lBitStr = lBit?"1":"0";
+
+        var lCode = lPS.Encode(lBitStr);
+
+        var lTPS = new TapCodeSignal(lCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
+
+        var lTapEnvelope = lTPS.BuildEnvelope(SIG.SamplingRate);
+
+        var lTap = lTPS.BuildSignal(SIG.SamplingRate,.5);
+
+        if (DContext.Session.Args.GetBool("Plot"))
         {
-          lSamples[i] = lPulseSignal[k];
+          string lCodeWaveFile = DContext.Session.LogFile($"TapCodeSignal_{lCode.Row}_{lCode.Col}.wav");
+          if ( !File.Exists(lCodeWaveFile))
+            lTap.Save(lCodeWaveFile);
         }
-      }
-    }
 
-    return new DiscreteSignal(SIG.SamplingRate, lSamples);
-  }
+        int lIndex = (int)Math.Ceiling(lTime * SIG.SamplingRate) ;
 
-  TapCode mCode;
-  double  mBurstDuration;
-  double  mTapCodeSGap;
-  double  mTapCodeLGap;
-  double  mTapCodeSeparation;
-}
+        lSamples.PutRange(lIndex, lTap.Samples);
 
-
-public sealed class TapCodeMaskNoiseGenerator : NoiseGenerator
-{
-  public override DiscreteSignal Generate(Args aArgs)
-  {
-    DContext.WriteLine("Generate MaskNoise");
-
-    // This is the duration of the individual burst pulse of a single tap
-    double lBurstDuration_IN_Seconds = aArgs.GetOptionalDouble("MaskNoise_BurstDuration").GetValueOrDefault(0.3);
-
-    // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
-    double lTapCodeSGap = .5 * lBurstDuration_IN_Seconds ;
-
-    // This is the LONG Gap between the ROW and the COLUMN in a tap code
-    double lTapCodeLGap =  2 * lBurstDuration_IN_Seconds ;
-
-    // This is the separation between two tap codes
-    double lTapCodeSeparation = 5 * lBurstDuration_IN_Seconds ;
-
-    double lMaxTapCodeRowColSize = 3 ;
-
-    double lMaxTapCodeRowColLen = lMaxTapCodeRowColSize * (lBurstDuration_IN_Seconds + lTapCodeSGap);
-    double lMaxTapCodeLen       = lMaxTapCodeRowColLen + lTapCodeLGap + lMaxTapCodeRowColLen ;
-    double lMaxTapCodePeriod    = lMaxTapCodeLen + lTapCodeSeparation ;
-
-    // lMaxTapCodePeriod corresponds to 1 single bit
-
-    double lPerBytePeriod = lMaxTapCodePeriod * 8 ;
-
-    int lTotalLengthInBytes = aArgs.GetOptionalInt("MaskNoise_LengthInBytes").GetValueOrDefault(50);  
-
-    double lTotalSignalDuration_IN_Seconds = lTotalLengthInBytes * lPerBytePeriod ;
-
-    double lLevel = aArgs.GetOptionalDouble("MaskNoise_CarrierLevel").GetValueOrDefault(1);
-
-    var rResult = NoiseLab.GenerateNoise(lTotalSignalDuration_IN_Seconds, lLevel);
-
-    if (DContext.Session.Args.GetBool("Plot"))
-    {
-      rResult.Save(DContext.Session.LogFile($"_carrier.wav"));
-    }
-
-    List<TapCode> lCodes = new List<TapCode>(){ new TapCode(1,1)
-                                              , new TapCode(1,3)
-                                              , new TapCode(3,1)
-                                              , new TapCode(3,3)
-
-                                              , new TapCode(1,2)
-                                              , new TapCode(2,1)
-                                              , new TapCode(2,3)
-                                              , new TapCode(3,2) };
-
-    List<DiscreteSignal> lMasks = new List<DiscreteSignal>();
-
-    foreach (var lCode in lCodes)
-    {
-      var lMask = new TapCodeMaskSignal(lCode, lBurstDuration_IN_Seconds, lTapCodeSGap, lTapCodeLGap, lTapCodeSeparation);
-
-      var lMaskSignal = lMask.BuildSignal(lTotalSignalDuration_IN_Seconds);
-
-      if (DContext.Session.Args.GetBool("Plot"))
-      {
-        lMaskSignal.Save( DContext.Session.LogFile($"mask_{lCode.Row}_{lCode.Col}.wav"));
+        lTime += lTap.Duration + mParams.TapCodeSeparation ;
       }
 
-      lMasks.Add(lMaskSignal);
+      int lTotalSampleCount = (int)Math.Ceiling(lTime * SIG.SamplingRate) + 1 ;
+
+      DiscreteSignal rModulated = new DiscreteSignal(SIG.SamplingRate, lSamples.ToArray(lTotalSampleCount));
+
+      DiscreteSignal rNoisy = rModulated.AddWHiteNoise(.3);
+
+      return rNoisy;
     }
 
-    NoiseLab.ModulateNoise(rResult, lMasks);
+    public override string Name => this.GetType().Name ;  
 
-    return rResult ;
+    readonly Params mParams ;
+
   }
-}
-
 }

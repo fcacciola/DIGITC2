@@ -9,7 +9,7 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
 {
   public override void Run( Args aArgs  )
   {
-    string lArg = aArgs.Get("Audio" ) ;
+    string lArg = aArgs.Get("InputAudioFile" ) ;
 
     List<string> lFiles = new List<string>() ;
 

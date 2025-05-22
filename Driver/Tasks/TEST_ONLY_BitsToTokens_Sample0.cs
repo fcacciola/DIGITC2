@@ -2,7 +2,7 @@ using DIGITC2_ENGINE ;
 
 namespace DIGITC2 {
 
-public class BitsToTokens_Sample0 
+public class TEST_ONLY_BitsToTokens_Sample0 
 {
   public static void Run( Args aArgs )
   {

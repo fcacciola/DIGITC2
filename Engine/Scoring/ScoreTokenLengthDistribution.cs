@@ -60,7 +60,7 @@ namespace DIGITC2_ENGINE
       rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
     }
 
-    protected override string Name => "ScoreTokenLengthDistribution" ;
+    public override string Name => this.GetType().Name ;
 
     int        mQuitThreshold;
     FitnessMap mFitnessMap ;

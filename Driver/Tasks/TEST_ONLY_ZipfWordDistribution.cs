@@ -9,11 +9,11 @@ using DIGITC2_ENGINE ;
 
 namespace DIGITC2 {
 
-public class ZipfWordDistribution
+public class TEST_ONLY_ZipfWordDistribution
 {
   public static void Run( Args aArgs )
   {
-    DContext.Setup( new Session("ZipfWordDistribution", aArgs, Task.BaseFolder) ) ;
+    DContext.Setup( new Session("TEST_ONLY_ZipfWordDistribution", aArgs, Task.BaseFolder) ) ;
 
     DContext.WriteLine("Zipf Word Distribution");
 

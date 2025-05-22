@@ -17,51 +17,85 @@ namespace DIGITC2_ENGINE
       Args             = aArgs;
       BaseFolder       = aBaseFolder ;
       InputFolder      = Path.Combine(BaseFolder,"Input") ; 
-      OutputRootFolder = Path.Combine(BaseFolder,"Output",Name) ; 
-
-      Utils.SetupFolder(OutputRootFolder);
-
-      OutputProcessorFolder = OutputRootFolder; 
-      Utils.SetupFolder(LogsFolder);
+      RootOutputFolder = Path.Combine(BaseFolder,"Output") ; 
     }  
 
-    public void SetupSlice( string aSliceName)
+    public void Setup()
     {
-      OutputSliceFolder = Path.Combine(OutputRootFolder, aSliceName);
-      Utils.SetupFolder(OutputSliceFolder);
+      Utils.SetupFolder(InputFolder);
+      Utils.SetupFolder(RootOutputFolder);
+
+      PushFolder(Name);
+
+      RootResultsFolder = PushFolder("Results", false);
+
+      Utils.SetupFolder($"{RootResultsFolder}\\Undefined");
+      Utils.SetupFolder($"{RootResultsFolder}\\Discarded");
+      Utils.SetupFolder($"{RootResultsFolder}\\Poor");
+      Utils.SetupFolder($"{RootResultsFolder}\\Good");
+      Utils.SetupFolder($"{RootResultsFolder}\\Excelent");
+      Utils.SetupFolder($"{RootResultsFolder}\\Perfect");
+
+      PopFolder();
     }
 
-    public void SetupProcessor( string aProcessorName)
+    public void Shutdown()
     {
-      OutputProcessorFolder = Path.Combine( OutputSliceFolder ?? OutputRootFolder, aProcessorName);
-      Utils.SetupFolder(OutputProcessorFolder);
-      Utils.SetupFolder(LogsFolder);
-      Utils.SetupFolder(ResultsFolder);
-      Utils.SetupFolder($"{ResultsFolder}/Undefined");
-      Utils.SetupFolder($"{ResultsFolder}/Discarded");
-      Utils.SetupFolder($"{ResultsFolder}/Poor");
-      Utils.SetupFolder($"{ResultsFolder}/Good");
-      Utils.SetupFolder($"{ResultsFolder}/Excelent");
-      Utils.SetupFolder($"{ResultsFolder}/Perfect");
     }
 
-    public string LogsFolder    => $"{OutputProcessorFolder}/Logs";  
-    public string ResultsFolder => $"{OutputProcessorFolder}/Results"; 
+    public string PushFolder( string aOutputFolder, bool aSetpLogsFolder = true)
+    {
+      FoldersStack.Push(aOutputFolder); 
+
+      return BuildCurrentFolder(aSetpLogsFolder);
+    }
+
+    public string PopFolder()
+    {
+      FoldersStack.Pop();
+
+      return BuildCurrentFolder();
+    }
+
+    string BuildCurrentFolder( bool aSetpLogsFolder )
+    {
+      List<string > lFolders = new List<string> ();
+
+      lFolders.Add(RootOutputFolder);
+      foreach (string lFolder in FoldersStack.Reverse()) 
+        lFolders.Add(lFolder);
+
+      CurrentOutputFolder = string.Join("\\", lFolders); 
+
+      Utils.SetupFolder(CurrentOutputFolder);
+
+      CurrentLogsFolder = $"{CurrentOutputFolder}\\Logs" ;
+
+      Utils.SetupFolder(CurrentLogsFolder);
+
+      return CurrentOutputFolder;
+    }
 
     public string Name ;
     public Args   Args ;
     public string BaseFolder ;
     public string InputFolder ;
-    public string OutputRootFolder ;
-    public string OutputSliceFolder;
-    public string OutputProcessorFolder ;
+    public string RootOutputFolder ;
+    public string GeneralLogsFolder ;
+    public string CurrentOutputFolder ;
+    public string CurrentLogsFolder ;
+    public string RootResultsFolder ;
+
+    public Stack<string> FoldersStack = new Stack<string>();
+
 
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
-    public string LogFile       ( string aFilename ) => $"{LogsFolder}/{aFilename}";
+
+    public string LogFile       ( string aFilename ) => $"{CurrentLogsFolder}/{aFilename}";
 
     public string TraceFile    => LogFile("Log.txt");
 
-    public string ReportFile( ResultPath aResult ) => $"{ResultsFolder}/{aResult.Fitness}/Report.txt";
+    public string ReportFile( ResultPath aResult ) => $"{RootResultsFolder}/{aResult.Fitness}/Report.txt";
 
 
 

@@ -30,9 +30,9 @@ namespace DIGITC2_ENGINE
     public double GetDouble(string aKey) => GetOptionalDouble(aKey) ?? 0.0;
     public bool   GetBool  (string aKey) => GetOptionalBool  (aKey) ?? false;
 
-    bool isValidLine(string line)
+    bool IsValidLine(string line)
     {
-      return !line.StartsWith("#") && line.Contains("=");
+      return !line.StartsWith("#") && !line.StartsWith("//") && line.Contains("=");
     }
 
     Args( IDictionary<string, string> aArgs )  
@@ -92,7 +92,7 @@ namespace DIGITC2_ENGINE
       if ( File.Exists(file) )
       {
         var lRead = File.ReadLines(file)
-                        .Where(isValidLine)
+                        .Where(IsValidLine)
                         .Select(line => line.Split('='))
                         .ToDictionary(line => line[0], line => line[1]);
 

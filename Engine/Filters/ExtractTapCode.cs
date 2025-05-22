@@ -350,7 +350,7 @@ namespace DIGITC2_ENGINE
       return rCodes.First() ;
     }
 
-    protected override string Name => "ExtractTapCode" ;
+    public override string Name => this.GetType().Name ;
 
     int mMinTapCount ;
 

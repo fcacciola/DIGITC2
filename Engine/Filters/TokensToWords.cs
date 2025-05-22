@@ -82,7 +82,7 @@ namespace DIGITC2_ENGINE
     }
 
 
-    protected override string Name => "TokenToWords" ;
+    public override string Name => this.GetType().Name ;
 
     class Options
     {

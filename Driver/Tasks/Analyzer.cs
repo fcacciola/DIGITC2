@@ -10,7 +10,7 @@ public sealed class AnalyzerTask : DecodingTask
 { 
   public override void Run( Args aArgs  )
   {
-    string lArg = aArgs.Get("Audio" ) ;
+    string lArg = aArgs.Get("InputAudioFile" ) ;
 
     List<string> lFiles = new List<string>() ;
 

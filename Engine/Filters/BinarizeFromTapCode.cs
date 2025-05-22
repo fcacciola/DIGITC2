@@ -75,7 +75,7 @@ public class BinarizeFromTapCode : LexicalFilter
       rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lBits), aSquare.Name ) ) ;
   }
 
-  protected override string Name => "BinarizeFromTapCode" ;
+  public override string Name => this.GetType().Name ;
 
   int mMinBitCount ;
   Branch.Selection mBranchSelection ;

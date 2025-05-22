@@ -4,7 +4,7 @@ using DIGITC2_ENGINE ;
 
 namespace DIGITC2 {
 
-public sealed class FromRandomBits : DecodingTask
+public sealed class TEST_ONLY_FromRandomBits : DecodingTask
 {
   public override void Run( Args aArgs )
   {

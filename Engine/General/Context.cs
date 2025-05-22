@@ -38,6 +38,8 @@ namespace DIGITC2_ENGINE
       {
         mSession = aSession ; 
 
+        mSession.Setup();
+
         if ( !string.IsNullOrEmpty(mSession.TraceFile) )
         {
           if ( File.Exists( mSession.TraceFile ) )
@@ -61,6 +63,8 @@ namespace DIGITC2_ENGINE
     {
       mMonitors.ForEach( m => m.Close()  );
       mMonitors.Clear();
+
+      mSession.Shutdown();
     }
 
     void Write_( string aS )
