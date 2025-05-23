@@ -8,57 +8,160 @@ using System.Threading.Tasks;
 
 namespace DIGITC2_ENGINE
 {
-  public class Processor
+  
+  public class ProcessingBranch
   {
-    public Processor( string aName )
+    public ProcessingBranch( string aName = "Main" )
     { 
-      Name = aName ;
+      Name = aName;
     }
 
-    public Processor Add( Filter aFilter ) 
+    public void Start( Signal aStartSignal ) 
+    {
+      mStartToken = new ProcessingToken(null, aStartSignal, "") ;
+
+      mFilters.ForEach( filter => filter.Setup() ) ;
+    }
+
+    public void End()
+    {
+      mFilters.ForEach( filter => filter.Cleanup() ) ;
+    }
+
+    public ProcessingBranch Add( Filter aFilter ) 
     {
       mFilters.Add( aFilter ) ;
       return this ;
     }
 
-    public Processor Then ( Processor aNext )
+    public ProcessingBranch Then ( ProcessingBranch aNext )
     {
       aNext.mFilters.ForEach( f => Add( f ) ) ;
 
-      Name = $"{Name}--{aNext.Name}";
-
       return this ;
     }
-
-    public Result Process( Signal aInput )
+    
+    public ProcessingBranch NewBranch( ProcessingToken aToken )
     {
-      Result rR = new Result();
+      var lRemainingFilters = mFilters.Skip(mFilterIdx).ToList() ;
 
-      DContext.Session.PushFolder("Process");
+      if ( lRemainingFilters.Count == 0 )
+           return null ;
+      else return new ProcessingBranch( aToken, mLevel + 1, lRemainingFilters ) ;
+    }
 
-      try
+    public BranchResult Process( Processor aProcessor )
+    {
+      BranchResult rResult = new BranchResult() ;  
+
+      mFilterIdx = 0  ;
+
+      var lTransientToken = mStartToken ;
+
+      int lFoldersCount = 0 ;
+
+      foreach( var lFilter in mFilters )
       {
-        var lStep = rR.AddFirst(aInput) ;
+        DContext.Session.PushFolder(lFilter.Name);
+        lFoldersCount++;
+        
+        var lOutput = lFilter.Apply(lTransientToken);
 
-        mFilters.ForEach( f => f.Setup() ) ;
+        if ( lOutput.Count > 0 )
+        {
+          lTransientToken = lOutput.First() ; 
 
-        foreach( var lFilter in mFilters )
-        {  
-          lStep = lFilter.Apply(lStep);
-          if ( lStep != null )
+          if ( lTransientToken != null )
           {
-            rR.Add( lStep ) ;
+            rResult.Add( lTransientToken ) ;
 
-            if ( lStep.ShouldQuit )
+            if ( lTransientToken.ShouldQuit )
             {
-              DContext.WriteLine("Filter asked to Quit Processor");
+              DContext.WriteLine("Filter asked to Quit Processor.");
               break ;
             }
           }
 
+          for ( int i = 1 ; i < lOutput.Count ; i++ ) 
+            aProcessor.EnqueueBranch( NewBranch( lOutput[i] ) ) ; 
+        }
+        else
+        {
+          DContext.WriteLine("Filter returned NO result. Quitting.");
+          break ;
         }
 
-        mFilters.ForEach( f => { f.Cleanup() ;  DContext.Session.PopFolder() ; } ) ;
+        mFilterIdx = mFilterIdx + 1  ;
+      }
+
+      for( int i = 0 ; i < lFoldersCount ; ++ i )
+        DContext.Session.PopFolder();
+
+      return rResult ;  
+    }
+
+    public string Name { get ; private set ; }
+
+    public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartToken.Signal} RFCount={mFilters.Count}]" ;
+
+    ProcessingBranch( ProcessingToken aToken, int aLevel, List<Filter> aFilters )
+    { 
+      Name = aToken.Name ;  
+
+      mStartToken = aToken ;  
+      mLevel      = aLevel ;
+      mFilters    = aFilters ;
+      mFilterIdx  = 0 ; 
+    }
+
+    List<Filter>    mFilters   = new List<Filter>();
+    ProcessingToken mStartToken     = null ;
+    int             mLevel     = 0 ;
+    int             mFilterIdx = 0 ;  
+
+  }
+
+  public class Processor
+  {
+    public static Result Process ( string aName, ProcessingBranch aMainBranch, Signal aStartSignal )
+    {
+      var lProcessor = new Processor(aName, aMainBranch);
+      return lProcessor.Process( aStartSignal ) ;
+    }
+
+    public Processor( string aName, ProcessingBranch aMainBranch )
+    {
+      mName = aName ;
+      mBranches.Enqueue( aMainBranch ) ;  
+    }
+
+    public Result Process( Signal aStartSignal )
+    {
+      Result rR = new Result();
+
+      DContext.Session.PushFolder(aStartSignal.Name);
+
+      try
+      {
+        var lBaseBranch = mBranches.Peek() ;
+
+        lBaseBranch.Start(aStartSignal) ;
+
+        do
+        {
+          var lProcessingBranch = mBranches.Peek(); mBranches.Dequeue();
+
+          DContext.Session.PushFolder(lProcessingBranch.Name);
+
+          var lBranchResult = lProcessingBranch.Process(this);
+
+          DContext.Session.PopFolder(); 
+
+          rR.Add(lBranchResult) ; 
+        }
+        while (mBranches.Count > 0);
+
+        lBaseBranch.End();
 
         rR.Setup();
       }
@@ -72,9 +175,30 @@ namespace DIGITC2_ENGINE
       return rR ;  
     }
 
-    public static Processor FromAudioToBits_ByPulseDuration()
+    public void EnqueueBranch ( ProcessingBranch aBranch ) 
     {
-      var rProcessor = new Processor("FromAudioToBits_ByPulseDuration");
+      mBranches.Enqueue( aBranch ) ;  
+    }
+
+    string mName ;
+
+    Queue<ProcessingBranch> mBranches = new Queue<ProcessingBranch>();  
+  }
+
+  public class ProcessorFactory
+  {
+    public ProcessorFactory()
+    {
+      //mMap.Add("TapCode", ProcessorFactory.FromAudioToBits_ByTapCode().Then(ProcessorFactory.FromBits()) ) ;
+    }
+
+//    public IEnumerable<Processor> EnumProcessors => mMap.Values ;
+
+    //Dictionary<string,Processor> mMap = new Dictionary<string,Processor>();
+
+    public static ProcessingBranch FromAudioToBits_ByPulseDuration()
+    {
+      var rProcessor = new ProcessingBranch();
 
       rProcessor.Add( new Envelope() )
                 .Add( new Discretize() )
@@ -84,9 +208,9 @@ namespace DIGITC2_ENGINE
       return rProcessor ;
     }
 
-    public static Processor FromAudioToBits_ByTapCode()
+    public static ProcessingBranch FromAudioToBits_ByTapCode()
     {
-      var rProcessor = new Processor("FromAudioToBits_ByTapCode");
+      var rProcessor = new ProcessingBranch();
 
       rProcessor.Add( new SplitBands() )
                 .Add( new Envelope() )
@@ -98,9 +222,9 @@ namespace DIGITC2_ENGINE
       return rProcessor ;
     }
 
-    public static Processor FromBits()
+    public static ProcessingBranch FromBits()
     {
-      var rProcessor = new Processor("FromBits");
+      var rProcessor = new ProcessingBranch();
 
       rProcessor.Add( new BinaryToBytes())
                 .Add( new ScoreBytesAsLanguageDigits())
@@ -112,9 +236,9 @@ namespace DIGITC2_ENGINE
       return rProcessor ;
     }
 
-    public static Processor FromAudio_ByCode_ToDirectLetters()
+    public static ProcessingBranch FromAudio_ByCode_ToDirectLetters()
     {
-      var rProcessor = new Processor("FromAudio_ByCode_ToDirectLetters");
+      var rProcessor = new ProcessingBranch();
 
       rProcessor.Add( new Envelope() )
                 .Add( new Discretize() )
@@ -130,21 +254,6 @@ namespace DIGITC2_ENGINE
       return rProcessor ;
     }
 
-    public string Name ;
-
-    List<Filter> mFilters = new List<Filter>();
-  }
-
-  public class ProcessorFactory
-  {
-    public ProcessorFactory()
-    {
-      mMap.Add("TapCode", Processor.FromAudioToBits_ByTapCode().Then(Processor.FromBits()) ) ;
-    }
-
-    public IEnumerable<Processor> EnumProcessors => mMap.Values ;
-
-    Dictionary<string,Processor> mMap = new Dictionary<string,Processor>();
   }
 
   

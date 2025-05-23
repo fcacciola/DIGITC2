@@ -27,7 +27,7 @@ namespace DIGITC2_ENGINE
       mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
-    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0,50,1);
 
@@ -57,7 +57,7 @@ namespace DIGITC2_ENGINE
         lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_RankSize.png"));
       }
 
-      rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
+      rOutput.Add( new ProcessingToken(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
     }
 
     public override string Name => this.GetType().Name ;

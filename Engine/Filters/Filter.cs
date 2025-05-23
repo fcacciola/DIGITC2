@@ -11,52 +11,37 @@ namespace DIGITC2_ENGINE
     public virtual void Setup() {}
     public virtual void Cleanup() {}
 
-    public Step Apply( Step aInput ) 
+    public List<ProcessingToken> Apply( ProcessingToken aInput ) 
     {
-      if ( mStep == null )
+      List<ProcessingToken> rOutput = new List<ProcessingToken>();
+
+      try
       {
-        List<Branch> lOutput = new List<Branch>();
+        DoApply(aInput, rOutput);
+      }
+      catch ( Exception x )
+      {
+        if ( rOutput.Count > 0 ) 
+          rOutput.First().ShouldQuit = true ;
 
-        foreach ( Branch lBranch in aInput.Branches ) 
-        {
-          if ( ! lBranch.ShouldQuit )
-          {
-            DContext.Session.PushFolder( $"{Name}_{lBranch.Name}");
-
-            try
-            {
-              DoApply(lBranch, lOutput);
-            }
-            catch ( Exception x )
-            {
-              lBranch.ShouldQuit = true ;
-              DContext.Error(x);
-            }
-
-            DContext.Session.PopFolder();
-          }
-        }
-
-        mStep = new Step(this,lOutput); 
+        DContext.Error(x);
       }
 
-      return mStep;
+      return rOutput; 
     }
 
-    protected abstract void DoApply( Branch aInput, List<Branch> rOutput ) ;
+    protected abstract void DoApply( ProcessingToken aInput, List<ProcessingToken> rOutput ) ;
 
     public abstract string Name { get; } 
 
     public override string ToString() => Name ;
-
-    protected Step mStep ;
   }
 
   public abstract class WaveFilter : Filter
   {
     protected WaveFilter() : base() {}
 
-    protected override void DoApply( Branch aInput, List<Branch> rOuput )
+    protected override void DoApply( ProcessingToken aInput, List<ProcessingToken> rOuput )
     {
       WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
       if ( lWaveSignal == null )
@@ -65,7 +50,7 @@ namespace DIGITC2_ENGINE
       Process(lWaveSignal, aInput, rOuput);
     }
     
-    protected abstract void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput );  
+    protected abstract void Process ( WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput );  
 
   }
 
@@ -73,7 +58,7 @@ namespace DIGITC2_ENGINE
   {
     protected LexicalFilter() : base() {}
 
-    protected override void DoApply( Branch aInput, List<Branch> rOuput )
+    protected override void DoApply( ProcessingToken aInput, List<ProcessingToken> rOuput )
     {
       LexicalSignal lLexicalSignal = aInput.Signal as LexicalSignal; 
       if ( lLexicalSignal == null )
@@ -82,7 +67,7 @@ namespace DIGITC2_ENGINE
       Process(lLexicalSignal, aInput, rOuput );
     }
     
-    protected abstract void Process(LexicalSignal aInput, Branch aInputBranch, List<Branch> rOuput);  
+    protected abstract void Process(LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput);  
 
   }
 

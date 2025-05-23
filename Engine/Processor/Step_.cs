@@ -12,21 +12,22 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 namespace DIGITC2_ENGINE
 {
 
-  public class Step 
+  public class Step_ 
   {
-    public Step( Filter aFilter, List<Branch> aBranches )
+    public Step_( Processor aProcessor, Filter aFilter )
     {
-      Filter = aFilter; 
-      Branches.AddRange( aBranches) ; 
+      Processor = aProcessor; 
+      Filter    = aFilter; 
     }
 
-    public bool ShouldQuit => Branches.All( b => b.ShouldQuit );
+//    public bool ShouldQuit => Branches.All( b => b.ShouldQuit );
 
     public override string ToString() => Filter.ToString();
 
+    public Processor    Processor ;
     public int          Idx ;
     public Filter       Filter ;
-    public List<Branch> Branches = new List<Branch>();
+    public List<ProcessingToken> Branches = new List<ProcessingToken>();
     
   }
  

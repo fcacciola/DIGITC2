@@ -18,10 +18,10 @@ public class TapCodeToBytes : LexicalFilter
 
   public override void Setup()
   { 
-    mBranchSelection = new Branch.Selection(DContext.Session.Args.Get("TapCodeToBytes_Branches"));
+    mBranchSelection = new ProcessingToken.Selection(DContext.Session.Args.Get("TapCodeToBytes_Branches"));
   }
 
-  protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+  protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
   {
     DContext.WriteLine("Decoding Tap Codes as Bytes from Latin-alphabet Polybius Squares");
     DContext.Indent();
@@ -36,7 +36,7 @@ public class TapCodeToBytes : LexicalFilter
       ProcessCodes(aInputBranch, lCodes, PolybiusSquare.LatinAlphabet_Extended, rOutput);
   }
 
-  void ProcessCodes( Branch aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<Branch> rOutput )
+  void ProcessCodes( ProcessingToken aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<ProcessingToken> rOutput )
   {
     List<string> lRawLetters = aCodes.ConvertAll( code => { string rLetter = aSquare.Decode(code) ; DContext.WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
 
@@ -55,13 +55,13 @@ public class TapCodeToBytes : LexicalFilter
     }
 
     if ( lByteSymbols.Count > 0 )
-      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
+      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
   }
 
 
   public override string Name => this.GetType().Name ;
 
-  Branch.Selection mBranchSelection ;
+  ProcessingToken.Selection mBranchSelection ;
 }
 
 }

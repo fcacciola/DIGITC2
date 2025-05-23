@@ -141,9 +141,6 @@
     <Content Include="Input\Samples\Sample-9.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Tasks\Analyzer.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
     <Compile Include="Tasks\FromAudio_ByTapCode_DirectLetters.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
@@ -153,22 +150,7 @@
     <Compile Include="Tasks\Generate_MockAudio_WithTapCode.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Tasks\TEST_ONLY_FromMultipleTextSizes.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Tasks\TEST_ONLY_ZipfWordDistribution.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Tasks\TEST_ONLY_FromRandomBits.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Tasks\TEST_ONLY_FromLargeText.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
     <Compile Include="Tasks\FromAudio_ByDuration.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Tasks\TEST_ONLY_BitsToTokens_Sample0.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Program.cs" />

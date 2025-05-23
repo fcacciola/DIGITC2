@@ -65,16 +65,16 @@ namespace DIGITC2_ENGINE
       return new Gate($"{aResolution}_steps", lThresholds);
     }
 
-    protected override void Process ( WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
+    protected override void Process ( WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput )
     {
       Process(mResolution, aInput, aInputBranch, rOuput);
     }
 
-    void Process ( int aResolution, WaveSignal aInput, Branch aInputBranch, List<Branch> rOuput )
+    void Process ( int aResolution, WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput )
     {
       var lR = Apply( aInput, CreateGate(aResolution) ) ;
 
-      rOuput.Add( new Branch(aInputBranch, lR, $"Resolution:{aResolution}") ) ;
+      rOuput.Add( new ProcessingToken(aInputBranch, lR, $"Resolution:{aResolution}") ) ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )

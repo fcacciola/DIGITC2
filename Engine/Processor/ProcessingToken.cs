@@ -11,12 +11,12 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2_ENGINE
 {
-  public abstract class BranchData
+  public abstract class FilterData
   {
 
   }
 
-  public class Branch 
+  public class ProcessingToken 
   {
     public class Selection
     {
@@ -42,7 +42,7 @@ namespace DIGITC2_ENGINE
       List<string> mActiveBranches = new List<string>();
     }
 
-    public Branch( Branch aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, BranchData aData = null )
+    public ProcessingToken( ProcessingToken aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, FilterData aData = null )
     {
       Prev       = aPrev ;
       Signal     = aSignal;
@@ -52,17 +52,17 @@ namespace DIGITC2_ENGINE
       Data       = aData;
     }
 
-    static public Branch Quit( Branch aPrev, string aLabel ) => new Branch(aPrev, null, aLabel, null, true, null );
+    static public ProcessingToken Quit( ProcessingToken aPrev, string aLabel ) => new ProcessingToken(aPrev, null, aLabel, null, true, null );
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Branch     Prev       ;
-    public Signal     Signal     ;
-    public string     Name       ;
-    public Score      Score      ;
-    public bool       ShouldQuit ;
-    public BranchData Data       ;
-    public int        Idx        ;
+    public ProcessingToken Prev       ;
+    public Signal          Signal     ;
+    public string          Name       ;
+    public Score           Score      ;
+    public bool            ShouldQuit ;
+    public FilterData      Data       ;
+    public int             Idx        ;
   }
 
    

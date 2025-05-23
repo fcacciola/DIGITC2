@@ -32,14 +32,14 @@ public class OutcomeSummary
 
 public class OutcomeBranch
 {
-  public OutcomeBranch( ResultPath aResult ) 
+  public OutcomeBranch( BranchResult aResult ) 
   {
     Result = aResult ;
   }
 
   public string Name ;
 
-  public ResultPath Result;
+  public BranchResult Result;
 
   public override string ToString() => Name ;
 }
@@ -73,7 +73,6 @@ public class OutcomePipeline
 
   public List<OutcomeSlice> Slices = new List<OutcomeSlice>(); 
 
-  public override string ToString() => Processor.Name ;
 }
 
 public class Outcome
@@ -160,7 +159,7 @@ public class Analyzer
 
               var lResult = lProcessor.Process(lSlice.Signal);
 
-              var lReports = lResult.Save();
+              var lReports = lResult.Report();
 
               OutcomeSlice lOS = new OutcomeSlice(lSlice, lResult);
 

@@ -27,13 +27,21 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
 
   void RunWithFile( Args aArgs, string aWaveFilename  )
   {
-    DContext.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, Task.BaseFolder) ) ;
+    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, Task.BaseFolder) ;
+
+    DContext.Setup(lSession) ;
 
     if ( File.Exists( aWaveFilename ) )
     {
       var lSource = new WaveFileSource(aWaveFilename) ;
 
-      Processor.FromAudioToBits_ByPulseDuration().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
+      var lSignal = lSource.CreateSignal() ;
+
+      var lPipeline = ProcessorFactory.FromAudioToBits_ByPulseDuration().Then( ProcessorFactory.FromBits() ) ;
+
+      var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
+
+      lResult.Save() ;
     }
     else
     {

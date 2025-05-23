@@ -154,7 +154,7 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process (WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       Process( new Options(){ Label = "A"
                             , VeryShortThreshold = 441 // 10 ms
@@ -168,7 +168,7 @@ namespace DIGITC2_ENGINE
 
     }
 
-    void Process ( Options aOptions, WaveSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    void Process ( Options aOptions, WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       mInput   = aInput ; 
 
@@ -179,7 +179,7 @@ namespace DIGITC2_ENGINE
       SplitPulses();  
       RemoveUnfitPulses();
 
-      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
+      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
     }
     
     public override string Name => this.GetType().Name ;

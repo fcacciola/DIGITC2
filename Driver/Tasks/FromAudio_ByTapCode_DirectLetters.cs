@@ -27,13 +27,21 @@ public sealed class FromAudio_ByTapCode_DirectLetters : DecodingTask
 
   void RunWithFile( Args aArgs, string aWaveFilename  )
   {
-    DContext.Setup( new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder) ) ;
+    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder)  ;
+
+    DContext.Setup( lSession) ;
 
     if ( File.Exists( aWaveFilename ) )
     {
       var lSource = new WaveFileSource(aWaveFilename) ;
 
-      Processor.FromAudio_ByCode_ToDirectLetters().Process( lSource.CreateSignal() ).Save() ;
+      var lSignal = lSource.CreateSignal() ;
+
+      var lPipeline = ProcessorFactory.FromAudio_ByCode_ToDirectLetters() ;
+
+      var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
+
+      lResult.Save() ;
     }
     else
     {

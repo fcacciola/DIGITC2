@@ -12,22 +12,26 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2_ENGINE
 {
-  public class ResultPath  
+  public class BranchResult  
   {
-    public void Setup()
+    public void Add( ProcessingToken aToken )
     {
-      int lPoorestFitness = (int)Fitness.Undefined ;
-
-      PathBranches.ForEach( s => lPoorestFitness = Math.Min( (int)(s.Score?.Fitness).GetValueOrDefault(Fitness.Undefined), lPoorestFitness) ) ;
-
-      Fitness = (Fitness)lPoorestFitness ;
+      Tokens.Add( aToken ); 
     }
 
-    public List<Branch> PathBranches = new List<Branch>();
+    public void Setup()
+    {
+      //int lPoorestFitness = (int)Fitness.Undefined ;
+
+      //PathBranches.ForEach( s => lPoorestFitness = Math.Min( (int)(s.Score?.Fitness).GetValueOrDefault(Fitness.Undefined), lPoorestFitness) ) ;
+
+      //Fitness = (Fitness)lPoorestFitness ;
+    }
+
 
     public Fitness Fitness = Fitness.Undefined;
 
-    public string Save() 
+    public string Report() 
     {
       //Reporter lReporter = new Reporter();
 
@@ -35,53 +39,43 @@ namespace DIGITC2_ENGINE
 
       //string lReport = lReporter.GetReport();
 
-      string rOutputFile = DContext.Session.ReportFile(this);
+//      string rOutputFile = DContext.Session.ReportFile(this);
 
       //File.WriteAllText( rOutputFile, lReport );
 
-      return rOutputFile;
+      //return rOutputFile;
+
+      return "" ;
     }
 
+    public List<ProcessingToken> Tokens = new List<ProcessingToken>();
   }
 
   public class Result 
   {
     public Result() {}
 
-    public Step AddFirst( Signal aInput)
+    public void Add( BranchResult aBranchResult )
     {
-      var lFirstBranch = new List<Branch>(){ new Branch(null, aInput,"Start",null,false,null) };
-      return Add( new Step(null, lFirstBranch) ) ;
-    }
-
-    public Step Add( Step aStep )
-    {
-      aStep.Idx = Steps.Count;
-      Steps.Add( aStep ) ;
-      return aStep ;
+      mBranchResults.Add( aBranchResult );
     }
 
     public void Setup()
     {
-      Step lLastStep = Steps.Last();
-      foreach (Branch lBranch in lLastStep.Branches)
-      {
-        ResultPath lPath = new ResultPath();
-
-        for (Branch lCurr = lBranch; lCurr != null; lCurr = lCurr.Prev)
-          lPath.PathBranches.Add(lCurr);
-
-        Paths.Add(lPath);
-      }
+      mBranchResults.ForEach( r => r.Setup() );
     }
 
-    public List<Step>       Steps = new List<Step>();
-    public List<ResultPath> Paths = new List<ResultPath>();
-
-    public List<string> Save() 
+    public List<string> Report() 
     {
-      return Paths.ConvertAll( p => p.Save() );
+      return mBranchResults.ConvertAll( p => p.Report() );
     }
+
+    public void Save()
+    {
+
+    }
+
+    List<BranchResult> mBranchResults = new List<BranchResult>(); 
   }
 
   

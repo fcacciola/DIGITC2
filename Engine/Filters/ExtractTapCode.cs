@@ -110,7 +110,7 @@ namespace DIGITC2_ENGINE
       return rTaps ; 
     }
 
-    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       DContext.WriteLine("Decoding Taps...");
       DContext.Indent();
@@ -120,7 +120,7 @@ namespace DIGITC2_ENGINE
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count == 0 )
       {
-        rOutput.Add( Branch.Quit(aInputBranch, "TapCodes") ) ;
+        rOutput.Add( ProcessingToken.Quit(aInputBranch, "TapCodes") ) ;
         return ;
       }
 
@@ -173,7 +173,7 @@ namespace DIGITC2_ENGINE
       int lIdx = 0 ;
       var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
+      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lSymbols), "TapCodes") ) ;
 
       DContext.Unindent();  
     }

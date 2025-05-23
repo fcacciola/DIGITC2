@@ -16,7 +16,7 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       rOutput.Add(aInputBranch);
     }

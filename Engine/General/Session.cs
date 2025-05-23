@@ -94,7 +94,7 @@ namespace DIGITC2_ENGINE
 
     public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
 
-    public string ReportFile( ResultPath aResult ) => $"{RootResultsFolder}/{aResult.Fitness}/Report.txt";
+    public string ReportFile( BranchResult aResult ) => $"{RootResultsFolder}/{aResult.Fitness}/Report.txt";
 
 
 

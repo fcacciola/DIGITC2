@@ -29,13 +29,21 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
   {
     string lWaveFilename = ExpandRelativeFilePath(aWaveFilename) ;
 
-    DContext.Setup( new Session("FromAudio_ByTapCode_Binary_using_file_" +  Path.GetFileNameWithoutExtension(lWaveFilename), aArgs, BaseFolder) ) ;
+    var lSession = new Session( this.GetType().Name, aArgs, BaseFolder);
+
+    DContext.Setup( lSession ) ;
 
     if ( File.Exists( lWaveFilename ) )
     {
       var lSource = new WaveFileSource(lWaveFilename) ;
 
-      Processor.FromAudioToBits_ByTapCode().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
+      var lSignal = lSource.CreateSignal() ;
+
+      var lPipeline = ProcessorFactory.FromAudioToBits_ByTapCode().Then( ProcessorFactory.FromBits() ) ;
+
+      var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
+
+      lResult.Save() ;
     }
     else
     {

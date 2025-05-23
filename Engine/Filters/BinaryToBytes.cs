@@ -18,10 +18,10 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mBranchSelection = new Branch.Selection(DContext.Session.Args.Get("BinaryToBytes_Branches"));
+      mBranchSelection = new ProcessingToken.Selection(DContext.Session.Args.Get("BinaryToBytes_Branches"));
     }
 
-    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       if ( mBranchSelection.IsActive("5") )
         Process(5, aInput, aInputBranch, rOutput);
@@ -46,7 +46,7 @@ namespace DIGITC2_ENGINE
       return rByte;
     }
 
-    void Process ( int aBitsPerByte, LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    void Process ( int aBitsPerByte, LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
       var lSymbols = aInput.GetSymbols<BitSymbol>() ;
 
@@ -84,12 +84,12 @@ namespace DIGITC2_ENGINE
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new Branch(aInputBranch, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
+      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
     }
 
     public override string Name => this.GetType().Name ;
 
-    Branch.Selection mBranchSelection ;
+    ProcessingToken.Selection mBranchSelection ;
   }
 
 }

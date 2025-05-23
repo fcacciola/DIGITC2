@@ -246,7 +246,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    protected override void Process (LexicalSignal aInput, Branch aInputBranch, List<Branch> rOutput )
+    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
     {
        DContext.WriteLine("Binarizing Pulses by Duration");
        DContext.Indent();
@@ -271,8 +271,8 @@ namespace DIGITC2_ENGINE
          PlotBits(lSignalB, lBranchB.Label);
        }
 
-       rOutput.Add( new Branch(aInputBranch, lSignalA, lBranchA.Label) ) ;
-       rOutput.Add( new Branch(aInputBranch, lSignalB, lBranchB.Label) ) ;
+       rOutput.Add( new ProcessingToken(aInputBranch, lSignalA, lBranchA.Label) ) ;
+       rOutput.Add( new ProcessingToken(aInputBranch, lSignalB, lBranchB.Label) ) ;
 
        DContext.Unindent();  
     }
