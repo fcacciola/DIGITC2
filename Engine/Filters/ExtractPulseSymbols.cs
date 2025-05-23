@@ -63,7 +63,7 @@ namespace DIGITC2_ENGINE
         aPulses.ForEach( s => s.DumpSamples(lSamples ) );
         DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
-        lWave.SaveTo( DContext.Session.LogFile( "Pulses" + aLabel + ".wav") ) ;
+        lWave.SaveTo( DContext.Session.OutputFile( "Pulses" + aLabel + ".wav") ) ;
       }
     }
 
@@ -73,8 +73,8 @@ namespace DIGITC2_ENGINE
 
       if ( DContext.Session.Args.GetBool("Plot") )
       { 
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"{aName}_Durations_Histogram.png"));
-        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"{aName}_Durations_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_Histogram.png"));
+        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_RankSize.png"));
       }
 
     }

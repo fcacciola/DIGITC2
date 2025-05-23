@@ -21,11 +21,6 @@ namespace DIGITC2_ENGINE
       return new LexicalSignal( Symbols.ConvertAll( s => s.Copy() ) ) ;
     }
 
-    protected override void UpdateState( State rS ) 
-    {
-      rS.Add( State.From(null,null, Symbols) );
-    }
-
     public int Length => Symbols.Count ;
 
     public List<Symbol> Symbols = new List<Symbol>();

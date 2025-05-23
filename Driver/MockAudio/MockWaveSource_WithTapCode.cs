@@ -109,7 +109,7 @@ public class BurstPulse
 
     if ( DContext.Session.Args.GetBool("Plot") )
     {
-      rPulse.Save(DContext.Session.LogFile("BurstPulseEnvelope.wav"));
+      rPulse.Save(DContext.Session.OutputFile("BurstPulseEnvelope.wav"));
     }
 
     return rPulse;
@@ -292,7 +292,7 @@ public class TapCodeSignal
 
         if (DContext.Session.Args.GetBool("Plot"))
         {
-          string lCodeWaveFile = DContext.Session.LogFile($"TapCodeSignal_{lCode.Row}_{lCode.Col}.wav");
+          string lCodeWaveFile = DContext.Session.OutputFile($"TapCodeSignal_{lCode.Row}_{lCode.Col}.wav");
           if ( !File.Exists(lCodeWaveFile))
             lTap.Save(lCodeWaveFile);
         }

@@ -49,10 +49,10 @@ namespace DIGITC2_ENGINE
       Score lScore = new Score(lLikelihood,lFitness) ;
       
       if ( DContext.Session.Args.GetBool("SaveReference") )
-        lHistogram.Save(DContext.Session.LogFile( Name + "_Histogram.json"));  
+        lHistogram.Save(DContext.Session.OutputFile( Name + "_Histogram.json"));  
 
       if ( DContext.Session.Args.GetBool("Plot") )
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile(Name +"_Histogram.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_Histogram.png"));
 
       rOutput.Add( new Branch(aInputBranch, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
 

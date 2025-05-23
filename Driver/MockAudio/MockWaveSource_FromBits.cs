@@ -43,7 +43,7 @@ namespace DIGITC2_ENGINE
 
         string lName = "MockWaveSource_FromBits" ;
 
-        string lWaveFile = DContext.Session.LogFile($"{lName}.wav");  
+        string lWaveFile = DContext.Session.OutputFile($"{lName}.wav");  
 
         lWave.SaveTo(lWaveFile);  
 

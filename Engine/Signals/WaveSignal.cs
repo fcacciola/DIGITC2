@@ -115,12 +115,6 @@ namespace DIGITC2_ENGINE
 
       return rR ;
     }
-
-    protected override void UpdateState( State rS ) 
-    {
-      rS.Add( State.With("Duration"    , Duration));
-      rS.Add( State.With("SamplingRate", Samples));
-    }
   }
 
   public static class DiscreteSignalExtensions2

@@ -12,27 +12,11 @@ using OxyPlot.Series;
 
 namespace DIGITC2_ENGINE
 {
-  public class Stats : IWithState
+  public class Stats 
   {
     public Stats() 
     {
     } 
-
-    public State GetState() 
-    {
-      State rS = new State("Stats") ;
-
-      rS.Add( State.With("Zipf_Likelihood"  , Zipf_Likelihood  ) ) ;
-      rS.Add( State.With("Kurtosis"         , Kurtosis         ) ) ;
-      rS.Add( State.With("Maximum"          , Maximum          ) ) ;
-      rS.Add( State.With("Minimum"          , Minimum          ) ) ;
-      rS.Add( State.With("Mean"             , Mean             ) ) ;
-      rS.Add( State.With("Variance"         , Variance         ) ) ;
-      rS.Add( State.With("StandardDeviation", StandardDeviation) ) ;
-      rS.Add( State.With("Skewness"         , Skewness         ) ) ;
-
-      return rS ;
-    }
 
     public double Zipf_Likelihood   = 0 ;
     public double Kurtosis          = 0 ;

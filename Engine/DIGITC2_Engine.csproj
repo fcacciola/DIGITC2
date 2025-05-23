@@ -134,8 +134,6 @@
     </Compile>
     <Compile Include="Filters\WordsToText.cs">
     </Compile>
-    <Compile Include="General\StateMonitor.cs">
-    </Compile>
     <Compile Include="General\Utils.cs">
     </Compile>
     <Compile Include="Processor\Analyzer.cs">
@@ -143,8 +141,6 @@
     <Compile Include="Processor\Step.cs">
     </Compile>
     <Compile Include="Signals\Symbol.cs">
-    </Compile>
-    <Compile Include="Signals\State.cs">
     </Compile>
     <Compile Include="Statistics\MultiModal.cs">
     </Compile>

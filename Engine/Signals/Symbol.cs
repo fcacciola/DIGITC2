@@ -9,7 +9,7 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-  public abstract class Symbol : IWithState
+  public abstract class Symbol 
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
 
@@ -20,11 +20,6 @@ namespace DIGITC2_ENGINE
     public abstract double Value  { get; }
 
     public int Idx ;
-
-    public virtual State GetState()
-    {
-      return new State( Type, $"[{Idx}]", StateValue.From(Meaning) ) ;
-    }
 
     public static bool Equals( Symbol aLHS, Symbol aRHS)
     {
@@ -173,18 +168,11 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new ArraySymbol( Idx, Symbols.ConvertAll( s => s.Copy() ) ); }  
 
-    public override string Meaning => GetState().ToString() ;
-
+    public override string Meaning => string.Join("|", Symbols.ConvertAll( s => s.Meaning ) );
+    
     public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Args.GetInt("MaxWordLength")) ;
     
     public override double Value => Symbols.Count ;
-
-    public override State GetState()
-    {
-      State rState = new State("Token",$"[{Idx}]");
-      rState.Add( State.From(null, null, Symbols) );
-      return rState;
-    }
 
     public List<Symbol> Symbols ;
 

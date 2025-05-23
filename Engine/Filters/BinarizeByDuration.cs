@@ -242,7 +242,7 @@ namespace DIGITC2_ENGINE
         lBits.ForEach( b => b.View.DumpSamples(lSamples ) );
         DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
         WaveSignal lWave = new WaveSignal(lWaveRep);
-        lWave.SaveTo( DContext.Session.LogFile( "Bits_" + aLabel + ".wav") ) ;
+        lWave.SaveTo( DContext.Session.OutputFile( "Bits_" + aLabel + ".wav") ) ;
       }
     }
 

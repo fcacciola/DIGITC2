@@ -8,6 +8,78 @@ using System.Threading.Tasks;
 
 namespace DIGITC2_ENGINE
 {
+
+  public class Logger : IDisposable
+  {
+    public void Open( string aFile )
+    {
+      mStream = new FileStream(aFile, FileMode.OpenOrCreate, FileAccess.Write );
+      mWriter = new StreamWriter( mStream );
+    }
+
+    public void Close()
+    {
+      mWriter?.Close();
+      mStream?.Close();  
+      mWriter?.Dispose();  
+      mStream?.Dispose();
+      mWriter = null;
+      mStream = null;
+    }
+
+    public void Write( string aS )
+    {
+      mWriter?.Write( AddIndentation(aS) );  
+      mWriter?.Flush();
+    }
+
+    public void WriteLine( string aS )
+    {
+      mWriter?.WriteLine( AddIndentation(aS) );  
+      mWriter?.Flush();
+    }
+
+    public void Indent()
+    {
+      mIndentation += 2 ;
+    }
+
+    public void Unindent()
+    {
+      mIndentation -= 2 ;
+    }
+
+    string AddIndentation( string aS )  => $"{new String(' ',mIndentation)}{aS}";
+
+
+    private bool disposedValue;
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        if (disposing)
+        {
+          Close();
+        }
+
+        disposedValue = true;
+      }
+    }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+
+    int mIndentation = 0; 
+
+    FileStream mStream = null ;
+    TextWriter mWriter = null ; 
+  }
+
   public class DContext
   {
     static DContext mInstance = null ;
@@ -40,56 +112,49 @@ namespace DIGITC2_ENGINE
 
         mSession.Setup();
 
-        if ( !string.IsNullOrEmpty(mSession.TraceFile) )
-        {
-          if ( File.Exists( mSession.TraceFile ) )
-           File.Delete( mSession.TraceFile );  
-
-          var lLogger = new LogStateMonitor();
-          lLogger.Open(mSession.TraceFile);
-          mMonitors.Add( lLogger ) ;
-        }
-
         WriteLine_("DIGITC 2 - " + DateTime.Now.ToString() );
 
       }
       catch( Exception x )
       {
-
+        Error_( x.ToString() );
       }
     }
 
     void Shutdown_()
     {
-      mMonitors.ForEach( m => m.Close()  );
-      mMonitors.Clear();
-
+      mLogger.Close();
       mSession.Shutdown();
+    }
+
+    void OpenLogger_ ( string aLogFile )
+    {
+      mLogger.Open( aLogFile );
+    }
+
+    void CloseLogger_ ()
+    {
+      mLogger.Close();  
     }
 
     void Write_( string aS )
     {
-      mMonitors.ForEach( lMonitor => lMonitor.Write(aS) );
+      mLogger.Write( aS );  
     }
 
     void WriteLine_( string aS )
     {
-      mMonitors.ForEach( lMonitor => lMonitor.WriteLine(aS) );
+      mLogger.WriteLine( aS );
     }
 
     void Indent_()
     {
-      mMonitors.ForEach( lMonitor => lMonitor.Indent() );
+      mLogger.Indent();
     }
 
     void Unindent_()
     {
-      mMonitors.ForEach( lMonitor => lMonitor.Unindent() );
-    }
-
-    void Watch_ ( IWithState aO )
-    {
-      mMonitors.ForEach( lMonitor => lMonitor.Watch( aO ) );
+      mLogger.Unindent();
     }
 
     void Error_( string aText )
@@ -103,21 +168,21 @@ namespace DIGITC2_ENGINE
       throw e ;
     }
 
-
-    List<StateMonitor> mMonitors = new List<StateMonitor> ();
+    Logger mLogger = new Logger();
 
     static public Session Session => Instance.mSession ;
 
-    static public void   Setup( Session aSession ) { Instance.Setup_(aSession) ; } 
-    static public void   Shutdown()                { Instance.Shutdown_() ; } 
-    static public void   Throw( Exception e )      { Instance.Throw_(e);}
-    static public void   Error( Exception e )      { Instance.Error_(e.ToString());}
-    static public void   Error( string aText )     { Instance.Error_(aText);}
-    static public void   Watch( IWithState aO )    { Instance.Watch_(aO) ; }
-    static public void   Write( string aS )        { Instance.Write_(aS);}
-    static public void   WriteLine( string aS )    { Instance.WriteLine_(aS);}
-    static public void   Indent()                  { Instance.Indent_();}
-    static public void   Unindent()                { Instance.Unindent_();}
+    static public void   Setup      ( Session aSession ) { Instance.Setup_(aSession) ; } 
+    static public void   OpenLogger ( string aLogFile )  { Instance.OpenLogger_(aLogFile) ; } 
+    static public void   CloseLogger()                   { Instance.CloseLogger_() ; } 
+    static public void   Shutdown   ()                   { Instance.Shutdown_() ; } 
+    static public void   Throw      ( Exception e )      { Instance.Throw_(e);}
+    static public void   Error      ( Exception e )      { Instance.Error_(e.ToString());}
+    static public void   Error      ( string aText )     { Instance.Error_(aText);}
+    static public void   Write      ( string aS )        { Instance.Write_(aS);}
+    static public void   WriteLine  ( string aS )        { Instance.WriteLine_(aS);}
+    static public void   Indent     ()                   { Instance.Indent_();}
+    static public void   Unindent  ()                   { Instance.Unindent_();}
 
   }
 }

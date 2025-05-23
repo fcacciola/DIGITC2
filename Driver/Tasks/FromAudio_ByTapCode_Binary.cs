@@ -27,17 +27,19 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 
   void RunWithFile( Args aArgs, string aWaveFilename  )
   {
-    DContext.Setup( new Session("FromAudio_ByTapCode_Binary_using_file_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder) ) ;
+    string lWaveFilename = ExpandRelativeFilePath(aWaveFilename) ;
 
-    if ( File.Exists( aWaveFilename ) )
+    DContext.Setup( new Session("FromAudio_ByTapCode_Binary_using_file_" +  Path.GetFileNameWithoutExtension(lWaveFilename), aArgs, BaseFolder) ) ;
+
+    if ( File.Exists( lWaveFilename ) )
     {
-      var lSource = new WaveFileSource(aWaveFilename) ;
+      var lSource = new WaveFileSource(lWaveFilename) ;
 
       Processor.FromAudioToBits_ByTapCode().Then( Processor.FromBits() ).Process( lSource.CreateSignal() ).Save() ;
     }
     else
     {
-      DContext.Error("Could not find audio file: [" + aWaveFilename + "]");
+      DContext.Error("Could not find audio file: [" + lWaveFilename + "]");
     }
 
     DContext.Shutdown(); 

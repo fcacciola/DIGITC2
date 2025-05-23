@@ -11,7 +11,12 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2_ENGINE
 {
-  public class Branch : IWithState
+  public abstract class BranchData
+  {
+
+  }
+
+  public class Branch 
   {
     public class Selection
     {
@@ -37,7 +42,7 @@ namespace DIGITC2_ENGINE
       List<string> mActiveBranches = new List<string>();
     }
 
-    public Branch( Branch aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, IWithState aData = null )
+    public Branch( Branch aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, BranchData aData = null )
     {
       Prev       = aPrev ;
       Signal     = aSignal;
@@ -51,28 +56,12 @@ namespace DIGITC2_ENGINE
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public State GetState()
-    {
-      State rS = new State("Branch",$"{Name}") ;
-
-      if ( Signal != null )
-        rS.Add( Signal.GetState() );  
-
-      if ( Score != null ) 
-        rS.Add( Score.GetState() );  
-
-      if ( Data != null ) 
-        rS.Add( Data.GetState() );  
-
-      return rS ;
-    }
-
     public Branch     Prev       ;
     public Signal     Signal     ;
     public string     Name       ;
     public Score      Score      ;
     public bool       ShouldQuit ;
-    public IWithState Data       ;
+    public BranchData Data       ;
     public int        Idx        ;
   }
 

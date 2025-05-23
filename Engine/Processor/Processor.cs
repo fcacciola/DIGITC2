@@ -34,26 +34,20 @@ namespace DIGITC2_ENGINE
     {
       Result rR = new Result();
 
-      DContext.Session.PushFolder(Name);
+      DContext.Session.PushFolder("Process");
 
       try
       {
         var lStep = rR.AddFirst(aInput) ;
 
-        DContext.Watch(lStep) ; 
-
         mFilters.ForEach( f => f.Setup() ) ;
 
         foreach( var lFilter in mFilters )
         {  
-          DContext.Session.PushFolder(lFilter.Name);
-
           lStep = lFilter.Apply(lStep);
           if ( lStep != null )
           {
             rR.Add( lStep ) ;
-
-            DContext.Watch(lStep) ; 
 
             if ( lStep.ShouldQuit )
             {
@@ -62,10 +56,9 @@ namespace DIGITC2_ENGINE
             }
           }
 
-          DContext.Session.PopFolder() ;
         }
 
-        mFilters.ForEach( f => f.Cleanup() ) ;
+        mFilters.ForEach( f => { f.Cleanup() ;  DContext.Session.PopFolder() ; } ) ;
 
         rR.Setup();
       }

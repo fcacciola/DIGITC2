@@ -44,7 +44,7 @@ namespace DIGITC2_ENGINE
     int PoorFitThreshold = 35, GoodFitThreshold = 50, ExcelentFitThreshold = 85, PerfectFitThreshold = 99;  
   }
 
-  public class Score : IWithState
+  public class Score 
   {
     public Score( int aLikelihood, Fitness aFitness )
     {
@@ -54,16 +54,6 @@ namespace DIGITC2_ENGINE
 
     public int     Likelihood = 0 ;
     public Fitness Fitness ;
-
-    public virtual State GetState() 
-    {
-      State rState = new State("Score"); 
-
-      rState.Add( State.With("Likelihood", Likelihood));
-      rState.Add( State.With("Fitness"   , Fitness));
-
-      return rState;
-    }
   }
 
 

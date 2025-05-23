@@ -28,7 +28,7 @@ namespace DIGITC2_ENGINE
     }
   }
 
-  public abstract class Signal : IWithState
+  public abstract class Signal 
   {
     public Source Source { get ; set ; }
 
@@ -39,16 +39,7 @@ namespace DIGITC2_ENGINE
       Name = aRHS.Name ;
     }
 
-    public State GetState()
-    {
-      State rS = new State("Signal",Name) ;
-      UpdateState(rS) ;
-      return rS ;
-    }
-
-    protected virtual void UpdateState( State rS ) {}
-
-    public override string ToString() => GetState().ToString();
+    public override string ToString() => Name;
     
     public abstract Distribution GetDistribution() ;
 

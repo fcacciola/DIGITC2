@@ -11,16 +11,11 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-  public class TextMessage : IWithState
+  public class TextMessage : BranchData
   {
     public TextMessage( string aText ) { Text = aText ; }  
 
     public override string ToString() { return Text ; } 
-
-    public State GetState()
-    {
-      return new State("TextMessage", "Text Message:", StateValue.From(Text));
-    }
 
     public string Text {  get; private set; }
   }

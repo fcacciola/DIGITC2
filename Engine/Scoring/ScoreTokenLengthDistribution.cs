@@ -47,14 +47,14 @@ namespace DIGITC2_ENGINE
 
       if ( DContext.Session.Args.GetBool("SaveReference") )
       {
-        lHistogram.Save(DContext.Session.LogFile( Name + "_Histogram.json"));  
-        lRankSize .Save(DContext.Session.LogFile( Name + "_RankSize.json"));  
+        lHistogram.Save(DContext.Session.OutputFile( Name + "_Histogram.json"));  
+        lRankSize .Save(DContext.Session.OutputFile( Name + "_RankSize.json"));  
       }
 
       if ( DContext.Session.Args.GetBool("Plot") )
       {
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile(Name +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile(Name +"_RankSize.png"));
+        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_Histogram.png"));
+        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_RankSize.png"));
       }
 
       rOutput.Add( new Branch(aInputBranch, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));

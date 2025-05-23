@@ -43,21 +43,21 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public string PushFolder( string aOutputFolder, bool aSetpLogsFolder = true)
+    public string PushFolder( string aOutputFolder, bool aSetupLogFile = true)
     {
       FoldersStack.Push(aOutputFolder); 
 
-      return BuildCurrentFolder(aSetpLogsFolder);
+      return BuildCurrentFolder(aSetupLogFile);
     }
 
     public string PopFolder()
     {
       FoldersStack.Pop();
 
-      return BuildCurrentFolder();
+      return BuildCurrentFolder(true);
     }
 
-    string BuildCurrentFolder( bool aSetpLogsFolder )
+    string BuildCurrentFolder( bool aSetupLogFile )
     {
       List<string > lFolders = new List<string> ();
 
@@ -69,9 +69,11 @@ namespace DIGITC2_ENGINE
 
       Utils.SetupFolder(CurrentOutputFolder);
 
-      CurrentLogsFolder = $"{CurrentOutputFolder}\\Logs" ;
-
-      Utils.SetupFolder(CurrentLogsFolder);
+      if ( aSetupLogFile )
+      {
+        DContext.CloseLogger();
+        DContext.OpenLogger( OutputFile("Log.txt") ) ;
+      }
 
       return CurrentOutputFolder;
     }
@@ -83,7 +85,6 @@ namespace DIGITC2_ENGINE
     public string RootOutputFolder ;
     public string GeneralLogsFolder ;
     public string CurrentOutputFolder ;
-    public string CurrentLogsFolder ;
     public string RootResultsFolder ;
 
     public Stack<string> FoldersStack = new Stack<string>();
@@ -91,9 +92,7 @@ namespace DIGITC2_ENGINE
 
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
 
-    public string LogFile       ( string aFilename ) => $"{CurrentLogsFolder}/{aFilename}";
-
-    public string TraceFile    => LogFile("Log.txt");
+    public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
 
     public string ReportFile( ResultPath aResult ) => $"{RootResultsFolder}/{aResult.Fitness}/Report.txt";
 

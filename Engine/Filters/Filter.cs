@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DIGITC2_ENGINE
 {
-  public abstract class Filter : IWithState
+  public abstract class Filter 
   {
     public virtual void Setup() {}
     public virtual void Cleanup() {}
@@ -21,7 +21,7 @@ namespace DIGITC2_ENGINE
         {
           if ( ! lBranch.ShouldQuit )
           {
-            DContext.Session.PushFolder(lBranch.Name);
+            DContext.Session.PushFolder( $"{Name}_{lBranch.Name}");
 
             try
             {
@@ -44,15 +44,6 @@ namespace DIGITC2_ENGINE
     }
 
     protected abstract void DoApply( Branch aInput, List<Branch> rOutput ) ;
-
-    public State GetState()
-    {
-      State rS = new State("Filter",Name) ;
-      UpdateState(rS) ;
-      return rS ;
-    }
-
-    protected virtual void UpdateState( State rS ) {}
 
     public abstract string Name { get; } 
 

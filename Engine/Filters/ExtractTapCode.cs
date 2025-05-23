@@ -228,7 +228,7 @@ namespace DIGITC2_ENGINE
 
       if ( DContext.Session.Args.GetBool("Plot") )
       { 
-        lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.LogFile($"_Durations_Histogram.png"));
+        lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"_Durations_Histogram.png"));
       }
 
       var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);

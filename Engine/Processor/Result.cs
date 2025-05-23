@@ -12,19 +12,8 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2_ENGINE
 {
-  public class ResultPath : IWithState  
+  public class ResultPath  
   {
-    public State GetState() 
-    {
-      State rState = new State("ResultPath");
-
-      rState.Add( State.With("Fitness", Fitness));
-
-      PathBranches.ForEach( s => rState.Add( s.GetState() ) ) ;  
-      
-      return rState ; 
-    }
-
     public void Setup()
     {
       int lPoorestFitness = (int)Fitness.Undefined ;
@@ -40,22 +29,22 @@ namespace DIGITC2_ENGINE
 
     public string Save() 
     {
-      Reporter lReporter = new Reporter();
+      //Reporter lReporter = new Reporter();
 
-      lReporter.Report(this);
+      //lReporter.Report(this);
 
-      string lReport = lReporter.GetReport();
+      //string lReport = lReporter.GetReport();
 
-      string rOutputFile =  DContext.Session.ReportFile(this);
+      string rOutputFile = DContext.Session.ReportFile(this);
 
-      File.WriteAllText( rOutputFile, lReport );
+      //File.WriteAllText( rOutputFile, lReport );
 
       return rOutputFile;
     }
 
   }
 
-  public class Result : IWithState  
+  public class Result 
   {
     public Result() {}
 
@@ -72,26 +61,17 @@ namespace DIGITC2_ENGINE
       return aStep ;
     }
 
-    public State GetState() 
-    {
-      State rState = new State("Result");
-
-      Steps.ForEach( s => rState.Add( s.GetState() ) ) ;  
-      
-      return rState ; 
-    }
-
     public void Setup()
     {
       Step lLastStep = Steps.Last();
-      foreach( Branch lBranch in lLastStep.Branches )
+      foreach (Branch lBranch in lLastStep.Branches)
       {
         ResultPath lPath = new ResultPath();
 
-        for( Branch lCurr = lBranch; lCurr != null ; lCurr = lCurr.Prev ) 
-          lPath.PathBranches.Add( lCurr );
+        for (Branch lCurr = lBranch; lCurr != null; lCurr = lCurr.Prev)
+          lPath.PathBranches.Add(lCurr);
 
-        Paths.Add( lPath ); 
+        Paths.Add(lPath);
       }
     }
 

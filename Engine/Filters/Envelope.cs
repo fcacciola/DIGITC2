@@ -45,7 +45,7 @@ namespace DIGITC2_ENGINE
       string lLabel = $"{aInput.Name}_Envelope";
 
       if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.LogFile( $"{lLabel}.wav") ) ;
+        rR.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
 
       rOutput.Add( new Branch(aInputBranch, rR, lLabel));
     }

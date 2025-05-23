@@ -133,7 +133,7 @@ namespace DIGITC2_ENGINE
         lES.Name = $"Band_{lBand.Label}";
 
         if ( DContext.Session.Args.GetBool("Plot") )
-          lES.SaveTo( DContext.Session.LogFile( $"{lES.Name}.wav") ) ;
+          lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
 
         rOutput.Add(new Branch(aInputBranch, lES, lES.Name) ) ;
       }
