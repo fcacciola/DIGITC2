@@ -107,7 +107,9 @@
     <Compile Include="Filters\SplitBands.cs" />
     <Compile Include="Generators\NoiseGenerator.cs">
     </Compile>
-    <Compile Include="Processor\ProcessingToken.cs" />
+    <Compile Include="Processor\Packet.cs" />
+    <Compile Include="Processor\PipelineFactory.cs" />
+    <Compile Include="Processor\Pipeline.cs" />
     <Compile Include="Sources\Source.cs">
     </Compile>
     <Compile Include="Sources\BitsSource.cs">
@@ -135,8 +137,6 @@
     <Compile Include="Filters\WordsToText.cs">
     </Compile>
     <Compile Include="General\Utils.cs">
-    </Compile>
-    <Compile Include="Processor\Step_.cs">
     </Compile>
     <Compile Include="Signals\Symbol.cs">
     </Compile>

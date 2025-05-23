@@ -32,7 +32,7 @@ namespace DIGITC2_ENGINE
 
     string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
 
-    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0, 256, 1, CreateFakeKey);
 
@@ -54,7 +54,7 @@ namespace DIGITC2_ENGINE
       if ( DContext.Session.Args.GetBool("Plot") )
         lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_Histogram.png"));
 
-      rOutput.Add( new ProcessingToken(aInputBranch, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
+      rOutput.Add( new Packet(aInputPacket, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
 
     }
 

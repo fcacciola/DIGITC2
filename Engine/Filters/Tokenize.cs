@@ -45,12 +45,12 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    protected override void Process(LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput)
+    protected override void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
-      Process( new TokenSeparators() , aInput, aInputBranch, rOutput);
+      Process( new TokenSeparators() , aInput, aInputPacket, rOutput);
     }
 
-    void Process( TokenSeparators aSeparators, LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput)
+    void Process( TokenSeparators aSeparators, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
       List<Symbol> lCurrToken = new List<Symbol>();
 
@@ -78,7 +78,7 @@ namespace DIGITC2_ENGINE
         lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lTokens), aSeparators.Label ) ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lTokens), aSeparators.Label ) ) ;
     }
 
 

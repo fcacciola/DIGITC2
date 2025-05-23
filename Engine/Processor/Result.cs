@@ -12,9 +12,9 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace DIGITC2_ENGINE
 {
-  public class BranchResult  
+  public class PipelineResult  
   {
-    public void Add( ProcessingToken aToken )
+    public void Add( Packet aToken )
     {
       Tokens.Add( aToken ); 
     }
@@ -48,14 +48,14 @@ namespace DIGITC2_ENGINE
       return "" ;
     }
 
-    public List<ProcessingToken> Tokens = new List<ProcessingToken>();
+    public List<Packet> Tokens = new List<Packet>();
   }
 
   public class Result 
   {
     public Result() {}
 
-    public void Add( BranchResult aBranchResult )
+    public void Add( PipelineResult aBranchResult )
     {
       mBranchResults.Add( aBranchResult );
     }
@@ -75,7 +75,7 @@ namespace DIGITC2_ENGINE
 
     }
 
-    List<BranchResult> mBranchResults = new List<BranchResult>(); 
+    List<PipelineResult> mBranchResults = new List<PipelineResult>(); 
   }
 
   

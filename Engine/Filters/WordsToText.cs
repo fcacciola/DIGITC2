@@ -11,7 +11,7 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-  public class TextMessage : FilterData
+  public class TextMessage : PacketData
   {
     public TextMessage( string aText ) { Text = aText ; }  
 
@@ -26,7 +26,7 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
       List<string> lWords = new List<string>();  
 
@@ -40,7 +40,7 @@ namespace DIGITC2_ENGINE
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  
 
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
     }
 
     public override string Name => this.GetType().Name ;

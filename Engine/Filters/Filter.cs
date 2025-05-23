@@ -11,9 +11,9 @@ namespace DIGITC2_ENGINE
     public virtual void Setup() {}
     public virtual void Cleanup() {}
 
-    public List<ProcessingToken> Apply( ProcessingToken aInput ) 
+    public List<Packet> Apply( Packet aInput ) 
     {
-      List<ProcessingToken> rOutput = new List<ProcessingToken>();
+      List<Packet> rOutput = new List<Packet>();
 
       try
       {
@@ -30,7 +30,7 @@ namespace DIGITC2_ENGINE
       return rOutput; 
     }
 
-    protected abstract void DoApply( ProcessingToken aInput, List<ProcessingToken> rOutput ) ;
+    protected abstract void DoApply( Packet aInput, List<Packet> rOutput ) ;
 
     public abstract string Name { get; } 
 
@@ -41,7 +41,7 @@ namespace DIGITC2_ENGINE
   {
     protected WaveFilter() : base() {}
 
-    protected override void DoApply( ProcessingToken aInput, List<ProcessingToken> rOuput )
+    protected override void DoApply( Packet aInput, List<Packet> rOuput )
     {
       WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
       if ( lWaveSignal == null )
@@ -50,7 +50,7 @@ namespace DIGITC2_ENGINE
       Process(lWaveSignal, aInput, rOuput);
     }
     
-    protected abstract void Process ( WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput );  
+    protected abstract void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput );  
 
   }
 
@@ -58,7 +58,7 @@ namespace DIGITC2_ENGINE
   {
     protected LexicalFilter() : base() {}
 
-    protected override void DoApply( ProcessingToken aInput, List<ProcessingToken> rOuput )
+    protected override void DoApply( Packet aInput, List<Packet> rOuput )
     {
       LexicalSignal lLexicalSignal = aInput.Signal as LexicalSignal; 
       if ( lLexicalSignal == null )
@@ -67,7 +67,7 @@ namespace DIGITC2_ENGINE
       Process(lLexicalSignal, aInput, rOuput );
     }
     
-    protected abstract void Process(LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOuput);  
+    protected abstract void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOuput);  
 
   }
 

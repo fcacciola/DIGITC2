@@ -18,17 +18,16 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mBranchSelection = new ProcessingToken.Selection(DContext.Session.Args.Get("BinaryToBytes_Branches"));
+      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinaryToBytes_Branches"));
     }
 
-    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
-      if ( mBranchSelection.IsActive("5") )
-        Process(5, aInput, aInputBranch, rOutput);
+      if ( mPipelineSelection.IsActive("5") )
+        Process(5, aInput, aInputPacket, rOutput);
 
-      if ( mBranchSelection.IsActive("8") )
-        Process( 8, aInput, aInputBranch, rOutput);
-
+      if ( mPipelineSelection.IsActive("8") )
+        Process( 8, aInput, aInputPacket, rOutput);
     }
 
 
@@ -46,7 +45,7 @@ namespace DIGITC2_ENGINE
       return rByte;
     }
 
-    void Process ( int aBitsPerByte, LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    void Process ( int aBitsPerByte, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
       var lSymbols = aInput.GetSymbols<BitSymbol>() ;
 
@@ -84,12 +83,12 @@ namespace DIGITC2_ENGINE
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
     }
 
     public override string Name => this.GetType().Name ;
 
-    ProcessingToken.Selection mBranchSelection ;
+    PipelineSelection mPipelineSelection ;
   }
 
 }

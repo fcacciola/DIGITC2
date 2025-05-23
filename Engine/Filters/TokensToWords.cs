@@ -39,13 +39,13 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process(LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput)
+    protected override void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
       Process( new Options() { Label = "ascii CharSet", CharSet = "ascii", Fallback = "!", Validator = new TextDigitValidator() }
-             , aInput, aInputBranch, rOutput) ;
+             , aInput, aInputPacket, rOutput) ;
     }
 
-    void Process( Options aOptions, LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput)
+    void Process( Options aOptions, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
       Encoding lEncoding = Encoding.GetEncoding( aOptions.CharSet
                                                , new EncoderReplacementFallback("(unknown)")
@@ -78,7 +78,7 @@ namespace DIGITC2_ENGINE
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lWords), aOptions.Label) ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lWords), aOptions.Label) ) ;
     }
 
 

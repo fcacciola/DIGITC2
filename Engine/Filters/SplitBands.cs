@@ -123,7 +123,7 @@ namespace DIGITC2_ENGINE
       mSplitter = aSplitter;  
     }
 
-    protected override void Process ( WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
       var lBands = mSplitter.Split(aInput.Rep); 
 
@@ -135,7 +135,7 @@ namespace DIGITC2_ENGINE
         if ( DContext.Session.Args.GetBool("Plot") )
           lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
 
-        rOutput.Add(new ProcessingToken(aInputBranch, lES, lES.Name) ) ;
+        rOutput.Add(new Packet(aInputPacket, lES, lES.Name) ) ;
       }
     }
 

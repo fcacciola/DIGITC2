@@ -18,10 +18,10 @@ public class TapCodeToBytes : LexicalFilter
 
   public override void Setup()
   { 
-    mBranchSelection = new ProcessingToken.Selection(DContext.Session.Args.Get("TapCodeToBytes_Branches"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("TapCodeToBytes_Branches"));
   }
 
-  protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+  protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
   {
     DContext.WriteLine("Decoding Tap Codes as Bytes from Latin-alphabet Polybius Squares");
     DContext.Indent();
@@ -29,14 +29,14 @@ public class TapCodeToBytes : LexicalFilter
     var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
-    if ( mBranchSelection.IsActive("LatinAlphabet_Simple") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.LatinAlphabet_Simple, rOutput);
+    if ( mPipelineSelection.IsActive("LatinAlphabet_Simple") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.LatinAlphabet_Simple, rOutput);
 
-    if ( mBranchSelection.IsActive("LatinAlphabet_Extended") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.LatinAlphabet_Extended, rOutput);
+    if ( mPipelineSelection.IsActive("LatinAlphabet_Extended") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.LatinAlphabet_Extended, rOutput);
   }
 
-  void ProcessCodes( ProcessingToken aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<ProcessingToken> rOutput )
+  void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
   {
     List<string> lRawLetters = aCodes.ConvertAll( code => { string rLetter = aSquare.Decode(code) ; DContext.WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
 
@@ -55,13 +55,13 @@ public class TapCodeToBytes : LexicalFilter
     }
 
     if ( lByteSymbols.Count > 0 )
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
   }
 
 
   public override string Name => this.GetType().Name ;
 
-  ProcessingToken.Selection mBranchSelection ;
+  PipelineSelection mPipelineSelection ;
 }
 
 }

@@ -34,7 +34,7 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process ( WaveSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
       var lLowPass = CreateLowPassFilter();
 
@@ -47,7 +47,7 @@ namespace DIGITC2_ENGINE
       if ( DContext.Session.Args.GetBool("Plot") )
         rR.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
 
-      rOutput.Add( new ProcessingToken(aInputBranch, rR, lLabel));
+      rOutput.Add( new Packet(aInputPacket, rR, lLabel));
     }
 
     LowPassFilter CreateLowPassFilter() 

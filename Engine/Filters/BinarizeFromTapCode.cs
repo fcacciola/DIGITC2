@@ -25,12 +25,12 @@ public class BinarizeFromTapCode : LexicalFilter
 
   public override void Setup()
   {
-    mBranchSelection = new ProcessingToken.Selection(DContext.Session.Args.Get("BinarizeFromTapCode_Branches"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Branches"));
 
     mMinBitCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
   }
 
-  protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+  protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
   {
     DContext.WriteLine("Binarizing Tap Codes via Binary Polybius Squares");
     DContext.Indent();
@@ -38,25 +38,25 @@ public class BinarizeFromTapCode : LexicalFilter
     var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
-    if ( mBranchSelection.IsActive("Binary_3_1_Guarded") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary_3_1_Guarded, rOutput ) ;
+    if ( mPipelineSelection.IsActive("Binary_3_1_Guarded") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_3_1_Guarded, rOutput ) ;
 
-    if ( mBranchSelection.IsActive("Binary_2_1_Guarded") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary_2_1_Guarded, rOutput ) ;
+    if ( mPipelineSelection.IsActive("Binary_2_1_Guarded") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_2_1_Guarded, rOutput ) ;
 
-    if ( mBranchSelection.IsActive("Binary_3_1") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary_3_1, rOutput ) ;
+    if ( mPipelineSelection.IsActive("Binary_3_1") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_3_1, rOutput ) ;
 
-    if ( mBranchSelection.IsActive("Binary_2_1") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary_2_1, rOutput ) ;
+    if ( mPipelineSelection.IsActive("Binary_2_1") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_2_1, rOutput ) ;
 
-    if ( mBranchSelection.IsActive("Binary") )
-      ProcessCodes(aInputBranch, lCodes, PolybiusSquare.Binary, rOutput ) ;
+    if ( mPipelineSelection.IsActive("Binary") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary, rOutput ) ;
 
     DContext.Unindent();  
   }
 
-  void ProcessCodes( ProcessingToken aInputBranch, List<TapCode> aCodes, PolybiusSquare aSquare, List<ProcessingToken> rOutput )
+  void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
   {
     List<string> lRawBits = aCodes.ConvertAll( code => aSquare.Decode(code));
     List<BitSymbol> lBits = new List<BitSymbol> ();
@@ -72,13 +72,13 @@ public class BinarizeFromTapCode : LexicalFilter
     }
 
     if ( lBits.Count > mMinBitCount)
-      rOutput.Add( new ProcessingToken(aInputBranch, new LexicalSignal(lBits), aSquare.Name ) ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lBits), aSquare.Name ) ) ;
   }
 
   public override string Name => this.GetType().Name ;
 
   int mMinBitCount ;
-  ProcessingToken.Selection mBranchSelection ;
+  PipelineSelection mPipelineSelection ;
 }
 
 }

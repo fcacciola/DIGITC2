@@ -37,7 +37,7 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
 
       var lSignal = lSource.CreateSignal() ;
 
-      var lPipeline = ProcessorFactory.FromAudioToBits_ByPulseDuration().Then( ProcessorFactory.FromBits() ) ;
+      var lPipeline = PipelineFactory.FromAudioToBits_ByPulseDuration().Then( PipelineFactory.FromBits() ) ;
 
       var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
 

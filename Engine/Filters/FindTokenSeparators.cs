@@ -16,9 +16,9 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    protected override void Process (LexicalSignal aInput, ProcessingToken aInputBranch, List<ProcessingToken> rOutput )
+    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
-      rOutput.Add(aInputBranch);
+      rOutput.Add(aInputPacket);
     }
 
     public override string Name => this.GetType().Name ;
