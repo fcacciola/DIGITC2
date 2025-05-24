@@ -126,7 +126,7 @@
     </Compile>
     <Compile Include="Filters\Discretize.cs">
     </Compile>
-    <Compile Include="Filters\BinarizeByDuration.cs">
+    <Compile Include="Filters\BinarizeFromDuration.cs">
     </Compile>
     <Compile Include="Scoring\ScoreTokenLengthDistribution.cs">
     </Compile>

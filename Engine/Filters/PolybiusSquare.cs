@@ -113,7 +113,9 @@ public class PolybiusSquare
   {
     int lRow = ( aCode.Row % Size ) - 1 ; // Tap counts start at 1, not 0
     int lCol = ( aCode.Col % Size ) - 1 ;
-    return Alphabet[(lRow*Size)+lCol];
+    int lIdx = (lRow*Size)+lCol ;
+
+    return lIdx >= 0 && lIdx <= Alphabet.Count ? Alphabet[(lRow*Size)+lCol] : "?";
   }
 
   public List<string> Decode( IEnumerable<TapCode> aCodes )

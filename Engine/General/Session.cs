@@ -9,6 +9,22 @@ using System.Threading.Tasks;
 namespace DIGITC2_ENGINE
 {
 
+  public class Bucket
+  {
+    public Bucket( string aName, string aFolderName, bool aSetupLogFile )
+    {
+      Name         = aName;
+      FolderName   = aFolderName; 
+      SetupLogFile = aSetupLogFile;
+    }
+
+    public static Bucket WithFolder( string aName, string aFolderName = null, bool aSetupLogFile = true ) => new Bucket( aName, aFolderName ?? aName, aSetupLogFile );
+
+    public string Name ;
+    public string FolderName ;
+    public bool   SetupLogFile ;
+  }
+
   public class Session
   {
     public Session( string aName, Args aArgs, string aBaseFolder )
@@ -25,9 +41,9 @@ namespace DIGITC2_ENGINE
       Utils.SetupFolder(InputFolder);
       Utils.SetupFolder(RootOutputFolder);
 
-      PushFolder(Name);
+      PushBucket( Bucket.WithFolder(Name) );
 
-      RootResultsFolder = PushFolder("Results", false);
+      RootResultsFolder = PushBucket( Bucket.WithFolder("Results", null, false) );
 
       Utils.SetupFolder($"{RootResultsFolder}\\Undefined");
       Utils.SetupFolder($"{RootResultsFolder}\\Discarded");
@@ -43,18 +59,18 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public string PushFolder( string aOutputFolder, bool aSetupLogFile = true)
+    public string PushBucket( Bucket aBucket)
     {
-      FoldersStack.Push(aOutputFolder); 
+      Buckets.Push(aBucket); 
 
-      return BuildCurrentFolder(aSetupLogFile);
+      return BuildCurrentFolder(aBucket.SetupLogFile);
     }
 
     public string PopFolder()
     {
-      FoldersStack.Pop();
+      Buckets.Pop();
 
-      return BuildCurrentFolder(true);
+      return BuildCurrentFolder(false);
     }
 
     string BuildCurrentFolder( bool aSetupLogFile )
@@ -62,8 +78,10 @@ namespace DIGITC2_ENGINE
       List<string > lFolders = new List<string> ();
 
       lFolders.Add(RootOutputFolder);
-      foreach (string lFolder in FoldersStack.Reverse()) 
-        lFolders.Add(lFolder);
+                              
+      foreach ( var lBucket in Buckets.Reverse()) 
+        if ( ! string.IsNullOrEmpty(lBucket.FolderName) ) 
+          lFolders.Add(lBucket.FolderName);
 
       CurrentOutputFolder = string.Join("\\", lFolders); 
 
@@ -71,8 +89,9 @@ namespace DIGITC2_ENGINE
 
       if ( aSetupLogFile )
       {
+        string lLogName = Buckets.Peek().Name;
         DContext.CloseLogger();
-        DContext.OpenLogger( OutputFile("Log.txt") ) ;
+        DContext.OpenLogger( OutputFile($"{lLogName}.txt") ) ;
       }
 
       return CurrentOutputFolder;
@@ -87,7 +106,7 @@ namespace DIGITC2_ENGINE
     public string CurrentOutputFolder ;
     public string RootResultsFolder ;
 
-    public Stack<string> FoldersStack = new Stack<string>();
+    public Stack<Bucket> Buckets = new Stack<Bucket>();
 
 
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";

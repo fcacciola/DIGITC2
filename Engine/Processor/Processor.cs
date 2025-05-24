@@ -28,7 +28,7 @@ public class Processor
   {
     Result rResult = new Result();
 
-    DContext.Session.PushFolder(aStartSignal.Name);
+    DContext.Session.PushBucket(Bucket.WithFolder(aStartSignal.Name));
 
     try
     {
@@ -36,17 +36,21 @@ public class Processor
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
+      int lPipelineIdx = 0 ;
+
       do
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
-        DContext.Session.PushFolder(lPipeline.Name);
+        DContext.Session.PushBucket(Bucket.WithFolder($"Pipeline_{lPipelineIdx}"));
 
         var lPipelineResult = lPipeline.Process(this);
 
         DContext.Session.PopFolder(); 
 
         rResult.Add(lPipelineResult) ; 
+
+        lPipelineIdx ++ ;
       }
       while (mPipelines.Count > 0);
 

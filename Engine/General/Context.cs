@@ -47,9 +47,11 @@ namespace DIGITC2_ENGINE
     public void Unindent()
     {
       mIndentation -= 2 ;
+      if ( mIndentation < 0 ) 
+       mIndentation = 0 ;
     }
 
-    string AddIndentation( string aS )  => $"{new String(' ',mIndentation)}{aS}";
+    string AddIndentation( string aS )  => $"{new String(' ', mIndentation)}{aS}";
 
 
     private bool disposedValue;

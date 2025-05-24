@@ -25,7 +25,7 @@ public class BinarizeFromTapCode : LexicalFilter
 
   public override void Setup()
   {
-    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Branches"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Pipelines"));
 
     mMinBitCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
   }

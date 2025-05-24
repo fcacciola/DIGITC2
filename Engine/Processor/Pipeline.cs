@@ -12,21 +12,21 @@ namespace DIGITC2_ENGINE
 
 public class PipelineSelection
 {
-  public PipelineSelection( string aActiveBranches )
+  public PipelineSelection( string aActivePipelines )
   {
-    if ( ! string.IsNullOrEmpty(aActiveBranches) )
+    if ( ! string.IsNullOrEmpty(aActivePipelines) )
     {
-      foreach( string lActiveBranch in aActiveBranches.Split(',') )  
-        if ( !lActiveBranch.StartsWith("!") )
-          mActive.Add( lActiveBranch ); 
+      foreach( string lActivePipeline in aActivePipelines.Split(',') )  
+        if ( !lActivePipeline.StartsWith("!") )
+          mActive.Add( lActivePipeline ); 
     }
   }
 
-  public bool IsActive( string aBranch )
+  public bool IsActive( string aPipeline )
   {
     if ( mActive.Count > 0 )
     {
-      return ( mActive.Find( s => s == aBranch ) != null ) ;
+      return ( mActive.Find( s => s == aPipeline ) != null ) ;
     }
     else return true ;
   }
@@ -39,7 +39,7 @@ public class Pipeline
     
   public Pipeline BranchOut( Packet aNewStartPacket )
   {
-    var lRemainingFilters = mFilters.Skip(mFilterIdx).ToList() ;
+    var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
           return null ;
@@ -58,7 +58,7 @@ public class Pipeline
 
     foreach( var lFilter in mFilters )
     {
-      DContext.Session.PushFolder(lFilter.Name);
+      DContext.Session.PushBucket(Bucket.WithFolder(lFilter.Name,$"F{mFilterIdx}"));
       lFoldersCount++;
         
       try

@@ -18,7 +18,7 @@ public class TapCodeToBytes : LexicalFilter
 
   public override void Setup()
   { 
-    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("TapCodeToBytes_Branches"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("TapCodeToBytes_Pipelines"));
   }
 
   protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )

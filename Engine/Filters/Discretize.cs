@@ -84,7 +84,7 @@ namespace DIGITC2_ENGINE
       var rR = aInput.CopyWith(rDiscrete);
 
       if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"{aInput.Name}_Gated_" + aGate.Label + ".wav") ) ;
+        rR.SaveTo( DContext.Session.OutputFile( $"Gated_{aGate.Label}.wav") ) ;
 
       return rR ;
     }

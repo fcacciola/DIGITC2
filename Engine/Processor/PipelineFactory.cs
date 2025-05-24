@@ -22,7 +22,7 @@ namespace DIGITC2_ENGINE
       rPipeline.Add( new Envelope() )
                .Add( new Discretize() )
                .Add( new ExtractPulseSymbols() )
-               .Add( new BinarizeByDuration() ) ;
+               .Add( new BinarizeFromDuration() ) ;
 
       return rPipeline ;
     }

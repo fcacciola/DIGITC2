@@ -55,19 +55,19 @@ namespace DIGITC2_ENGINE
   {
     public Result() {}
 
-    public void Add( PipelineResult aBranchResult )
+    public void Add( PipelineResult aPipelineResult )
     {
-      mBranchResults.Add( aBranchResult );
+      mPipelineResults.Add( aPipelineResult );
     }
 
     public void Setup()
     {
-      mBranchResults.ForEach( r => r.Setup() );
+      mPipelineResults.ForEach( r => r.Setup() );
     }
 
     public List<string> Report() 
     {
-      return mBranchResults.ConvertAll( p => p.Report() );
+      return mPipelineResults.ConvertAll( p => p.Report() );
     }
 
     public void Save()
@@ -75,7 +75,7 @@ namespace DIGITC2_ENGINE
 
     }
 
-    List<PipelineResult> mBranchResults = new List<PipelineResult>(); 
+    List<PipelineResult> mPipelineResults = new List<PipelineResult>(); 
   }
 
   

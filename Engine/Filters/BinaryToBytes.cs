@@ -18,7 +18,7 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinaryToBytes_Branches"));
+      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinaryToBytes_Pipelines"));
     }
 
     protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
@@ -83,7 +83,7 @@ namespace DIGITC2_ENGINE
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), $"{aBitsPerByte} BitsPerByte") ) ;
+      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), $"{aBitsPerByte}_BitsPerByte") ) ;
     }
 
     public override string Name => this.GetType().Name ;

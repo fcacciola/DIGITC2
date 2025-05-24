@@ -18,25 +18,25 @@ using NWaves.Signals;
 namespace DIGITC2_ENGINE
 {
 
-  public class BinarizeByDuration : LexicalFilter
+  public class BinarizeFromDuration : LexicalFilter
   {
-    public BinarizeByDuration() 
+    public BinarizeFromDuration() 
     { 
     }
 
     enum BitType { One, Zero, Noise } ;
-    enum BranchName {  BranchA, BranchB } ;
+    enum PipelineName {  PipelineA, PipelineB } ;
 
-    class FilterBranch
+    class FilterPipeline
     {
-      internal FilterBranch ( BranchName aBranchName )
+      internal FilterPipeline ( PipelineName aPipelineName )
       {
-        mBranchName = aBranchName ;
+        mPipelineName = aPipelineName ;
       }
 
       internal void Add( ClassifiedPulse aCPulse )
       {
-        var lBitType = aCPulse.Classification.GetBitType(mBranchName);
+        var lBitType = aCPulse.Classification.GetBitType(mPipelineName);
 
         if ( lBitType != BitType.Noise )
           AddBit( aCPulse.Pulse, lBitType == BitType.One);
@@ -54,23 +54,23 @@ namespace DIGITC2_ENGINE
         return new LexicalSignal(mBits);
       }
 
-      internal string Label => mBranchName.ToString();
+      internal string Label => mPipelineName.ToString();
 
-      BranchName      mBranchName ;
+      PipelineName      mPipelineName ;
       List<BitSymbol> mBits = new List<BitSymbol> ();
     }
     
     class Classification
     {
-      internal BitType GetBitType( BranchName aBranchName )
+      internal BitType GetBitType( PipelineName aPipelineName )
       {
-        return aBranchName == BranchName.BranchA ? ForBranchA : ForBranchB ;
+        return aPipelineName == PipelineName.PipelineA ? ForPipelineA : ForPipelineB ;
       }
 
-      public override string ToString() => $"[{ForBranchA}|{ForBranchB}]";
+      public override string ToString() => $"[{ForPipelineA}|{ForPipelineB}]";
       
-      internal BitType ForBranchA ;
-      internal BitType ForBranchB ;
+      internal BitType ForPipelineA ;
+      internal BitType ForPipelineB ;
     }
 
     class ClassifiedPulse
@@ -194,28 +194,28 @@ namespace DIGITC2_ENGINE
 
              if ( lDistToZero <= 1.0 && lDistToOne > 1.0 )
              {
-               lClassification.ForBranchA = BitType.Zero ;
+               lClassification.ForPipelineA = BitType.Zero ;
 
                if (  lDistToZero <= 0.75 )
-                    lClassification.ForBranchB = BitType.Zero ;
-               else lClassification.ForBranchB = BitType.Noise ;
+                    lClassification.ForPipelineB = BitType.Zero ;
+               else lClassification.ForPipelineB = BitType.Noise ;
              }
              else if ( lDistToOne <= 1.0 && lDistToZero > 1.0 )
              {
-               lClassification.ForBranchA = BitType.One ;
+               lClassification.ForPipelineA = BitType.One ;
                if (  lDistToOne <= 0.75 )
-                    lClassification.ForBranchB = BitType.One ;
-               else lClassification.ForBranchB = BitType.Noise ;
+                    lClassification.ForPipelineB = BitType.One ;
+               else lClassification.ForPipelineB = BitType.Noise ;
              }
              else if ( lDistToOne <= 1.0 && lDistToZero <= 1.0 )
              {
-               lClassification.ForBranchA = BitType.One ;
-               lClassification.ForBranchB = BitType.Zero ;
+               lClassification.ForPipelineA = BitType.One ;
+               lClassification.ForPipelineB = BitType.Zero ;
              }
              else if ( lDistToOne > 1.0 && lDistToZero > 1.0 )
              {
-               lClassification.ForBranchA = BitType.Noise ;
-               lClassification.ForBranchB = BitType.Noise ;
+               lClassification.ForPipelineA = BitType.Noise ;
+               lClassification.ForPipelineB = BitType.Noise ;
              }
 
              DContext.WriteLine($"  Classification: {lClassification}" ) ; 
@@ -253,26 +253,26 @@ namespace DIGITC2_ENGINE
 
        var lClassifiedPulses = Classifier.Run(aInput);
 
-       FilterBranch lBranchA = new FilterBranch( BranchName.BranchA );   
-       FilterBranch lBranchB = new FilterBranch( BranchName.BranchB );   
+       FilterPipeline lPipelineA = new FilterPipeline( PipelineName.PipelineA );   
+       FilterPipeline lPipelineB = new FilterPipeline( PipelineName.PipelineB );   
 
        foreach( var lCPulse in lClassifiedPulses ) 
        {
-         lBranchA.Add( lCPulse ) ;
-         lBranchB.Add( lCPulse ) ;
+         lPipelineA.Add( lCPulse ) ;
+         lPipelineB.Add( lCPulse ) ;
        }
 
-       LexicalSignal lSignalA = lBranchA.GetSignal() ;
-       LexicalSignal lSignalB = lBranchB.GetSignal() ;
+       LexicalSignal lSignalA = lPipelineA.GetSignal() ;
+       LexicalSignal lSignalB = lPipelineB.GetSignal() ;
 
        if ( DContext.Session.Args.GetBool("Plot") )
        {
-         PlotBits(lSignalA, lBranchA.Label);
-         PlotBits(lSignalB, lBranchB.Label);
+         PlotBits(lSignalA, lPipelineA.Label);
+         PlotBits(lSignalB, lPipelineB.Label);
        }
 
-       rOutput.Add( new Packet(aInputPacket, lSignalA, lBranchA.Label) ) ;
-       rOutput.Add( new Packet(aInputPacket, lSignalB, lBranchB.Label) ) ;
+       rOutput.Add( new Packet(aInputPacket, lSignalA, lPipelineA.Label) ) ;
+       rOutput.Add( new Packet(aInputPacket, lSignalB, lPipelineB.Label) ) ;
 
        DContext.Unindent();  
     }

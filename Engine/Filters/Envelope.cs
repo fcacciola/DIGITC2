@@ -42,7 +42,7 @@ namespace DIGITC2_ENGINE
 
       var rR = aInput.CopyWith(lNewRep);
 
-      string lLabel = $"{aInput.Name}_Envelope";
+      string lLabel = "Envelope";
 
       if ( DContext.Session.Args.GetBool("Plot") )
         rR.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
