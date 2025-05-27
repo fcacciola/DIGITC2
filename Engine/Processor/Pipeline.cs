@@ -36,14 +36,13 @@ public class PipelineSelection
 
 public class Pipeline
 {
-    
-  public Pipeline BranchOut( Packet aNewStartPacket )
+  public Pipeline BranchOut( Bucket aStartBucket, Packet aNewStartPacket )
   {
     var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
-          return null ;
-    else return new Pipeline( aNewStartPacket, mLevel + 1, lRemainingFilters ) ;
+         return null ;
+    else return new Pipeline( aStartBucket, aNewStartPacket, mLevel + 1, lRemainingFilters ) ;
   }
 
   public PipelineResult Process( Processor aProcessor )
@@ -54,15 +53,18 @@ public class Pipeline
 
     var lPacket = mStartPacket ;
 
-    int lFoldersCount = 0 ;
-
     foreach( var lFilter in mFilters )
     {
-      DContext.Session.PushBucket(Bucket.WithFolder(lFilter.Name,$"F{mFilterIdx}"));
-      lFoldersCount++;
-        
       try
       {
+        // ONLY use the Filter name as a bucket Subfolder at the first filter, then use
+        // a really short name such as 'N', from 'Next Filter', becuase with a 
+        // large filter pipelline, the directory depth is going to exceed Windows limits.
+        
+        string lBucketSubFolder = mFilterIdx == 0 ? lFilter.Name : "N" ;
+
+        DContext.Session.PushBucket(Bucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
+
         var lOutput = lFilter.Apply(lPacket);
 
         if ( lOutput.Count > 0 )
@@ -81,7 +83,7 @@ public class Pipeline
           }
 
           for ( int i = 1 ; i < lOutput.Count ; i++ ) 
-            aProcessor.EnqueuePipeline( BranchOut( lOutput[i] ) ) ; 
+            aProcessor.BranchOut( this, lOutput[i] ) ; 
         }
         else
         {
@@ -93,28 +95,32 @@ public class Pipeline
       { 
         DContext.Error(e);
       }
-
+        
       mFilterIdx = mFilterIdx + 1  ;
     }
-
-    for( int i = 0 ; i < lFoldersCount ; ++ i )
-      DContext.Session.PopFolder();
 
     return rResult ;  
   }
 
   public string Name { get ; private set ; }
 
+  public int Level => mLevel ;
+
+  public Bucket StartBucket { get ; protected set ; } 
+
   public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
-  protected Pipeline( string aName )
+  protected Pipeline( string aName, Bucket aStartBucket )
   { 
     Name = aName;
+
+    StartBucket = aStartBucket ;
   }
 
-  Pipeline( Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( Bucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
   { 
-    Name = aPacket.Name ;  
+    Name         = aPacket.Name ;  
+    StartBucket  = aStartBucket ;
 
     mStartPacket = aPacket ;  
     mLevel       = aLevel ;
@@ -125,14 +131,14 @@ public class Pipeline
   protected List<Filter> mFilters     = new List<Filter>();
   protected Packet       mStartPacket = null ;
 
-  int          mLevel       = 0 ;
-  int          mFilterIdx   = 0 ;  
+  int mLevel    = 0 ;
+  int mFilterIdx = 0 ;  
 
 }
 
 public class MainPipeline : Pipeline
 {
-  public MainPipeline() : base("Main")
+  public MainPipeline() : base("Main", null )
   { 
   }
 
@@ -149,9 +155,11 @@ public class MainPipeline : Pipeline
     return this ;
   } 
     
-  public void Start( Signal aStartSignal ) 
+  public void Start( Signal aStartSignal, Bucket aStartBucket ) 
   {
     mStartPacket = new Packet(null, aStartSignal, "") ;
+
+    StartBucket = aStartBucket ;
 
     mFilters.ForEach( filter => filter.Setup() ) ;
   }

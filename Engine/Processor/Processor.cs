@@ -28,11 +28,12 @@ public class Processor
   {
     Result rResult = new Result();
 
-    DContext.Session.PushBucket(Bucket.WithFolder(aStartSignal.Name));
+    var lStartBucket = Bucket.WithLogFile(aStartSignal.Name);
+    DContext.Session.PushBucket(lStartBucket);
 
     try
     {
-      mMainPipeline.Start(aStartSignal) ;
+      mMainPipeline.Start(aStartSignal, lStartBucket ) ;
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
@@ -42,11 +43,10 @@ public class Processor
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
-        DContext.Session.PushBucket(Bucket.WithFolder($"Pipeline_{lPipelineIdx}"));
+        DContext.Session.GotoBucket(lPipeline.StartBucket);
+        DContext.Session.PushBucket(Bucket.WithLogFile($"Pipeline_{lPipeline.Level}"));
 
         var lPipelineResult = lPipeline.Process(this);
-
-        DContext.Session.PopFolder(); 
 
         rResult.Add(lPipelineResult) ; 
 
@@ -63,7 +63,7 @@ public class Processor
       DContext.Error(x);
     }
 
-    DContext.Session.PopFolder() ;
+    DContext.Session.PopBucket() ;
 
     return rResult ;  
   }
@@ -71,6 +71,16 @@ public class Processor
   public void EnqueuePipeline ( Pipeline aPipeline ) 
   {
     mPipelines.Enqueue( aPipeline ) ;  
+  }
+
+  public void BranchOut ( Pipeline aPipeline, Packet aNewStartPacket )
+  {
+    var lCurrFilterBucket = DContext.Session.CurrentBucket();   
+
+    var lNewPipeline = aPipeline.BranchOut(lCurrFilterBucket, aNewStartPacket ) ;
+
+    EnqueuePipeline( lNewPipeline ) ; 
+
   }
 
   readonly string          mName ;
