@@ -11,10 +11,11 @@ namespace DIGITC2_ENGINE
 {
   public class Utils
   {
-    static public void SetupFolder ( string aFolder ) 
+    static public string SetupFolder ( string aFolder ) 
     {
       if ( ! Directory.Exists( aFolder ) ) 
         Directory.CreateDirectory( aFolder );  
+      return aFolder;
     }
 
     static public void SetupFolderInFullPath ( string aPath ) 

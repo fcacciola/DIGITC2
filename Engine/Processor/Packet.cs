@@ -32,13 +32,13 @@ namespace DIGITC2_ENGINE
 
     public T GetData<T>() where T : class => Data as T ;
 
-    public Packet     Prev       ;
-    public Signal     Signal     ;
-    public string     Name       ;
-    public Score      Score      ;
-    public bool       ShouldQuit ;
-    public PacketData Data       ;
-    public int        Idx        ;
+    public Packet     Prev         ;
+    public Signal     Signal       ;
+    public string     Name         ;
+    public Score      Score        ;
+    public bool       ShouldQuit   ;
+    public PacketData Data         ;
+    public string     OutputFolder ;
   }
 
    

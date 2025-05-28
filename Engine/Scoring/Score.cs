@@ -13,7 +13,7 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-  public enum Fitness { Discarded = 0, Poor = 1, Good = 2, Excelent = 3, Perfect= 4, Undefined=100, }
+  public enum Fitness { DISCARDED = 0, POOR = 1, GOOD = 2, EXCELENT = 3, PERFECT= 4, Undefined=100 }
 
   public class FitnessMap
   {
@@ -34,11 +34,12 @@ namespace DIGITC2_ENGINE
 
     public Fitness Map( int aLikelihood )
     {
-      return  aLikelihood > PerfectFitThreshold ? Fitness.Perfect
-            : aLikelihood > ExcelentFitThreshold? Fitness.Excelent
-            : aLikelihood > GoodFitThreshold? Fitness.Good
-            : aLikelihood > PoorFitThreshold? Fitness.Poor
-            : Fitness.Discarded ;
+      return  aLikelihood > PerfectFitThreshold ? Fitness.PERFECT
+            : aLikelihood > ExcelentFitThreshold? Fitness.EXCELENT
+            : aLikelihood > GoodFitThreshold    ? Fitness.GOOD
+            : aLikelihood > PoorFitThreshold    ? Fitness.POOR
+
+            : Fitness.DISCARDED ;
     }
 
     int PoorFitThreshold = 35, GoodFitThreshold = 50, ExcelentFitThreshold = 85, PerfectFitThreshold = 99;  
@@ -46,12 +47,16 @@ namespace DIGITC2_ENGINE
 
   public class Score 
   {
-    public Score( int aLikelihood, Fitness aFitness )
+    public Score( string aFilterName, int aLikelihood, Fitness aFitness )
     {
+      FilterName = aFilterName;
       Likelihood = aLikelihood;
       Fitness    = aFitness;  
     }
 
+    public override string ToString() => $"{FilterName}: {Fitness} (Likelihood:{Likelihood})";
+
+    public string  FilterName  ;
     public int     Likelihood = 0 ;
     public Fitness Fitness ;
   }

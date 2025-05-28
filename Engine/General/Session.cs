@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 namespace DIGITC2_ENGINE
 {
 
-  public class Bucket
+  public class OutputBucket
   {
-    Bucket( string aName, string aSubFolder, bool aSetupLogFile )
+    OutputBucket( string aName, string aSubFolder, bool aSetupLogFile )
     {
       Name         = aName;
       mSubFolder   = aSubFolder; 
       SetupLogFile = aSetupLogFile;
     }
 
-    public static Bucket WithLogFile( string aName, string aSubFolderName = null ) => new Bucket( aName, aSubFolderName ?? aName, true );
+    public static OutputBucket WithLogFile( string aName, string aSubFolderName = null ) => new OutputBucket( aName, aSubFolderName ?? aName, true );
 
-    public static Bucket WithoutLogFile( string aName, string aSubFolderName = null ) => new Bucket( aName, aSubFolderName ?? aName, false );
+    public static OutputBucket WithoutLogFile( string aName, string aSubFolderName = null ) => new OutputBucket( aName, aSubFolderName ?? aName, false );
 
     public string FullOutputFolder => mFullOutputFolder;
 
@@ -51,32 +51,19 @@ namespace DIGITC2_ENGINE
       Utils.SetupFolder(InputFolder);
       Utils.SetupFolder(RootOutputFolder);
 
-      PushBucket( Bucket.WithLogFile(Name) );
-
-      PushBucket( Bucket.WithoutLogFile("Results") );
-
-      RootResultsFolder = CurrentOutputFolder ;
-
-      Utils.SetupFolder($"{RootResultsFolder}\\Undefined");
-      Utils.SetupFolder($"{RootResultsFolder}\\Discarded");
-      Utils.SetupFolder($"{RootResultsFolder}\\Poor");
-      Utils.SetupFolder($"{RootResultsFolder}\\Good");
-      Utils.SetupFolder($"{RootResultsFolder}\\Excelent");
-      Utils.SetupFolder($"{RootResultsFolder}\\Perfect");
-
-      PopBucket();
+      PushBucket( OutputBucket.WithoutLogFile(Name) );
     }
 
     public void Shutdown()
     {
     }
 
-    public Bucket CurrentBucket()
+    public OutputBucket CurrentBucket()
     {
       return mBuckets.Count > 0 ? mBuckets.Peek() : null ;
     }
 
-    public void PushBucket( Bucket aBucket)
+    public void PushBucket( OutputBucket aBucket)
     {
       string lBaseFolder = CurrentBucket()?.FullOutputFolder ?? RootOutputFolder ;
 
@@ -97,7 +84,7 @@ namespace DIGITC2_ENGINE
       SetCurrentOutputFolder(lCurrentOutputFolder);
     }
 
-    public void GotoBucket ( Bucket aBucket )
+    public void GotoBucket ( OutputBucket aBucket )
     {
       if ( aBucket.FullOutputFolder == null )
       {
@@ -113,7 +100,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    void RebuildBucketStack ( Bucket aBucket )
+    void RebuildBucketStack ( OutputBucket aBucket )
     {
       var lOldStack = mBuckets.ToList ();
 
@@ -128,7 +115,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    void ActivateBucket ( Bucket aBucket )
+    void ActivateBucket ( OutputBucket aBucket )
     {
       string lCurrentOutputFolder = aBucket.FullOutputFolder ;
 
@@ -151,22 +138,17 @@ namespace DIGITC2_ENGINE
       DContext.OpenLogger( OutputFile($"{aLogName}.txt") ) ;
     }
 
+    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
+
+    public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
+
     public string Name ;
     public Args   Args ;
     public string BaseFolder ;
     public string InputFolder ;
     public string RootOutputFolder ;
-    public string GeneralLogsFolder ;
     public string CurrentOutputFolder ;
-    public string RootResultsFolder ;
 
-
-    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
-
-    public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
-
-    public string ReportFile( PipelineResult aResult ) => $"{RootResultsFolder}/{aResult.Fitness}/Report.txt";
-
-    Stack<Bucket> mBuckets = new Stack<Bucket>();
+    Stack<OutputBucket> mBuckets = new Stack<OutputBucket>();
   }
 }

@@ -36,7 +36,7 @@ public class PipelineSelection
 
 public class Pipeline
 {
-  public Pipeline BranchOut( Bucket aStartBucket, Packet aNewStartPacket )
+  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aNewStartPacket )
   {
     var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
 
@@ -45,9 +45,9 @@ public class Pipeline
     else return new Pipeline( aStartBucket, aNewStartPacket, mLevel + 1, lRemainingFilters ) ;
   }
 
-  public PipelineResult Process( Processor aProcessor )
+  public PipelineResultBuilder Process( Processor aProcessor )
   {
-    PipelineResult rResult = new PipelineResult() ;  
+    PipelineResultBuilder rRB = new PipelineResultBuilder(Name) ;  
 
     mFilterIdx = 0  ;
 
@@ -63,9 +63,11 @@ public class Pipeline
         
         string lBucketSubFolder = mFilterIdx == 0 ? lFilter.Name : "N" ;
 
-        DContext.Session.PushBucket(Bucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
+        DContext.Session.PushBucket(OutputBucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
 
         var lOutput = lFilter.Apply(lPacket);
+
+        lOutput.ForEach( p => p.OutputFolder = DContext.Session.CurrentOutputFolder );
 
         if ( lOutput.Count > 0 )
         {
@@ -73,7 +75,7 @@ public class Pipeline
 
           if ( lPacket != null )
           {
-            rResult.Add( lPacket ) ;
+            rRB.Add( lPacket ) ;
 
             if ( lPacket.ShouldQuit )
             {
@@ -99,25 +101,25 @@ public class Pipeline
       mFilterIdx = mFilterIdx + 1  ;
     }
 
-    return rResult ;  
+    return rRB ;  
   }
 
   public string Name { get ; private set ; }
 
   public int Level => mLevel ;
 
-  public Bucket StartBucket { get ; protected set ; } 
+  public OutputBucket StartBucket { get ; protected set ; } 
 
   public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
-  protected Pipeline( string aName, Bucket aStartBucket )
+  protected Pipeline( string aName, OutputBucket aStartBucket )
   { 
     Name = aName;
 
     StartBucket = aStartBucket ;
   }
 
-  Pipeline( Bucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
   { 
     Name         = aPacket.Name ;  
     StartBucket  = aStartBucket ;
@@ -155,7 +157,7 @@ public class MainPipeline : Pipeline
     return this ;
   } 
     
-  public void Start( Signal aStartSignal, Bucket aStartBucket ) 
+  public void Start( Signal aStartSignal, OutputBucket aStartBucket ) 
   {
     mStartPacket = new Packet(null, aStartSignal, "") ;
 

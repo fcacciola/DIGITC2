@@ -14,21 +14,21 @@ public class Processor
 {
   public static Result Process ( string aName, MainPipeline aMainPipeline, Signal aStartSignal )
   {
-    var lProcessor = new Processor(aName, aMainPipeline);
-    return lProcessor.Process( aStartSignal ) ;
+    var lProcessor = new Processor(aMainPipeline);
+    var lResultBuilder = lProcessor.Process( aStartSignal ) ;
+    return lResultBuilder.BuildResult(aName);
   }
 
-  public Processor( string aName, MainPipeline aMainPipeline )
+  public Processor( MainPipeline aMainPipeline )
   {
-    mName         = aName ;
     mMainPipeline = aMainPipeline ; 
   }
 
-  public Result Process( Signal aStartSignal )
+  public ResultBuilder Process( Signal aStartSignal )
   {
-    Result rResult = new Result();
+    ResultBuilder rResult = new ResultBuilder();
 
-    var lStartBucket = Bucket.WithLogFile(aStartSignal.Name);
+    var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
     DContext.Session.PushBucket(lStartBucket);
 
     try
@@ -44,7 +44,7 @@ public class Processor
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
         DContext.Session.GotoBucket(lPipeline.StartBucket);
-        DContext.Session.PushBucket(Bucket.WithLogFile($"Pipeline_{lPipeline.Level}"));
+        DContext.Session.PushBucket(OutputBucket.WithLogFile($"Pipeline_{lPipeline.Level}"));
 
         var lPipelineResult = lPipeline.Process(this);
 
@@ -55,15 +55,13 @@ public class Processor
       while (mPipelines.Count > 0);
 
       mMainPipeline.End();
-
-      rResult.Setup();
     }
     catch( Exception x )
     {
       DContext.Error(x);
     }
 
-    DContext.Session.PopBucket() ;
+    DContext.Session.GotoBucket(lStartBucket) ;
 
     return rResult ;  
   }
@@ -83,7 +81,6 @@ public class Processor
 
   }
 
-  readonly string          mName ;
   readonly MainPipeline    mMainPipeline ;
   readonly Queue<Pipeline> mPipelines = new Queue<Pipeline>();  
 }

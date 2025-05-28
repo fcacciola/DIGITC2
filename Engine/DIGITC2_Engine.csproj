@@ -158,7 +158,7 @@
     </Compile>
     <Compile Include="General\Common.cs">
     </Compile>
-    <Compile Include="Processor\Result.cs">
+    <Compile Include="Processor\ResultBuilder.cs">
     </Compile>
     <Compile Include="Filters\FindTokenSeparators.cs">
     </Compile>

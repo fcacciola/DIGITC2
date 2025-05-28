@@ -46,7 +46,7 @@ namespace DIGITC2_ENGINE
 
       var lFitness = mFitnessMap.Map(lLikelihood) ;
 
-      Score lScore = new Score(lLikelihood,lFitness) ;
+      Score lScore = new Score(Name, lLikelihood,lFitness) ;
       
       if ( DContext.Session.Args.GetBool("SaveReference") )
         lHistogram.Save(DContext.Session.OutputFile( Name + "_Histogram.json"));  

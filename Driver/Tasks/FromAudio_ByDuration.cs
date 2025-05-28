@@ -41,7 +41,7 @@ public sealed class FromAudio_ByPulseDuration : DecodingTask
 
       var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
 
-      lResult.Save() ;
+      lResult.Save( lSession.CurrentOutputFolder ) ;
     }
     else
     {
