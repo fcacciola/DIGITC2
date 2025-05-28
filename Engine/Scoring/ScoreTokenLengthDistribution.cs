@@ -22,13 +22,16 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mReference = DTable.FromFile( DContext.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
+      mReference     = DTable.FromFile( DContext.Session.ReferenceFile("Dracula_Tokens_RankSize.json") )  ;
       mQuitThreshold = DContext.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
       mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
     }
 
     protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
+      DContext.WriteLine("Scoring Tokens Length Distribution As Language Words");
+      DContext.Indent();
+
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0,50,1);
 
       var lRawHistogram = new Histogram(lDist) ;
@@ -39,7 +42,23 @@ namespace DIGITC2_ENGINE
 
       var lRankSize = lFullRangeRankSize.Normalized();
 
-      var lLikelihood = (int)Math.Round(GoodnessOfFit.RSquared(mReference.YValues, lRankSize.YValues) * 100) ; 
+      var lGOF = GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues);
+
+      DContext.WriteLine($"UNSCALED GoodnessOfFit.RSquared: {lGOF}");
+
+      //
+      // Scale the GOF when we have a small number of samples
+      //
+      if ( aInput.Symbols.Count < 20 )
+        lGOF *= 5 ;
+      else if ( aInput.Symbols.Count < 50 )
+        lGOF *= 3 ;
+      else if ( aInput.Symbols.Count < 100 )
+        lGOF *= 2 ;
+
+      DContext.WriteLine($"GoodnessOfFit.RSquared: {lGOF}");
+
+      var lLikelihood = (int)Math.Round(lGOF * 100) ; 
 
       var lFitness = mFitnessMap.Map(lLikelihood) ;
 
@@ -54,10 +73,12 @@ namespace DIGITC2_ENGINE
       if ( DContext.Session.Args.GetBool("Plot") )
       {
         lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_Histogram.png"));
-        lRankSize.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_RankSize.png"));
+        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_RankSize.png"));
       }
 
-      rOutput.Add( new Packet(aInputPacket, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
+      rOutput.Add( new Packet(Name, aInputPacket, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
+
+      DContext.Unindent();
     }
 
     public override string Name => this.GetType().Name ;

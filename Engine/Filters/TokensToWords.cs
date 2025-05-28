@@ -27,8 +27,6 @@ namespace DIGITC2_ENGINE
 
       return    char.IsLetterOrDigit(lChar) 
              || char.IsPunctuation(lChar) 
-            //|| char.IsWhiteSpace(lChar) 
-            //|| char.IsSeparator(lChar) 
             ;
     }
   }
@@ -41,8 +39,18 @@ namespace DIGITC2_ENGINE
 
     protected override void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
-      Process( new Options() { Label = "ascii CharSet", CharSet = "ascii", Fallback = "!", Validator = new TextDigitValidator() }
+      DContext.WriteLine("Converting Tokens to Words");
+      DContext.Indent();
+
+      Process( new Options() { Label = "ASCII CharSet with fallback:!"
+                             , CharSet = "ascii"
+                             , Fallback = "!"
+                             , Validator = new TextDigitValidator() 
+                             }
+
              , aInput, aInputPacket, rOutput) ;
+
+      DContext.Unindent();
     }
 
     void Process( Options aOptions, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
@@ -78,7 +86,9 @@ namespace DIGITC2_ENGINE
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lWords), aOptions.Label) ) ;
+      DContext.WriteLine($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.Meaning) ) }" ) ;
+
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lWords), aOptions.Label) ) ;
     }
 
 
@@ -90,6 +100,8 @@ namespace DIGITC2_ENGINE
       internal string             CharSet ;
       internal string             Fallback ; 
       internal TextDigitValidator Validator ;
+
+      public override string ToString() => Label ;
     }
   }
 

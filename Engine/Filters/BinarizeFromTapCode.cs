@@ -28,6 +28,10 @@ public class BinarizeFromTapCode : LexicalFilter
     mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Pipelines"));
 
     mMinBitCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
+
+    mFitnessMap = new FitnessMap(DContext.Session.Args.Get("BinarizeFromTapCode_FitnessMap"));
+
+    mQuitThreshold = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_QuitThreshold").GetValueOrDefault(1);
   }
 
   protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
@@ -59,7 +63,12 @@ public class BinarizeFromTapCode : LexicalFilter
   void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
   {
     List<string> lRawBits = aCodes.ConvertAll( code => aSquare.Decode(code));
+
+    DContext.WriteLine($"RAW Bits: { string.Join(",",lRawBits)}" );
+
     List<BitSymbol> lBits = new List<BitSymbol> ();
+
+    double lStrength = 0 ;
 
     foreach( var lRawBit in lRawBits )
     {
@@ -67,18 +76,38 @@ public class BinarizeFromTapCode : LexicalFilter
       {
         bool lOne = lRawBit[0]=='1';
         double lLikelihood = lRawBit.Length == 2 ? 1.0 : 0.8 ;
+        lStrength += lLikelihood ;
         lBits.Add( new BitSymbol(lBits.Count, lOne, lLikelihood, null)) ;
       }
     }
 
+    DContext.WriteLine($"KNOWN Bits: {string.Join(", ", lBits.ConvertAll( b => b.Meaning) ) }" ) ;
+
     if ( lBits.Count > mMinBitCount)
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lBits), aSquare.Name ) ) ;
+    {
+      double lSNR = lStrength / (double)lRawBits.Count ;
+      
+      int lLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
+
+      Fitness lFitness = mFitnessMap.Map(lLikelihood) ;
+
+      Score lScore = new Score(Name, lLikelihood, lFitness) ;
+
+      DContext.WriteLine($"Known Bits SNR: {lSNR}");
+      DContext.WriteLine($"Score: {lScore}");
+      DContext.WriteLine($"Likelihood: {lLikelihood}");
+      DContext.WriteLine($"Fitness: {lFitness}");
+
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lBits), aSquare.Name, lScore, lLikelihood < mQuitThreshold ) ) ;
+    }
   }
 
   public override string Name => this.GetType().Name ;
 
-  int mMinBitCount ;
+  int               mMinBitCount ;
   PipelineSelection mPipelineSelection ;
+  FitnessMap        mFitnessMap ;
+  int               mQuitThreshold ;
 }
 
 }

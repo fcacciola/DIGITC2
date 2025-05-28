@@ -47,7 +47,7 @@ namespace DIGITC2_ENGINE
 
       rPipeline.Add( new BinaryToBytes())
                .Add( new ScoreBytesAsLanguageDigits())
-               .Add( new Tokenizer())
+               .Add( new Tokenize())
                .Add( new ScoreTokenLengthDistribution())
                .Add( new TokensToWords()) 
                .Add( new WordsToText()) ;
@@ -65,7 +65,7 @@ namespace DIGITC2_ENGINE
                .Add( new ExtractTapCode() )  
                .Add( new TapCodeToBytes())
                .Add( new ScoreBytesAsLanguageDigits())
-               .Add( new Tokenizer())
+               .Add( new Tokenize())
                .Add( new ScoreTokenLengthDistribution())
                .Add( new TokensToWords()) 
                .Add( new WordsToText()) ;

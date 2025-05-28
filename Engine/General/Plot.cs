@@ -68,6 +68,8 @@ namespace DIGITC2_ENGINE
 
     public void SavePNG( string aFilename )
     {
+      DContext.WriteLine($"Saving PNG Image to: [{aFilename}]");
+
       using (var lFileStream = new FileStream(aFilename, FileMode.Create))
         SavePNG( lFileStream );  
     }

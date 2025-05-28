@@ -271,8 +271,8 @@ namespace DIGITC2_ENGINE
          PlotBits(lSignalB, lPipelineB.Label);
        }
 
-       rOutput.Add( new Packet(aInputPacket, lSignalA, lPipelineA.Label) ) ;
-       rOutput.Add( new Packet(aInputPacket, lSignalB, lPipelineB.Label) ) ;
+       rOutput.Add( new Packet(Name, aInputPacket, lSignalA, lPipelineA.Label) ) ;
+       rOutput.Add( new Packet(Name, aInputPacket, lSignalB, lPipelineB.Label) ) ;
 
        DContext.Unindent();  
     }

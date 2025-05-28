@@ -34,6 +34,9 @@ namespace DIGITC2_ENGINE
 
     protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
+      DContext.WriteLine("Scoring Bytes As Language Digits");
+      DContext.Indent();
+
       var lDist = aInput.GetDistribution().ExtendedWithBaseline(0, 256, 1, CreateFakeKey);
 
       var lRawHistogram = new Histogram(lDist) ;
@@ -42,7 +45,23 @@ namespace DIGITC2_ENGINE
 
       var lHistogram = lFullRangeHistogram.Normalized();
 
-      var lLikelihood = (int)Math.Round(GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues) * 100) ; 
+      var lGOF = GoodnessOfFit.RSquared(mReference.YValues, lHistogram.YValues);
+
+      DContext.WriteLine($"UNSCALED GoodnessOfFit.RSquared: {lGOF}");
+
+      //
+      // Scale the GOF when we have a small number of samples
+      //
+      if ( aInput.Symbols.Count < 20 )
+        lGOF *= 5 ;
+      else if ( aInput.Symbols.Count < 50 )
+        lGOF *= 3 ;
+      else if ( aInput.Symbols.Count < 100 )
+        lGOF *= 2 ;
+
+      DContext.WriteLine($"GoodnessOfFit.RSquared: {lGOF}");
+
+      var lLikelihood = (int)Math.Round(lGOF * 100) ; 
 
       var lFitness = mFitnessMap.Map(lLikelihood) ;
 
@@ -54,7 +73,10 @@ namespace DIGITC2_ENGINE
       if ( DContext.Session.Args.GetBool("Plot") )
         lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile(Name +"_Histogram.png"));
 
-      rOutput.Add( new Packet(aInputPacket, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
+      rOutput.Add( new Packet(Name, aInputPacket, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
+
+
+      DContext.Unindent();
 
     }
 

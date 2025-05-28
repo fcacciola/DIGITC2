@@ -20,7 +20,7 @@ namespace DIGITC2_ENGINE
     public TextMessage Text           { get; set; }
     public Fitness     OverallFitness { get; set; }
 
-    public List<string> OutputFolders { get; private set; } = new List<string>();
+    public List<Packet> FilterSequence { get; private set; } = new List<Packet>();
 
     public List<Score> Scores { get; private set; } = new List<Score>();
   }
@@ -55,7 +55,7 @@ namespace DIGITC2_ENGINE
           rProduct.Scores.Add( lScore ); 
         }
 
-        rProduct.OutputFolders.Add(lPacket.OutputFolder) ;
+        rProduct.FilterSequence.Add(lPacket) ;
       }
 
       rProduct.OverallFitness = (Fitness)lOverallFitness ;
@@ -107,14 +107,20 @@ namespace DIGITC2_ENGINE
           string lCollatedLogsName = $"COMBINED LOG FILE - {lPR.OverallFitness} #{lIdx}.txt" ;
           string lCollatedLogsPath = Path.Combine( lResultsFolder, lCollatedLogsName ) ; 
 
-          lReport.Add( "Processing Folders:" ) ;
-          foreach( var lOutputFolder in lPR.OutputFolders )
+          lReport.Add( "Processing Sequence:" ) ;
+          foreach( var lPacket in lPR.FilterSequence )
           {
-            lReport.Add( lOutputFolder ) ; 
-
-            CollateAllLogFiles(lOutputFolder, lCollatedLogs) ;  
+            lReport.Add(lPacket.FilterName) ; 
           }
+          lReport.Add( "" ) ;
 
+          lReport.Add( "Processing Output Folders:" ) ;
+          foreach( var lPacket in lPR.FilterSequence )
+          {
+            lReport.Add(lPacket.OutputFolder) ; 
+            
+            CollateAllLogFiles(lPacket.OutputFolder, lCollatedLogs) ;  
+          }
           lReport.Add( "" ) ;
 
           File.WriteAllLines( lReportPath      , lReport ) ;  

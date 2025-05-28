@@ -120,7 +120,7 @@ namespace DIGITC2_ENGINE
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count == 0 )
       {
-        rOutput.Add( Packet.Quit(aInputPacket, "TapCodes") ) ;
+        rOutput.Add( Packet.Quit(Name, aInputPacket, "TapCodes") ) ;
         return ;
       }
 
@@ -173,7 +173,7 @@ namespace DIGITC2_ENGINE
       int lIdx = 0 ;
       var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lSymbols), "TapCodes") ) ;
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lSymbols), "TapCodes") ) ;
 
       DContext.Unindent();  
     }

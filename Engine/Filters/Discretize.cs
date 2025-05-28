@@ -62,19 +62,25 @@ namespace DIGITC2_ENGINE
         lThresholds.Add( lU );  
       lThresholds.Add(.98f);
       lThresholds.Reverse();
+
+      lThresholds.ForEach( t => DContext.WriteLine($"Gate Threshold:{t}") ) ;
+
       return new Gate($"{aResolution}_steps", lThresholds);
     }
 
     protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
     {
+      DContext.WriteLine($"Discretizing Input Signal at Resolution: {mResolution}");
+      DContext.Indent();
       Process(mResolution, aInput, aInputPacket, rOuput);
+      DContext.Unindent();
     }
 
     void Process ( int aResolution, WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
     {
       var lR = Apply( aInput, CreateGate(aResolution) ) ;
 
-      rOuput.Add( new Packet(aInputPacket, lR, $"Resolution:{aResolution}") ) ;
+      rOuput.Add( new Packet(Name, aInputPacket, lR, $"Resolution:{aResolution}") ) ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )

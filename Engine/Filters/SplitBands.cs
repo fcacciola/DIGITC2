@@ -81,12 +81,16 @@ namespace DIGITC2_ENGINE
 
     public List<Band> Split(DiscreteSignal aSignal)
     {
+      DContext.WriteLine($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
+
       List<Band> rBands = new List<Band>();
 
-      foreach(var lBand in mFrequencies)
+      foreach(var lBFrequencies in mFrequencies)
       {
-        var lFiltered = FilterBand(aSignal, lBand.Item1, lBand.Item3);
-        rBands.Add(new Band { Signal = lFiltered, Label = BandFrequenecyToString(lBand) });
+        var lFiltered = FilterBand(aSignal, lBFrequencies.Item1, lBFrequencies.Item3);
+        var rBand = new Band { Signal = lFiltered, Label = BandFrequenecyToString(lBFrequencies) };
+        DContext.WriteLine($"  Band: {rBand.Label}");
+        rBands.Add( rBand );
       } 
       return rBands;
     }
@@ -112,7 +116,7 @@ namespace DIGITC2_ENGINE
   {
     public SplitBands() 
     {
-      double[] lBandCenters = new double[]{7500,10000};
+      double[] lBandCenters = new double[]{7500};
       double lOverlap = .2 ;
 
       mSplitter = new BandSplitter(lBandCenters,lOverlap);
@@ -135,7 +139,7 @@ namespace DIGITC2_ENGINE
         if ( DContext.Session.Args.GetBool("Plot") )
           lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
 
-        rOutput.Add(new Packet(aInputPacket, lES, lES.Name) ) ;
+        rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;
       }
     }
 

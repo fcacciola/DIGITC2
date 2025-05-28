@@ -39,9 +39,9 @@ namespace DIGITC2_ENGINE
     List<Symbol> mSeparators = new List<Symbol>() ;
   }
    
-  public class Tokenizer : LexicalFilter
+  public class Tokenize : LexicalFilter
   {
-    public Tokenizer() : base() 
+    public Tokenize() : base() 
     {
     }
 
@@ -52,6 +52,9 @@ namespace DIGITC2_ENGINE
 
     void Process( TokenSeparators aSeparators, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
     {
+      DContext.WriteLine("Tokenzing by Clustering Bytes into Array Separated by a list of Separator bytes ( ,;.:-!¡¿?()[]{}/$%&#@*=+\\\"')");
+      DContext.Indent();
+
       List<Symbol> lCurrToken = new List<Symbol>();
 
       List<ArraySymbol> lTokens = new List<ArraySymbol>(); 
@@ -78,7 +81,11 @@ namespace DIGITC2_ENGINE
         lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lTokens), aSeparators.Label ) ) ;
+      DContext.WriteLine($"Tokens:{Environment.NewLine}{string.Join(Environment.NewLine, lTokens.ConvertAll( b => b.Meaning) ) }" ) ;
+
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lTokens), aSeparators.Label ) ) ;
+
+      DContext.Unindent();
     }
 
 

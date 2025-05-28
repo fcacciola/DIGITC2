@@ -18,8 +18,9 @@ namespace DIGITC2_ENGINE
 
   public class Packet 
   {
-    public Packet( Packet aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, PacketData aData = null )
+    public Packet(string aFilterName, Packet aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, PacketData aData = null )
     {
+      FilterName = aFilterName; 
       Prev       = aPrev ;
       Signal     = aSignal;
       Name       = aName ;
@@ -28,10 +29,11 @@ namespace DIGITC2_ENGINE
       Data       = aData;
     }
 
-    static public Packet Quit( Packet aPrev, string aLabel ) => new Packet(aPrev, null, aLabel, null, true, null );
+    static public Packet Quit( string aFilterName, Packet aPrev, string aLabel ) => new Packet(aFilterName, aPrev, null, aLabel, null, true, null );
 
     public T GetData<T>() where T : class => Data as T ;
 
+    public string     FilterName   ;
     public Packet     Prev         ;
     public Signal     Signal       ;
     public string     Name         ;

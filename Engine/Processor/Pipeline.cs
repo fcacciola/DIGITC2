@@ -159,7 +159,7 @@ public class MainPipeline : Pipeline
     
   public void Start( Signal aStartSignal, OutputBucket aStartBucket ) 
   {
-    mStartPacket = new Packet(null, aStartSignal, "") ;
+    mStartPacket = new Packet(null, null, aStartSignal, "") ;
 
     StartBucket = aStartBucket ;
 

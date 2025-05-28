@@ -127,6 +127,8 @@ namespace DIGITC2_ENGINE
 
     public static void SaveTo( this DiscreteSignal aDS, string aFilename )  
     {
+      DContext.WriteLine($"Saving signal to file: [{aFilename}]");
+
       using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
         aDS.SaveTo( lStream );  
     }

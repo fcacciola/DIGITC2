@@ -60,4 +60,6 @@ BytesAsLanguageDigits_FitnessMap=35,50,85,97
 BytesAsLanguageDigits_QuitThreshold=1
 TokenLengthDistribution_FitnessMap=50,65,85,97
 TokenLengthDistribution_QuitThreshold=1
+BinarizeFromTapCode_FitnessMap=50,80,90,97
+BinarizeFromTapCode_QuitThreshold=1
 

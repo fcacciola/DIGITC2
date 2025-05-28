@@ -23,11 +23,16 @@ namespace DIGITC2_ENGINE
 
     protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
+      DContext.WriteLine("Collecting Bits into Bytes");
+      DContext.Indent();
+
       if ( mPipelineSelection.IsActive("5") )
         Process(5, aInput, aInputPacket, rOutput);
 
       if ( mPipelineSelection.IsActive("8") )
         Process( 8, aInput, aInputPacket, rOutput);
+
+      DContext.Unindent();
     }
 
 
@@ -47,6 +52,8 @@ namespace DIGITC2_ENGINE
 
     void Process ( int aBitsPerByte, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
+      DContext.WriteLine($"{aBitsPerByte} Bits per Byte");
+
       var lSymbols = aInput.GetSymbols<BitSymbol>() ;
 
       int lLen = lSymbols.Count ;
@@ -83,7 +90,9 @@ namespace DIGITC2_ENGINE
       foreach( byte lByte in lBytes )
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte ) ) ;
 
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), $"{aBitsPerByte}_BitsPerByte") ) ;
+      DContext.WriteLine($"Bytes: {string.Join(", ", lByteSymbols.ConvertAll( b => b.Meaning) ) }" ) ;
+
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lByteSymbols), $"{aBitsPerByte}_BitsPerByte") ) ;
     }
 
     public override string Name => this.GetType().Name ;

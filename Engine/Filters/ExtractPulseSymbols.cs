@@ -179,7 +179,7 @@ namespace DIGITC2_ENGINE
       SplitPulses();  
       RemoveUnfitPulses();
 
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(mData.FinalPulses), mData.Options.Label) ) ;
     }
     
     public override string Name => this.GetType().Name ;

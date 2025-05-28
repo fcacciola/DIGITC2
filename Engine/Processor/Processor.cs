@@ -44,7 +44,7 @@ public class Processor
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
         DContext.Session.GotoBucket(lPipeline.StartBucket);
-        DContext.Session.PushBucket(OutputBucket.WithLogFile($"Pipeline_{lPipeline.Level}"));
+        DContext.Session.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
 
         var lPipelineResult = lPipeline.Process(this);
 
@@ -62,6 +62,7 @@ public class Processor
     }
 
     DContext.Session.GotoBucket(lStartBucket) ;
+    DContext.CloseLogger();
 
     return rResult ;  
   }

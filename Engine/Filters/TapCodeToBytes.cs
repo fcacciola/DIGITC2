@@ -55,7 +55,7 @@ public class TapCodeToBytes : LexicalFilter
     }
 
     if ( lByteSymbols.Count > 0 )
-      rOutput.Add( new Packet(aInputPacket, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
   }
 
 

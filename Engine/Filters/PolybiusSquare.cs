@@ -34,9 +34,9 @@ public class PolybiusSquare
                                                                 , "!", "-", "(", ")", "0" , "1"
                                                                 } ;
 
-  static List<string> sBinary = new List<string>{ "0",  "1", "0"
-                                                , "1",  "?", "1"
-                                                , "0",  "1", "0"
+  static List<string> sBinary = new List<string>{ "00",  "11", "00"
+                                                , "11",  "?", "11"
+                                                , "00",  "11", "00"
                                                 } ;
 
   static List<string> sBinary_2_1 = new List<string>{ "0",  "0", "1", "1", "0", "0"
