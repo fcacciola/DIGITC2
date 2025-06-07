@@ -41,6 +41,32 @@ namespace DIGITC2_ENGINE
       Setup();
     }
 
+    public DPoint FindX( double aX )
+    {
+      return mPoints.Find( p => p.X.Value == aX );
+    }
+
+    public double ComputeWeight( double aX, Func<DPoint,double,double> aWeightFunction )
+    {
+      DPoint lMatch = FindX( aX );
+      return lMatch != null ? aWeightFunction(lMatch,aX) : 0; 
+    }
+
+    public double ComputeWeight ( IEnumerable<double> aXs, Func<DPoint,double,double> aWeightFunction )
+    {
+      double lW = 0 ;
+      foreach( var aX in aXs ) 
+        lW += ComputeWeight( aX, aWeightFunction );
+      return lW ;
+    }
+
+    public double ComputeCorrelation( IList<double> aXs, Func<DPoint,double,double> aWeightFunction ) 
+    { 
+      double lW = ComputeWeight( aXs, aWeightFunction ); 
+      double rC = lW / (double)aXs.Count;
+      return rC ; 
+    }
+
     public Plot CreatePlot(Plot.Options aOptions = null)
     {
       Plot rPlot = new Plot(aOptions);

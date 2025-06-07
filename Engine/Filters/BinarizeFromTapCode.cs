@@ -27,7 +27,7 @@ public class BinarizeFromTapCode : LexicalFilter
   {
     mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Pipelines"));
 
-    mMinBitCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinBitCount").GetValueOrDefault(20);
+    mMinCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinCount").GetValueOrDefault(20);
 
     mFitnessMap = new FitnessMap(DContext.Session.Args.Get("BinarizeFromTapCode_FitnessMap"));
 
@@ -42,6 +42,9 @@ public class BinarizeFromTapCode : LexicalFilter
     var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
+    if ( mPipelineSelection.IsActive("Binary") )
+      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary, rOutput ) ;
+
     if ( mPipelineSelection.IsActive("Binary_3_1_Guarded") )
       ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_3_1_Guarded, rOutput ) ;
 
@@ -54,57 +57,79 @@ public class BinarizeFromTapCode : LexicalFilter
     if ( mPipelineSelection.IsActive("Binary_2_1") )
       ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_2_1, rOutput ) ;
 
-    if ( mPipelineSelection.IsActive("Binary") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary, rOutput ) ;
 
     DContext.Unindent();  
   }
 
   void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
   {
-    List<string> lRawBits = aCodes.ConvertAll( code => aSquare.Decode(code));
+    List<BitBagSymbol> lBags = new List<BitBagSymbol> ();
 
-    DContext.WriteLine($"RAW Bits: { string.Join(",",lRawBits)}" );
+    List< List<string> > lRawBags = new List<List<string>> ();  
 
-    List<BitSymbol> lBits = new List<BitSymbol> ();
+    List<string> lCurrRawBag = new List<string>();  
+    lRawBags.Add(lCurrRawBag);
 
-    double lStrength = 0 ;
-
-    foreach( var lRawBit in lRawBits )
+    foreach( var lCode in aCodes )
     {
-      if ( lRawBit != "?" )
+      bool lIsSeparator = ( lCode.Row == 0 && lCode.Col == 0 ) || lCurrRawBag.Count >= 8 ;
+      if ( lIsSeparator )
       {
-        bool lOne = lRawBit[0]=='1';
-        double lLikelihood = lRawBit.Length == 2 ? 1.0 : 0.8 ;
-        lStrength += lLikelihood ;
-        lBits.Add( new BitSymbol(lBits.Count, lOne, lLikelihood, null)) ;
+        lCurrRawBag = new List<string>();  
+        lRawBags.Add(lCurrRawBag);
+      }
+      else
+      {
+        lCurrRawBag.Add(aSquare.Decode(lCode));
       }
     }
 
-    DContext.WriteLine($"KNOWN Bits: {string.Join(", ", lBits.ConvertAll( b => b.Meaning) ) }" ) ;
+    DContext.WriteLine($"RAW Bags count: {lRawBags.Count}" );
 
-    if ( lBits.Count > mMinBitCount)
+    foreach ( var lRawBag in lRawBags )
     {
-      double lSNR = lStrength / (double)lRawBits.Count ;
+      if ( lRawBag.Count == 0 ) 
+       continue ;
+
+      DContext.WriteLine($"RAW Bag: { string.Join(",",lRawBag)}" );
+
+      List<BitSymbol> lBits = new List<BitSymbol> ();
+
+      double lStrength = 0 ;
+
+      foreach( var lRawBit in lRawBag )
+      {
+        if ( lRawBit != "?" )
+        {
+          bool lOne = lRawBit[0]=='1';
+          double lBitLikelihood = aSquare.HasExtendedBitSymbols ? ( lRawBit.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
+          lStrength += lBitLikelihood ;
+          lBits.Add( new BitSymbol(lBits.Count, lOne, lBitLikelihood)) ;
+        }
+        else lBits.Add( new BitSymbol(lBits.Count, null, 0)) ;
+      }
+
+      double lSNR = lStrength / (double)lRawBag.Count ;
       
-      int lLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
-
-      Fitness lFitness = mFitnessMap.Map(lLikelihood) ;
-
-      Score lScore = new Score(Name, lLikelihood, lFitness) ;
+      int lBagLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
 
       DContext.WriteLine($"Known Bits SNR: {lSNR}");
-      DContext.WriteLine($"Score: {lScore}");
-      DContext.WriteLine($"Likelihood: {lLikelihood}");
-      DContext.WriteLine($"Fitness: {lFitness}");
+      DContext.WriteLine($"Bag Likelihood: {lBagLikelihood}");
 
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lBits), aSquare.Name, lScore, lLikelihood < mQuitThreshold ) ) ;
+      BitBagSymbol lBag = new BitBagSymbol(lBags.Count, lBits, lBagLikelihood);
+
+      lBags.Add(lBag); 
+    }
+
+    if ( lBags.Count > mMinCount)
+    {
+      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lBags), aSquare.Name ) ) ;
     }
   }
 
   public override string Name => this.GetType().Name ;
 
-  int               mMinBitCount ;
+  int               mMinCount ;
   PipelineSelection mPipelineSelection ;
   FitnessMap        mFitnessMap ;
   int               mQuitThreshold ;

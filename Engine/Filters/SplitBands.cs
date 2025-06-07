@@ -28,9 +28,9 @@ namespace DIGITC2_ENGINE
       public string         Label ;
     }
 
-    public BandSplitter( double[] aCenterFrequencies, double aOverlapFactor = 0.0, double aSpectrumStart = 100, double aSpectrumEnd = 22000 )
+    public BandSplitter( List<double> aCenterFrequencies, double aOverlapFactor = 0.0, double aSpectrumStart = 100, double aSpectrumEnd = 22000 )
     {
-      mFrequencies = new (double, double, double)[aCenterFrequencies.Length];
+      mFrequencies = new (double, double, double)[aCenterFrequencies.Count];
 
       List<double> lExtendedCenters = new List<double> { aSpectrumStart };
       lExtendedCenters.AddRange(aCenterFrequencies);
@@ -116,30 +116,56 @@ namespace DIGITC2_ENGINE
   {
     public SplitBands() 
     {
-      double[] lBandCenters = new double[]{7500};
-      double lOverlap = .2 ;
-
-      mSplitter = new BandSplitter(lBandCenters,lOverlap);
-
     }
-    public SplitBands( BandSplitter aSplitter ) 
+
+    public override void Setup()
     {
-      mSplitter = aSplitter;  
+      // An Empty list means to do NO SPLITTNG
+
+      string lFCV = DContext.Session.Args.Get("SplitBands_FrequencyCenters");
+      if ( !string.IsNullOrEmpty(lFCV) ) 
+      {
+        var lFCListStr = lFCV.Split(',');
+
+        List<double> lFrequencyCenters = new List<double>();
+        
+        foreach ( var lFCStr in lFCListStr ) 
+        {
+          if ( double.TryParse(lFCStr, out double lFC ) )
+            lFrequencyCenters.Add( lFC );
+        }
+
+        if ( lFrequencyCenters.Count > 0 ) 
+          mSplitter = new BandSplitter(lFrequencyCenters, aOverlapFactor: .2);
+      }
+
     }
 
     protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
-      var lBands = mSplitter.Split(aInput.Rep); 
+      // mSPlitter can be null if the settings do not specify the frequency centers
+      // as a way to indcate to not split the audio in bands.
 
-      foreach ( var lBand in lBands)
+      if ( mSplitter != null ) 
+      {  
+        var lBands = mSplitter.Split(aInput.Rep); 
+
+        foreach ( var lBand in lBands)
+        {
+          var lES = aInput.CopyWith(lBand.Signal);
+          lES.Name = $"Band_{lBand.Label}";
+
+          if ( DContext.Session.Args.GetBool("Plot") )
+            lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
+
+          rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;
+        }
+      }
+      else
       {
-        var lES = aInput.CopyWith(lBand.Signal);
-        lES.Name = $"Band_{lBand.Label}";
+        DContext.WriteLine("Passing input signal AS-IS. No band splitting specified.");
 
-        if ( DContext.Session.Args.GetBool("Plot") )
-          lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
-
-        rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;
+        rOutput.Add(new Packet(Name, aInputPacket, aInput.Copy(), $"{aInput.Name}_UNSPLIT") ) ;
       }
     }
 

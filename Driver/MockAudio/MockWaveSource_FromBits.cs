@@ -35,9 +35,8 @@ namespace DIGITC2_ENGINE
       {
         var lChars = TextToChars(mBaseParams.Text);
         var lBytes = CharsToBytes(lChars); 
-        var lBits  = BytesToBits(lBytes);
 
-        var lWave = ModulateBits(lBits);
+        var lWave = ModulateBytes(lBytes);
 
         lWave.NormalizeMaxWithPeak();
 
@@ -73,38 +72,35 @@ namespace DIGITC2_ENGINE
       return rBytes ;
     }
 
-    List<bool> BytesToBits( List<byte> aBytes )
+    protected List<bool> ByteToBits( byte aByte )
     {
       List<bool> rBits = new List<bool>();
 
       byte[] lBuffer = new byte[1];
 
-      foreach( byte lByte in aBytes ) 
+      lBuffer[0]=aByte; 
+
+      BitArray lBA = new BitArray( lBuffer ); 
+
+      int lC = lBA.Length;
+
+      if ( mBaseParams.LittleEndian )
       {
-        lBuffer[0]=lByte; 
-
-        BitArray lBA = new BitArray( lBuffer ); 
-
-        int lC = lBA.Length;
-
-        if ( mBaseParams.LittleEndian )
-        {
-          for ( int i = lC - 1 ; i >= 0 ; -- i ) 
-            rBits.Add(lBA[i]);
+        for ( int i = lC - 1 ; i >= 0 ; -- i ) 
+          rBits.Add(lBA[i]);
    
-        }
-        else
-        {
-          for ( int i = 0; i < lC; ++ i ) 
-            rBits.Add(lBA[i]);
-        }
+      }
+      else
+      {
+        for ( int i = 0; i < lC; ++ i ) 
+          rBits.Add(lBA[i]);
       }
 
       return rBits ;
 
     }
 
-    protected abstract DiscreteSignal ModulateBits( List<bool> aBits ) ;
+    protected abstract DiscreteSignal ModulateBytes( List<byte> aBytes ) ;
 
     readonly BaseParams mBaseParams ;
 

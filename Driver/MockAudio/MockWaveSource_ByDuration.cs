@@ -119,9 +119,15 @@ namespace DIGITC2_ENGINE
       return new DiscreteSignal(SIG.SamplingRate, lAllSamples);
     }
 
-    protected override DiscreteSignal ModulateBits( List<bool> aBits )
+    protected override DiscreteSignal ModulateBytes( List<byte> aBytes )
     {
-      List<Chunk> lChunks = BuildChunks( aBits );
+      List<Chunk> lChunks = new List<Chunk>();
+
+      foreach( var lByte in aBytes )
+      {
+        var lBits = ByteToBits(lByte);
+        lChunks.AddRange( BuildChunks( lBits ) ) ;
+      }
 
       return ConcatenateChunks( lChunks );  
     }

@@ -128,34 +128,53 @@ namespace DIGITC2_ENGINE
 
   public class BitSymbol : Symbol
   {
-    public BitSymbol( int aIdx, bool aOne, double aLikelihood, PulseSymbol aView ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; View = aView ; }
+    public BitSymbol( int aIdx, bool? aOne, double aLikelihood, PulseSymbol aView = null ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; View = aView ; }
 
     public override string Type => "Bit" ;
 
     public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, View?.Copy()  as PulseSymbol ); }  
 
-    public override string Meaning => One ? "1" : "0" ;
+    public override string Meaning => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
 
-    public override double Value => One ? 1.0 : 0.0 ;
+    public override double Value => One.GetValueOrDefault(false) ? 1.0 : 0.0 ;
 
-    public bool One ;
+    public bool? One ;
 
-    double Likelihood ;
+    public double Likelihood ;
 
     public PulseSymbol View ;
   }
 
+  public class BitBagSymbol : Symbol
+  {
+    public BitBagSymbol( int aIdx, List<BitSymbol> aBits, double aLikelihood ) : base(aIdx) { Bits = aBits; Likelihood = aLikelihood ; }
+
+    public override string Type => "BitList" ;
+
+    public override Symbol Copy() { return new BitBagSymbol( Idx, Bits.ConvertAll( b => b.Copy() as BitSymbol), Likelihood ) ; }  
+
+    public override string Meaning => string.Join("|", Bits.ConvertAll( s => s.Meaning ) );
+    
+    public override double Value => Bits.Count;
+
+    public List<BitSymbol> Bits ;
+
+    public double Likelihood ;
+  }
+
   public class ByteSymbol : Symbol
   {
-    public ByteSymbol( int aIdx, byte aByte ) : base(aIdx) { Byte = aByte ; }
+    public ByteSymbol( int aIdx, byte aByte, double aLikelihood = 1.0) : base(aIdx) { Byte = aByte ; Likelihood = aLikelihood ; }
 
     public override string Type => "Byte" ;
 
-    public override Symbol Copy () { return new ByteSymbol( Idx, Byte ); }  
+    public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood ); }  
 
     public override string Meaning => $"[{Byte.ToString():x}]" ;
 
     public override double Value => Convert.ToDouble(Byte);
+
+    public double Likelihood ;
 
     public byte Byte ;
   }
@@ -218,4 +237,15 @@ namespace DIGITC2_ENGINE
     public override Sample ToSample() => new Sample( new SymbolSampleSource(this, Text), Idx) ;
   }
 
+
+  public static class SymbolExtensions
+  {
+    public static List<double> GetValues( this IEnumerable<Symbol> aSymbols )
+    {
+      List<double> rValues = new List<double>();
+      foreach( Symbol lSymbol in aSymbols) 
+        rValues.Add( lSymbol.Value ) ;
+      return rValues ;
+    }
+  }
 }

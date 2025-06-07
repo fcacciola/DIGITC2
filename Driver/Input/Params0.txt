@@ -10,16 +10,15 @@
 // in order to process a (common) input WAV file and try to extract 
 // a text message from it using a particular strategy
 //
-// Alternatively, for testing and calibration purposes
-// you can run a "Generate_" task (or the Analyzer).
 
 # FromAudio_ByPulseDuration=true
 FromAudio_ByTapCode_Binary=true
 # FromAudio_ByTapCode_DirectLetters=true
 
-# Generate_MockAudio_WithTapCode=true
+// Alternatively, for testing and calibration purposes
+// you can run a "Generate_" task.
 
-# AnalyzerTask=true
+# Generate_MockAudio_WithTapCode=true
 
 // The next section contains general and task specific parameters
 // ** NOTE ** File names that start with @ are relative to the 
@@ -31,35 +30,51 @@ FromAudio_ByTapCode_Binary=true
 //
 //
 
-
 // This specifies the "comma separated" list of input audio files to process
 
 InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode.wav
 
+// Comment this out to indicate that the input signal should NOT be split into frequency bands
+# SplitBands_FrequencyCenters=7500,10000
 
+BinarizeFromTapCode_Pipelines=!Binary_3_1_Guarded,!Binary_2_1_Guarded,!Binary_3_1,!Binary_2_1,Binary
+BinarizeFromTapCode_MinCount=2
+BinarizeFromTapCode_FitnessMap=50,80,90,97
+BinarizeFromTapCode_QuitThreshold=1
+
+BinaryToBytes_Pipelines=!5Bits,8bits
+BinaryToBytes_FitnessMap=50,80,90,97
+BinaryToBytes_QuitThreshold=1
+
+TapCodeToBytes_Pipelines=!LatinAlphabet_Simple,LatinAlphabet_Extended
+
+BytesAsLanguageDigits_FitnessMap=35,50,85,95
+BytesAsLanguageDigits_QuitThreshold=30
+
+TokenLengthDistribution_FitnessMap=15,25,40,60
+TokenLengthDistribution_QuitThreshold=5
+
+//
+// MOCK AUDIO Settings
+// 
+// These tasks generate WAV files that can be later used 
+// for testing and calibration
+//
+
+// Tap Code Generator
+//
 MockAudio_WithTapCode_Text=Hello World
 MockAudio_WithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode.wav
 MockAudio_WithTapCode_TapBurstDuration=.1
+MockAudio_WithTapCode_WhiteNoiseLevel=.7
 
 
-NoiseFile=./Input/Samples/Noise
-NoiseDuration=120
-NoiseLevel=100
+// Plot: Specify whether to save Images with plots of important data such as Histograms
+// Used only for testing and calibration. Set to 'false' when just using the program
 
-
-BinarizeFromTapCode_MinBitCount=4
-BitsCount=1024
-LargeText=dracula.txt
-TextSlices=2,3,4,8,16,32,512
 Plot=true
-xSaveReference=true
-BinaryToBytes_Pipelines=8
-BinarizeFromTapCode_Pipelines=!Binary_3_1_Guarded,!Binary_2_1_Guarded,!Binary_3_1,!Binary_2_1,Binary
-TapCodeToBytes_Pipelines=!LatinAlphabet_Simple,LatinAlphabet_Extended
-BytesAsLanguageDigits_FitnessMap=35,50,85,97
-BytesAsLanguageDigits_QuitThreshold=1
-TokenLengthDistribution_FitnessMap=50,65,85,97
-TokenLengthDistribution_QuitThreshold=1
-BinarizeFromTapCode_FitnessMap=50,80,90,97
-BinarizeFromTapCode_QuitThreshold=1
+
+// SaveReference: Saves special references data used by normal processing, such as histograms. 
+// Used only for testing and calibration. Set to 'false' when just using the program
+# SaveReference=true 
 

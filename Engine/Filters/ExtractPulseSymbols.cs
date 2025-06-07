@@ -156,11 +156,11 @@ namespace DIGITC2_ENGINE
 
     protected override void Process (WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
     {
-      Process( new Options(){ Label = "A"
-                            , VeryShortThreshold = 441 // 10 ms
-                            , DullThreshold = 35
-                            , SplitThreshold = 25
-                            , SplitLevelDiff = 20
+      Process( new Options(){ Label              = "A"
+                            , VeryShortThreshold = SIG.SamplingRate / 1000 * 15 
+                            , DullThreshold      = 35
+                            , SplitThreshold     = 25
+                            , SplitLevelDiff     = 20
                             }
              , aInput
              , aInputPacket

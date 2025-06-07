@@ -34,9 +34,9 @@ public class PolybiusSquare
                                                                 , "!", "-", "(", ")", "0" , "1"
                                                                 } ;
 
-  static List<string> sBinary = new List<string>{ "00",  "11", "00"
-                                                , "11",  "?", "11"
-                                                , "00",  "11", "00"
+  static List<string> sBinary = new List<string>{ "0",  "1", "0"
+                                                , "1",  "?", "1"
+                                                , "0",  "1", "0"
                                                 } ;
 
   static List<string> sBinary_2_1 = new List<string>{ "0",  "0", "1", "1", "0", "0"
@@ -82,10 +82,12 @@ public class PolybiusSquare
                                                             , "0",  "0", "0", "?",  "1",  "1", "1", "?", "0",  "0", "0"
                                                             } ;
 
-  public PolybiusSquare( List<string> aAlphabet, string aName ) 
+  public PolybiusSquare( List<string> aAlphabet, string aName, bool aHasExtendedBitSymbols = false ) 
   { 
-    Name     = aName ;
-    Alphabet = aAlphabet ;
+    Name                  = aName ;
+    Alphabet              = aAlphabet ;
+    HasExtendedBitSymbols = aHasExtendedBitSymbols ;
+
     Size = (int) Math.Ceiling( (Math.Sqrt( aAlphabet.Count ) ));
   }
 
@@ -94,8 +96,8 @@ public class PolybiusSquare
   static public PolybiusSquare Binary                 => new PolybiusSquare(sBinary                , "Binary");
   static public PolybiusSquare Binary_2_1             => new PolybiusSquare(sBinary_2_1            , "Binary_2_1");
   static public PolybiusSquare Binary_2_1_Guarded     => new PolybiusSquare(sBinary_2_1_Guarded    , "Binary_2_1_Guarded");
-  static public PolybiusSquare Binary_3_1             => new PolybiusSquare(sBinary_3_1            , "Binary_3_1");
-  static public PolybiusSquare Binary_3_1_Guarded     => new PolybiusSquare(sBinary_3_1_Guarded    , "Binary_3_1_Guarded");
+  static public PolybiusSquare Binary_3_1             => new PolybiusSquare(sBinary_3_1            , "Binary_3_1", true);
+  static public PolybiusSquare Binary_3_1_Guarded     => new PolybiusSquare(sBinary_3_1_Guarded    , "Binary_3_1_Guarded", true );
 
   public TapCode Encode( string s )
   {
@@ -130,6 +132,9 @@ public class PolybiusSquare
   public readonly string       Name ;
   public readonly List<string> Alphabet ;
   public readonly int          Size ;
+
+  // Has Bit Symbols '11' and '00' as well as '1' and '0'
+  public readonly bool HasExtendedBitSymbols ; 
 }
 
 

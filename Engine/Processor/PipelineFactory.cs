@@ -20,7 +20,7 @@ namespace DIGITC2_ENGINE
       var rPipeline = new MainPipeline();
 
       rPipeline.Add( new Envelope() )
-               .Add( new Discretize() )
+               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1) ) )
                .Add( new ExtractPulseSymbols() )
                .Add( new BinarizeFromDuration() ) ;
 
@@ -33,7 +33,7 @@ namespace DIGITC2_ENGINE
 
       rPipeline.Add( new SplitBands() )
                .Add( new Envelope() )
-               .Add( new Discretize(3) )
+               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7) ) )
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new BinarizeFromTapCode() ) ;
@@ -55,12 +55,12 @@ namespace DIGITC2_ENGINE
       return rPipeline ;
     }
 
-    public static MainPipeline FromAudio_ByCode_ToDirectLetters()
+    public static MainPipeline FromAudio_ByTapCode_ToDirectLetters()
     {
       var rPipeline = new MainPipeline();
 
       rPipeline.Add( new Envelope() )
-               .Add( new Discretize() )
+               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7)) )
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new TapCodeToBytes())

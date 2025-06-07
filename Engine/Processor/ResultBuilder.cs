@@ -86,7 +86,7 @@ namespace DIGITC2_ENGINE
 
         foreach ( PipelineResult lPR in PipelineResults ) 
         {   
-          string lReportName = $"{lPR.OverallFitness} #{lIdx}.txt" ;
+          string lReportName = $"Result {lIdx} ({lPR.OverallFitness}).txt" ;
 
           string lReportPath = Path.Combine( lResultsFolder, lReportName ) ; 
 
@@ -104,7 +104,7 @@ namespace DIGITC2_ENGINE
           lPR.Scores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
           lReport.Add( "" ) ;
 
-          string lCollatedLogsName = $"COMBINED LOG FILE - {lPR.OverallFitness} #{lIdx}.txt" ;
+          string lCollatedLogsName = $"Result {lIdx} - COMBINED LOG FILE.txt" ;
           string lCollatedLogsPath = Path.Combine( lResultsFolder, lCollatedLogsName ) ; 
 
           lReport.Add( "Processing Sequence:" ) ;

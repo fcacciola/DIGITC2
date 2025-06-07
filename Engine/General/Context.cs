@@ -26,16 +26,20 @@ namespace DIGITC2_ENGINE
       mWriter = null;
       mStream = null;
     }
-
+    
     public void Write( string aS )
     {
-      mWriter?.Write( AddIndentation(aS) );  
+      string lS = AddIndentation(aS);
+      Console.Write( lS );
+      mWriter?.Write(lS);  
       mWriter?.Flush();
     }
 
     public void WriteLine( string aS )
     {
-      mWriter?.WriteLine( AddIndentation(aS) );  
+      string lS = AddIndentation(aS);
+      Console.WriteLine( lS );
+      mWriter?.WriteLine( lS );  
       mWriter?.Flush();
     }
 

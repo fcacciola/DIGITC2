@@ -9,42 +9,49 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
+  public class GateThresholds
+  {
+    public GateThresholds( params int[] aThresholds ) 
+    { 
+      foreach( int lThreshold in aThresholds ) 
+        Values.Add( lThreshold / 10.0f );
+    }
+
+    public List<float> Values = new List<float>();
+  }
+
   public class Discretize : WaveFilter
   {
-    public Discretize( int aResolution = 10 ) 
+    public Discretize( params GateThresholds[] aGTs ) 
     { 
-      mResolution = aResolution;
+      foreach( var lGT in aGTs ) 
+        mGates.Add( new Gate($"{lGT.Values.Count}_steps",lGT) ) ;
     }
 
     public class Gate
     {
-      public Gate( string aLabel, params float[] aThresholds)
+      public Gate( string aLabel, GateThresholds aThresholds )
       {
-        Thresholds = new List<float>();
-        Thresholds.AddRange( aThresholds ); 
-        Label = aLabel; 
-      }
-
-      public  Gate( string aLabel, List<float> aThresholds)
-      {
+        Label      = aLabel; 
         Thresholds = aThresholds;
-        Label = aLabel; 
       }
 
       public float Apply( float aV )
       {
-        for( int i = 1; i < Thresholds.Count ; ++ i )
+        for( int i = 0; i < Thresholds.Values.Count ; ++ i )
         {
-          if ( aV > Thresholds[i] )
-            return Thresholds[i-1]; 
+          float lThreshold = Thresholds.Values[i] ; //* Scale ; 
+
+          if ( aV >= lThreshold )
+            return lThreshold; 
         }
 
         return 0f; 
       }
 
-      readonly List<float> Thresholds ;
+      readonly GateThresholds Thresholds ;
 
-      internal float Max ;
+      internal float Scale ;
 
       internal string Label ;
 
@@ -54,33 +61,21 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    static public Gate CreateGate( int aResolution )
-    {
-      List<float> lThresholds = new List<float>();  
-      float lStep = 1.0f / aResolution; 
-      for ( float lU = lStep ; lU < .98f ; lU += lStep )
-        lThresholds.Add( lU );  
-      lThresholds.Add(.98f);
-      lThresholds.Reverse();
-
-      lThresholds.ForEach( t => DContext.WriteLine($"Gate Threshold:{t}") ) ;
-
-      return new Gate($"{aResolution}_steps", lThresholds);
-    }
 
     protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
     {
-      DContext.WriteLine($"Discretizing Input Signal at Resolution: {mResolution}");
+      DContext.WriteLine($"Discretizing Input Signal.");
       DContext.Indent();
-      Process(mResolution, aInput, aInputPacket, rOuput);
+      WaveSignal lSignal = aInput ;
+      foreach ( var lGate in mGates )
+      {
+        DContext.WriteLine($"Gate: {lGate}");
+        lSignal = Apply( lSignal, lGate ) ;
+
+      }
+      rOuput.Add( new Packet(Name, aInputPacket, lSignal, $"Discretized.") ) ;
+
       DContext.Unindent();
-    }
-
-    void Process ( int aResolution, WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
-    {
-      var lR = Apply( aInput, CreateGate(aResolution) ) ;
-
-      rOuput.Add( new Packet(Name, aInputPacket, lR, $"Resolution:{aResolution}") ) ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )
@@ -99,7 +94,7 @@ namespace DIGITC2_ENGINE
     {
       float lMax = aInput.GetPeak();
 
-      aGate.Max = lMax ;
+      aGate.Scale = lMax / 1.0f;
       
       float[] lSrc = aInput.Samples ;
       int lLen = lSrc.Length ;
@@ -112,7 +107,7 @@ namespace DIGITC2_ENGINE
       return new DiscreteSignal(SIG.SamplingRate, rOutput);
     }
 
-    int mResolution = 10 ;
+    List<Gate> mGates = new List<Gate>() ;
 
     public override string Name => this.GetType().Name ;
 

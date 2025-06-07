@@ -168,7 +168,8 @@ public class TapCodeEvents
   public double BuildEvents(double aBaseTime)
   {
     double rTime = AddCount(aBaseTime, Code.Row);
-    rTime = AddCount(rTime + mTapCodeLGap, Code.Col);
+    if ( Code.Col > 0 )
+      rTime = AddCount(rTime + mTapCodeLGap, Code.Col);
     return rTime;
 
   }
@@ -241,6 +242,7 @@ public class TapCodeSignal
       public double TapCodeSGap ;
       public double TapCodeLGap ;
       public double TapCodeSeparation ;
+      public double WhiteNoiseLevel ;
     }
 
     public MockWaveSource_WithTapCode( BaseParams aBaseParams, Params aParams ) : base(aBaseParams)
@@ -266,25 +268,23 @@ public class TapCodeSignal
       // This is the separation between two tap codes
       lParams.TapCodeSeparation = 5 * lParams.BurstDuration ;
 
+      lParams.WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.3);
+
       return new MockWaveSource_WithTapCode(lBaseParams, lParams);
     }
 
-    protected override DiscreteSignal ModulateBits( List<bool> aBits )
+    class TapCodeSignalBuilder
     {
-      int lEstimatedLength = aBits.Count * 10 * SIG.SamplingRate;
-      DynamicFloatArray lSamples = new DynamicFloatArray(lEstimatedLength);
-
-      // Leave a gap at the beginning
-      double lTime = 0.5 ;
-
-      var lPS = PolybiusSquare.Binary ;
-      foreach (var lBit in aBits)
+      public TapCodeSignalBuilder( Params aParams, int aEstimatedLength )
       {
-        string lBitStr = lBit?"1":"0";
+        mParams  = aParams ;
+        mSamples = new DynamicFloatArray(aEstimatedLength); 
+        mTime    = 0.5 ; // Leave a gap at the beginning
+      }
 
-        var lCode = lPS.Encode(lBitStr);
-
-        var lTPS = new TapCodeSignal(lCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
+      public void AddCode ( TapCode aCode )
+      {
+        var lTPS = new TapCodeSignal(aCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
 
         var lTapEnvelope = lTPS.BuildEnvelope(SIG.SamplingRate);
 
@@ -292,23 +292,59 @@ public class TapCodeSignal
 
         if (DContext.Session.Args.GetBool("Plot"))
         {
-          string lCodeWaveFile = DContext.Session.OutputFile($"TapCodeSignal_{lCode.Row}_{lCode.Col}.wav");
+          string lCodeWaveFile = DContext.Session.OutputFile($"TapCodeSignal_{aCode.Row}_{aCode.Col}.wav");
           if ( !File.Exists(lCodeWaveFile))
             lTap.Save(lCodeWaveFile);
         }
 
-        int lIndex = (int)Math.Ceiling(lTime * SIG.SamplingRate) ;
+        int lIndex = (int)Math.Ceiling(mTime * SIG.SamplingRate) ;
 
-        lSamples.PutRange(lIndex, lTap.Samples);
+        mSamples.PutRange(lIndex, lTap.Samples);
 
-        lTime += lTap.Duration + mParams.TapCodeSeparation ;
+        mTime += lTap.Duration + mParams.TapCodeSeparation ;
       }
 
-      int lTotalSampleCount = (int)Math.Ceiling(lTime * SIG.SamplingRate) + 1 ;
+      public DiscreteSignal GetSignal()
+      {
+        int lTotalSampleCount = (int)Math.Ceiling(mTime * SIG.SamplingRate) + 1 ;
 
-      DiscreteSignal rModulated = new DiscreteSignal(SIG.SamplingRate, lSamples.ToArray(lTotalSampleCount));
+        return new DiscreteSignal(SIG.SamplingRate, mSamples.ToArray(lTotalSampleCount));
+      }
 
-      DiscreteSignal rNoisy = rModulated.AddWHiteNoise(.3);
+      readonly Params            mParams ;
+      readonly DynamicFloatArray mSamples ;
+
+      double mTime ;
+    }
+
+    protected override DiscreteSignal ModulateBytes( List<byte> aBytes )
+    {
+      var lPS = PolybiusSquare.Binary ;
+
+      int lEstimatedLength = aBytes.Count * 80 * SIG.SamplingRate;
+
+      var lSignalBuilder = new TapCodeSignalBuilder(mParams, lEstimatedLength);
+
+      TapCode lByteSeparatorCode = new TapCode(6,0);
+
+      foreach( byte lByte in aBytes ) 
+      {
+        var lBits = ByteToBits(lByte) ;
+
+        foreach (var lBit in lBits)
+        {
+          string lBitStr = lBit?"1":"0";
+
+          var lCode = lPS.Encode(lBitStr);
+
+          lSignalBuilder.AddCode(lCode);
+        }
+        lSignalBuilder.AddCode(lByteSeparatorCode);
+      }
+
+      DiscreteSignal rModulated = lSignalBuilder.GetSignal();
+
+      DiscreteSignal rNoisy = rModulated.AddWHiteNoise(mParams.WhiteNoiseLevel);
 
       return rNoisy;
     }

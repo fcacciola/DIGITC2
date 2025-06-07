@@ -30,6 +30,8 @@ namespace DIGITC2_ENGINE
 
   public static class MathX
   {
+    public static bool IsEven ( int aN ) => aN % 2 == 0 ; 
+
     public static double LERP( double aL, double aH, double aF )  
     {
       return ( 1.0 - aF ) * aL + aF * aH;
