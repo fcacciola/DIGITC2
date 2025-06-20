@@ -30,14 +30,35 @@ namespace DIGITC2_ENGINE
 
   public static class MathX
   {
+    private static readonly Random mRND = new Random();
+
     public static bool IsEven ( int aN ) => aN % 2 == 0 ; 
 
+    /// <summary>
+    /// Linear Interpolation in [aL,aH] by convex parameter (0-1) aF
+    /// </summary>
     public static double LERP( double aL, double aH, double aF )  
     {
       return ( 1.0 - aF ) * aL + aF * aH;
     }
 
+    /// <summary>
+    /// Randomized Linear Interpolation in [aL,aH] by randomly selected
+    /// convex parameter (0-1). 
+    /// </summary>
+    /// <param name="aTemperature">Controls de random selection of the interpolation parameter
+    /// 0 - Will always return aL, as the parameters becomes 0
+    /// n > 0  - Will vary the parameter randomly from [0-n%]
+    /// </param> 
+    public static double RERP( double aL, double aH, double aTemperature )  
+    {
+      double lR = mRND.NextDouble(); // Random number in [0,1]
+      return LERP(aL, aH, lR * aTemperature);
+    }
+
     public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * SIG.SamplingRate) ;
+
+    public static int Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
   }
 
   public class Textualizer

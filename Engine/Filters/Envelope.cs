@@ -27,7 +27,6 @@ namespace DIGITC2_ENGINE
       public int    LowPassOrder        = 5;
       public float  FollowerAttackTime  = 0.005f;
       public float  FollowerReleaseTime = 0.01f;
-      public bool   Plot                = true ;
     }
 
     public Envelope() 

@@ -94,7 +94,7 @@ namespace DIGITC2_ENGINE
           List<string> lCollatedLogs = new List<string>() ;
 
           lReport.Add( "Decoded Text Message:" ) ;
-          lReport.Add( ! string.IsNullOrEmpty(lPR.Text.Text) ? lPR.Text.Text : "<<<< SORRY! NO MESSAGE WAS DECODED :( >>>>") ;
+          lReport.Add( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) ? lPR.Text.Text : "<<<< SORRY! NO MESSAGE WAS DECODED :( >>>>") ;
           lReport.Add( "" ) ;
 
           lReport.Add( $"Overall Fitness: {lPR.OverallFitness} " ) ;

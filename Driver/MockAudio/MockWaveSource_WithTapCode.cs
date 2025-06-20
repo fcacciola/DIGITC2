@@ -85,6 +85,8 @@ public class DynamicFloatArray
 public class BurstPulse
 {
   public double Duration;
+  public double Temperature ;
+  public double BaseLevel ;
 
   public DiscreteSignal BuildPulse()
   {
@@ -92,11 +94,15 @@ public class BurstPulse
 
     int lLength = MathX.SampleIdx(Duration) / 2;
 
+    double lL  = BaseLevel ;
+    double lHH = 0.99 ;
+
+    double lH = MathX.RERP(lL, lHH, Temperature);
+
     var lSincR = new SincBuilder()
                               .SetParameter("frequency", lSincFreq)
-
-                              .SetParameter("min", 0.5)
-                              .SetParameter("max", 0.95)
+                              .SetParameter("min", lL)
+                              .SetParameter("max", lH)
                               .SampledAt(SIG.SamplingRate)
                               .OfLength(lLength)
                               .Build();
@@ -105,12 +111,6 @@ public class BurstPulse
     lSincL.Reverse();
 
     var rPulse = lSincL.Concatenate(lSincR);
-
-
-    if ( DContext.Session.Args.GetBool("Plot") )
-    {
-      rPulse.Save(DContext.Session.OutputFile("BurstPulseEnvelope.wav"));
-    }
 
     return rPulse;
   }
@@ -183,20 +183,23 @@ public class TapCodeSignal
 {
   public TapCodeSignal( TapCode aCode
                       , double  aBurtDuration
+                      , double  aBurstBaseLevel
                       , double  aTapCodeSGap
                       , double  aTapCodeLGap
+                      , double  aTemperature
                       )
   {
-    mCode              = aCode;
-    mBurstDuration     = aBurtDuration;
-    mTapCodeSGap       = aTapCodeSGap;
-    mTapCodeLGap       = aTapCodeLGap;
+    mCode           = aCode;
+    mBurstDuration  = aBurtDuration;
+    mBurstBaseLevel = aBurstBaseLevel ;
+    mTapCodeSGap    = aTapCodeSGap;
+    mTapCodeLGap    = aTapCodeLGap;
+    mTemperature    = aTemperature;
   }
 
   public DiscreteSignal BuildEnvelope( int aSamplingRate)
   {
-    BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration };
-    DiscreteSignal lPulseSignal = lPulse.BuildPulse();
+    BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration, Temperature = mTemperature, BaseLevel = mBurstBaseLevel };
 
     var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap);
 
@@ -206,6 +209,8 @@ public class TapCodeSignal
 
     foreach (BurstEvent lBurstEvent in lEvent.BurstEvents)
     {
+      DiscreteSignal lPulseSignal = lPulse.BuildPulse();
+
       for (int i = lBurstEvent.StartSampleIdx, k = 0; i < lBurstEvent.EndSampleIdx; i++, k++)
       {
         lSamples[i] = lPulseSignal[k] ;
@@ -229,8 +234,10 @@ public class TapCodeSignal
 
   TapCode mCode;
   double  mBurstDuration;
+  double  mBurstBaseLevel ;
   double  mTapCodeSGap;
   double  mTapCodeLGap;
+  double  mTemperature ;
 }
 
 
@@ -239,10 +246,12 @@ public class TapCodeSignal
     public class Params
     {
       public double BurstDuration ;
+      public double BurstBaseLevel ;  
       public double TapCodeSGap ;
       public double TapCodeLGap ;
       public double TapCodeSeparation ;
       public double WhiteNoiseLevel ;
+      public double Temperature ;  
     }
 
     public MockWaveSource_WithTapCode( BaseParams aBaseParams, Params aParams ) : base(aBaseParams)
@@ -257,6 +266,11 @@ public class TapCodeSignal
 
       var lParams = new Params() ;
 
+      // Randomization parameter. 0 means no randomizarion. 1 means full randomiuzatiion.
+      lParams.Temperature = aArgs.GetDouble("MockAudio_WithTapCode_Temperature");
+
+      lParams.BurstBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode_BurstBaseLevel");
+
       lParams.BurstDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode_TapBurstDuration").GetValueOrDefault(0.1);
 
       // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
@@ -268,7 +282,7 @@ public class TapCodeSignal
       // This is the separation between two tap codes
       lParams.TapCodeSeparation = 5 * lParams.BurstDuration ;
 
-      lParams.WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.3);
+      lParams.WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.7);
 
       return new MockWaveSource_WithTapCode(lBaseParams, lParams);
     }
@@ -284,18 +298,17 @@ public class TapCodeSignal
 
       public void AddCode ( TapCode aCode )
       {
-        var lTPS = new TapCodeSignal(aCode, mParams.BurstDuration, mParams.TapCodeSGap, mParams.TapCodeLGap);
+        var lTPS = new TapCodeSignal( aCode
+                                    , mParams.BurstDuration
+                                    , mParams.BurstBaseLevel
+                                    , mParams.TapCodeSGap
+                                    , mParams.TapCodeLGap
+                                    , mParams.Temperature
+                                    );
 
         var lTapEnvelope = lTPS.BuildEnvelope(SIG.SamplingRate);
 
         var lTap = lTPS.BuildSignal(SIG.SamplingRate,.5);
-
-        if (DContext.Session.Args.GetBool("Plot"))
-        {
-          string lCodeWaveFile = DContext.Session.OutputFile($"TapCodeSignal_{aCode.Row}_{aCode.Col}.wav");
-          if ( !File.Exists(lCodeWaveFile))
-            lTap.Save(lCodeWaveFile);
-        }
 
         int lIndex = (int)Math.Ceiling(mTime * SIG.SamplingRate) ;
 

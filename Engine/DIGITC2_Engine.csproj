@@ -103,6 +103,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Filters\NoiseFloorGate.cs" />
     <Compile Include="Filters\Envelope.cs" />
     <Compile Include="Filters\SplitBands.cs" />
     <Compile Include="Generators\NoiseGenerator.cs">

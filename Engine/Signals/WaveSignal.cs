@@ -20,6 +20,8 @@ namespace DIGITC2_ENGINE
     static public double ToDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz / ( 0.5 * SamplingRate ) ;
 
     static public double ToNormalizedDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz /  SamplingRate ;
+
+    static public int SamplesForTime( double aMiliseconds ) => (int)Math.Ceiling(SamplingRate * aMiliseconds / 1000 ) ;
   }
 
   public class WaveSignal : Signal
@@ -264,7 +266,6 @@ namespace DIGITC2_ENGINE
                       .OfLength(lLength)
                       .SampledAt(SIG.SamplingRate)
                       .Build();
-
 
       return aSignal.WeightedSuperimpose(lNoise.ModulateWithRandomEnvelope());
     }
