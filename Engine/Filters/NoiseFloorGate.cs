@@ -21,9 +21,8 @@ namespace DIGITC2_ENGINE
   {
     public class Params 
     {
-      public int   WindowSize = 30 ;
-      public float Percentile = 0.10f;
-      public float DynamicGateAlpha      = 0.5f ;
+      public float TrimRatio  = 0.05f ;
+      public int   Percentile = 10;
     }
 
     public NoiseFloorGate() 
@@ -50,10 +49,9 @@ namespace DIGITC2_ENGINE
 
     public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams)
     {
-      var lLocalBaseline  = ComputeLocalBaseline(aInput.Samples, aParams.WindowSize, aParams.Percentile);
-      var lGlobalBaseline = EstimateKDEBaseline(aInput.Samples);
+      var lBaseLine = EstimateBaseline(aInput.Samples, aParams.TrimRatio, aParams.Percentile);
 
-      var lNewSamples = ApplyDynamicGate(aInput.Samples, lLocalBaseline, lGlobalBaseline, aParams.DynamicGateAlpha);
+      var lNewSamples = ApplyGate(aInput.Samples, lBaseLine);
 
       var rR = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
 
@@ -62,76 +60,38 @@ namespace DIGITC2_ENGINE
       return rR ;
     }
 
-
-    // 1. Windowed Local Percentile
-    public static float[] ComputeLocalBaseline(float[] envelope, int windowSize, float percentile)
+    static float[] Trim( float[] aSamples, float aTrimRatio )
     {
-      int half = windowSize / 2;
-      float[] baseline = new float[envelope.Length];
-      float[] window = new float[windowSize];
+      int lMargin = (int)(aSamples.Length * aTrimRatio);
 
-      int lEdge = SIG.SamplesForTime( 5000 ); // 5 seconds edge.
+      int lNewLen = aSamples.Length - lMargin - lMargin ;
 
-      int i = 0;  
+      float[] rR = new float[lNewLen];
 
-      for ( i = 0 ; i < lEdge ; ++ i )
-        baseline[i] = 0.99f;
+      Array.ConstrainedCopy(aSamples, lMargin, rR, 0, lNewLen);
 
-      for (; i < envelope.Length - lEdge ; i++)
-      {
-        int start = Math.Max(0, i - half);
-        int end = Math.Min(envelope.Length, i + half);
-
-        for ( int j = start, k = 0  ; j < end ; ++ j, ++ k  )
-          window[k] = envelope[j];
-        float[] sorted = window.OrderBy(x => x).ToArray();
-        int index = (int)(percentile * sorted.Length);
-        baseline[i] = sorted[index];
-      }
-
-      for ( ; i < envelope.Length ; ++ i )
-        baseline[i] = 0.99f;
-
-      return baseline;
+      return rR ; 
     }
 
-    // 2. KDE to Estimate Global Baseline
-    public static float EstimateKDEBaseline(float[] envelope, int numBins = 100, float bandwidth = 0.01f)
+
+    static float EstimateBaseline(float[] aSamples, float aTrimRatio = 0.05f, int aPercentile = 10)
     {
-      float min = envelope.Min();
-      float max = envelope.Max();
-      float step = (max - min) / numBins;
+      var lTrimmed = Trim(aSamples, aTrimRatio);
 
-      float[] binCenters = new float[numBins];
-      float[] density = new float[numBins];
+      float rR = lTrimmed.Percentile(aPercentile);
 
-      for (int i = 0; i < numBins; i++)
-      {
-        float x = min + i * step;
-        binCenters[i] = x;
-
-        foreach (var s in envelope)
-        {
-            float u = (x - s) / bandwidth;
-            density[i] += (float)Math.Exp(-0.5f * u * u);
-        }
-
-        density[i] /= (envelope.Length * bandwidth * (float)Math.Sqrt(2 * Math.PI));
-      }
-
-      int peakIndex = Array.IndexOf(density, density.Max());
-      return binCenters[peakIndex];
+      return rR ;
     }
 
-    // 3. Dynamic Gating Operation
-    public static float[] ApplyDynamicGate(float[] envelope, float[] localBaseline, float globalBaseline, float alpha)
+    static float[] ApplyGate(float[] envelope, float aBaseline)
     {
-      float[] threshold = localBaseline.Select(b => b + alpha * globalBaseline).ToArray();
       float[] filtered = new float[envelope.Length];
 
       for (int i = 0; i < envelope.Length; i++)
       {
-        filtered[i] = envelope[i] > threshold[i] ? envelope[i] : 0;
+        float lN = envelope[i] - aBaseline ;
+
+        filtered[i] = lN < 0 ? 0 : lN ;
       }
 
       return filtered;
@@ -146,3 +106,4 @@ namespace DIGITC2_ENGINE
 
 
 }
+

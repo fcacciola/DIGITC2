@@ -7,6 +7,7 @@ using System.Windows.Input;
 
 using MathNet.Numerics.Statistics;
 
+using NWaves.Filters;
 using NWaves.Operations;
 using NWaves.Signals;
 
@@ -19,14 +20,27 @@ namespace DIGITC2_ENGINE
 {
   public class Envelope : WaveFilter
   {
+    public class LowPassFilterParams 
+    {
+      public LowPassFilterParams( double aFreqInHerz )
+      {
+        FreqInHerz = aFreqInHerz; 
+      }
+
+      public double FreqInHerz = 1500;
+      public double DeltaPass  = 0.96;
+      public double DeltaStop  = 0.04;
+      public int    Order      = 5;
+    }
+
     public class Params 
     {
-      public double LowPassFreqInHerz   = 500;
-      public double LowPassDeltaPass    = 0.96;
-      public double LowPassDeltaStop    = 0.04;
-      public int    LowPassOrder        = 5;
-      public float  FollowerAttackTime  = 0.005f;
-      public float  FollowerReleaseTime = 0.01f;
+      public LowPassFilterParams LowPassA = new LowPassFilterParams(6000);
+      public LowPassFilterParams LowPassB = new LowPassFilterParams(3000);
+      public LowPassFilterParams LowPassC = new LowPassFilterParams(500);
+
+      public float FollowerAttackTime  = 0.005f;
+      public float FollowerReleaseTime = 0.01f;
     }
 
     public Envelope() 
@@ -38,53 +52,74 @@ namespace DIGITC2_ENGINE
       DContext.WriteLine("Extracting Envelope from input signal");
       DContext.Indent();
 
-      var lLowPass = CreateLowPassFilter();
-
-      var lNewRep = Apply(aInput.Rep, mParams, lLowPass) ; 
+      var lNewRep = Apply(aInput.Rep, mParams) ; 
 
       var rR = aInput.CopyWith(lNewRep);
 
-      string lLabel = "Envelope";
-
-      if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
-
-      rOutput.Add( new Packet(Name, aInputPacket, rR, lLabel));
+      rOutput.Add( new Packet(Name, aInputPacket, rR, "Envelope"));
       DContext.Unindent();
     }
 
-    LowPassFilter CreateLowPassFilter() 
+    static LowPassFilter CreateLowPassFilter( LowPassFilterParams aParams ) 
     {
-      var Freq         = SIG.ToDigitalFrequency(mParams.LowPassFreqInHerz) ;
-      var RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / mParams.LowPassDeltaPass ) ;
-      var AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / mParams.LowPassDeltaStop ) ;
+      var Freq         = SIG.ToDigitalFrequency(aParams.FreqInHerz) ;
+      var RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / aParams.DeltaPass ) ;
+      var AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / aParams.DeltaStop ) ;
 
-      DContext.WriteLine($"Applying Elliptic LowPassFiler. Freq:{mParams.LowPassFreqInHerz} Hz RipplePass:{RipplePassDb} Db Attenuate:{AttenuateDB} Db");
+      DContext.WriteLine($"Applying Elliptic LowPassFiler. Freq:{aParams.FreqInHerz} Hz RipplePass:{RipplePassDb} Db Attenuate:{AttenuateDB} Db");
 
-      return new LowPassFilter(Freq, mParams.LowPassOrder, RipplePassDb, AttenuateDB);
+      return new LowPassFilter(Freq, aParams.Order, RipplePassDb, AttenuateDB);
     }
 
-    public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams, LowPassFilter aFilter )
+    public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams )
     {
-      DContext.WriteLine("Peak Normalizing Input Signal");
-      aInput.NormalizeMaxWithPeak();
+      aInput.Sanitize();
 
-      DContext.WriteLine("Square-Rectifying Input Signal");
-      aInput.SquareRectify();
+      if ( DContext.Session.Args.GetBool("Plot") )
+        aInput.SaveTo( DContext.Session.OutputFile( $"Envelope_Input.wav") ) ;
 
-      var lLowPassed = aFilter.ApplyTo(aInput);
+      //var lLowPass_A = CreateLowPassFilter(aParams.LowPassA);
+      //var lLowPass_B = CreateLowPassFilter(aParams.LowPassB);
+      //var lLowPass_C = CreateLowPassFilter(aParams.LowPassC);
 
-      lLowPassed.Sanitize();
+      //var lFilteredA = lLowPass_A.ApplyTo(aInput);
+      //var lFilteredB = lLowPass_B.ApplyTo(lFilteredA);
+      //var lFilteredC = lLowPass_C.ApplyTo(lFilteredB);
+
+      //if ( DContext.Session.Args.GetBool("Plot") )
+      //{
+      //  lFilteredA.SaveTo( DContext.Session.OutputFile( $"LowPass_{aParams.LowPassA.FreqInHerz}.wav") ) ;
+      //  lFilteredB.SaveTo( DContext.Session.OutputFile( $"LowPass_{aParams.LowPassB.FreqInHerz}.wav") ) ;
+      //  lFilteredC.SaveTo( DContext.Session.OutputFile( $"LowPass_{aParams.LowPassC.FreqInHerz}.wav") ) ;
+      //}
 
       DContext.WriteLine($"Following Envelope. AttackTime: {aParams.FollowerAttackTime} ReleaseTime:{aParams.FollowerReleaseTime}");
 
       EnvelopeFollower envelopeFollower = new EnvelopeFollower(SIG.SamplingRate, aParams.FollowerAttackTime, aParams.FollowerReleaseTime);
 
-      var lNewSamples = aInput.Samples.Select(s => envelopeFollower.Process(s));
+      var rR = envelopeFollower.ApplyTo( aInput );
+      rR.Sanitize(); 
 
-      var rR = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
+      if ( DContext.Session.Args.GetBool("Plot") )
+        rR.SaveTo( DContext.Session.OutputFile( $"Envelope.wav") ) ;
 
-      rR.Sanitize();
+      //var rR2 = envelopeFollower.ApplyTo( lFilteredA );
+      //rR2.Sanitize(); 
+      //if ( DContext.Session.Args.GetBool("Plot") )
+      //  rR2.SaveTo( DContext.Session.OutputFile( $"Envelope_FilteredA.wav") ) ;
+
+      //var rR3 = envelopeFollower.ApplyTo( lFilteredB );
+      //rR3.Sanitize(); 
+      //if ( DContext.Session.Args.GetBool("Plot") )
+      //  rR3.SaveTo( DContext.Session.OutputFile( $"Envelope_FilteredB.wav") ) ;
+
+      //var rR = envelopeFollower.ApplyTo( lFilteredC );
+
+      //var lSmoothing = new SavitzkyGolayFilter(31);  
+
+      //var rR = lSmoothing.ApplyTo( lEnv); 
+
+      //rR.Sanitize();
 
       return rR ;
     }

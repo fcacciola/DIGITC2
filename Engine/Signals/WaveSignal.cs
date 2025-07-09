@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using MathNet.Numerics.Statistics;
+
 using NWaves.Audio;
 using NWaves.Signals;
 using NWaves.Signals.Builders;
@@ -137,6 +139,8 @@ namespace DIGITC2_ENGINE
 
     public static void ClampOutliers(this DiscreteSignal signal, float aFloor = 1e-4f, float aCeiling = .99f)
     {
+      DContext.WriteLine($"Clamping Signal into [{aFloor}->{aCeiling}]...");
+
       for (int i = 0; i < signal.Samples.Length; i++)
       {
         if (signal.Samples[i] < aFloor)
@@ -154,12 +158,19 @@ namespace DIGITC2_ENGINE
     /// <returns></returns>
     public static float GetPeak(this DiscreteSignal signal, int aOrder = 3)
     {
-      var lOrdered = signal.Samples.OrderByDescending( s => s ).ToList() ;
+      var lCopy = signal.Samples.FastCopy();  
 
       float[] lPercentiles = new float[aOrder]; 
 
       for (int i = 0; i < aOrder; i++)
-        lPercentiles[i] = lOrdered[i];
+      {
+        float lPeak = ArrayStatistics.Maximum(lCopy);
+        lPercentiles[i] = lPeak;
+
+        for( int j = 0 ; j < lCopy.Length ; j++ ) 
+          if ( lCopy[j] == lPeak )
+            lCopy[j] = 0;
+      }
 
       return lPercentiles.Average();
     }
@@ -173,6 +184,8 @@ namespace DIGITC2_ENGINE
     public static void NormalizeMaxWithPeak(this DiscreteSignal signal, int aOrder = 3, float aRange = 0.99f)
     {
       float lPeak = signal.GetPeak(aOrder);  
+
+      DContext.WriteLine($"Peak-Stretching signal to {lPeak}...");
 
       var norm = aRange/ lPeak;
 
@@ -190,6 +203,7 @@ namespace DIGITC2_ENGINE
     /// <param name="aOrder"></param>
     public static void Sanitize(this DiscreteSignal signal, float aFloor = 1e-4f, float aCeiling = .99f, int aOrder = 3)
     {
+      signal.Rectify();
       signal.ClampOutliers(aFloor, aCeiling); 
       signal.NormalizeMaxWithPeak(aOrder, aCeiling);
     }
@@ -198,11 +212,13 @@ namespace DIGITC2_ENGINE
     /// Rectifies by squaring <paramref name="signal"/> in-place.
     /// </summary>
     /// <param name="signal">Signal</param>
-    public static void SquareRectify(this DiscreteSignal signal)
+    public static void Rectify(this DiscreteSignal signal)
     {
+      DContext.WriteLine("Rectifying Signal...");
+
       for (var i = 0; i < signal.Length; i++)
       {
-        signal[i] = signal[i] * signal[i];
+        signal[i] = Math.Abs(signal[i]);
       }
     }
 

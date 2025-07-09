@@ -35,7 +35,8 @@ namespace DIGITC2_ENGINE
       rPipeline.Add( new SplitBands() )
                .Add( new Envelope() )
                .Add( new NoiseFloorGate() )  
-               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7) ) )
+//               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7) ) )
+               .Add( new Discretize( new GateThresholds(9,7,5,4,3,1) ) )
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new BinarizeFromTapCode() ) ;
