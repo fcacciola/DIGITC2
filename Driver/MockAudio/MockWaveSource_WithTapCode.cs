@@ -82,17 +82,20 @@ public class DynamicFloatArray
 
 
 
+
 public class BurstPulse
 {
-  public double Duration;
+  public double BaseDuration;
   public double Temperature ;
   public double BaseLevel ;
 
   public DiscreteSignal BuildPulse()
   {
-    double lSincFreq = 3 / Duration;
+    double lDuration = MathX.TERP(BaseDuration, Temperature);
 
-    int lLength = MathX.SampleIdx(Duration) / 2;
+    double lSincFreq = 3 / lDuration;
+
+    int lLength = MathX.SampleIdx(lDuration) / 2;
 
     double lL  = BaseLevel ;
     double lHH = 0.99 ;
@@ -134,6 +137,7 @@ public class TapCodeEvents
                       , double  aBurstDuration
                       , double  aTapCodeSGap
                       , double  aTapCodeLGap
+                      , double  aTemperature
                       )
   {
     Code = aCode;
@@ -142,6 +146,7 @@ public class TapCodeEvents
 
     mTapCodeSGap = aTapCodeSGap;
     mTapCodeLGap = aTapCodeLGap;
+    mTemperature = aTemperature;
   }
 
   public TapCode Code;
@@ -158,7 +163,7 @@ public class TapCodeEvents
 
       BurstEvents.Add(lEvent);
 
-      rTime += mBurstDuration + mTapCodeSGap;
+      rTime += mBurstDuration + MathX.TERP(mTapCodeSGap,mTemperature);
     }
 
     return rTime;
@@ -169,7 +174,7 @@ public class TapCodeEvents
   {
     double rTime = AddCount(aBaseTime, Code.Row);
     if ( Code.Col > 0 )
-      rTime = AddCount(rTime + mTapCodeLGap, Code.Col);
+      rTime = AddCount(rTime + MathX.TERP(mTapCodeLGap,mTemperature), Code.Col);
     return rTime;
 
   }
@@ -177,6 +182,7 @@ public class TapCodeEvents
   double mBurstDuration;
   double mTapCodeSGap;
   double mTapCodeLGap;
+  double mTemperature;
 }
 
 public class TapCodeSignal
@@ -199,9 +205,9 @@ public class TapCodeSignal
 
   public DiscreteSignal BuildEnvelope( int aSamplingRate)
   {
-    BurstPulse lPulse = new BurstPulse() { Duration = mBurstDuration, Temperature = mTemperature, BaseLevel = mBurstBaseLevel };
+    BurstPulse lPulse = new BurstPulse() { BaseDuration = mBurstDuration, Temperature = mTemperature, BaseLevel = mBurstBaseLevel };
 
-    var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap);
+    var lEvent = new TapCodeEvents(mCode, mBurstDuration, mTapCodeSGap, mTapCodeLGap, mTemperature);
 
     double lTotalTime = lEvent.BuildEvents(0);
 
@@ -213,7 +219,7 @@ public class TapCodeSignal
 
       for (int i = lBurstEvent.StartSampleIdx, k = 0; i < lBurstEvent.EndSampleIdx; i++, k++)
       {
-        lSamples[i] = lPulseSignal[k] ;
+        lSamples[i] = k < lPulseSignal.Length ? lPulseSignal[k] : 0 ;
       }
     }
 
@@ -314,7 +320,7 @@ public class TapCodeSignal
 
         mSamples.PutRange(lIndex, lTap.Samples);
 
-        mTime += lTap.Duration + mParams.TapCodeSeparation ;
+        mTime += lTap.Duration + MathX.TERP(mParams.TapCodeSeparation, mParams.Temperature) ;
       }
 
       public DiscreteSignal GetSignal()

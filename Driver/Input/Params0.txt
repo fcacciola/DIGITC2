@@ -32,7 +32,7 @@ FromAudio_ByTapCode_Binary=true
 
 // This specifies the "comma separated" list of input audio files to process
 
-InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_Temperature_100.wav
+InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_Temperature_100_A.wav
 
 // Comment this out to indicate that the input signal should NOT be split into frequency bands
 # SplitBands_FrequencyCenters=7500,10000
@@ -64,11 +64,11 @@ TokenLengthDistribution_QuitThreshold=5
 // Tap Code Generator
 //
 MockAudio_WithTapCode_Text=Hello World
-MockAudio_WithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode_Temperature_100.wav
+MockAudio_WithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode_Temperature_100_A.wav
 MockAudio_WithTapCode_TapBurstDuration=0.1
 MockAudio_WithTapCode_BurstBaseLevel=0.5
 MockAudio_WithTapCode_WhiteNoiseLevel=0.7
-MockAudio_WithTapCode_Temperature=1
+MockAudio_WithTapCode_Temperature=.7
 
 
 // Plot: Specify whether to save Images with plots of important data such as Histograms

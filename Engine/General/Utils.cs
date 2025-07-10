@@ -56,6 +56,14 @@ namespace DIGITC2_ENGINE
       return LERP(aL, aH, lR * aTemperature);
     }
 
+    public static double TERP( double aN, double aTemperature, double aDeltaL = 1.0 - 0.15, double aDeltaH = 1.0 + 0.15 )  
+    {
+      double lL = aN * aDeltaL ;
+      double lH = aN * aDeltaH ;
+    
+      return MathX.RERP(lL, lH, aTemperature);
+    }
+
     public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * SIG.SamplingRate) ;
 
     public static int Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  

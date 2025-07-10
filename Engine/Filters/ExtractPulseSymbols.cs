@@ -159,8 +159,8 @@ namespace DIGITC2_ENGINE
       Process( new Options(){ Label              = "A"
                             , VeryShortThreshold = SIG.SamplingRate / 1000 * 15 
                             , DullThreshold      = 15
-                            , SplitThreshold     = 0
-                            , SplitLevelDiff     = 0
+                            , SplitThreshold     = 5
+                            , SplitLevelDiff     = 5
                             }
              , aInput
              , aInputPacket
