@@ -139,7 +139,7 @@ namespace DIGITC2_ENGINE
 
     public static void ClampOutliers(this DiscreteSignal signal, float aFloor = 1e-4f, float aCeiling = .99f)
     {
-      DContext.WriteLine($"Clamping Signal into [{aFloor}->{aCeiling}]...");
+      //DContext.WriteLine($"Clamping Signal into [{aFloor}->{aCeiling}]...");
 
       for (int i = 0; i < signal.Samples.Length; i++)
       {
@@ -185,7 +185,7 @@ namespace DIGITC2_ENGINE
     {
       float lPeak = signal.GetPeak(aOrder);  
 
-      DContext.WriteLine($"Peak-Stretching signal to {lPeak}...");
+      //DContext.WriteLine($"Peak-Stretching signal to {lPeak}...");
 
       var norm = aRange/ lPeak;
 
@@ -214,7 +214,7 @@ namespace DIGITC2_ENGINE
     /// <param name="signal">Signal</param>
     public static void Rectify(this DiscreteSignal signal)
     {
-      DContext.WriteLine("Rectifying Signal...");
+      //DContext.WriteLine("Rectifying Signal...");
 
       for (var i = 0; i < signal.Length; i++)
       {

@@ -197,7 +197,7 @@ namespace DIGITC2_ENGINE
         }
       }
 
-      List<TapCode> lCodes = new List<TapCode>();
+      List<TapCode> lAllCodes = new List<TapCode>();
 
       DContext.WriteLine($"Bags:{lBags.Count}");
 
@@ -215,6 +215,8 @@ namespace DIGITC2_ENGINE
 
         DContext.Write("Bag: "); lBag.ForEach( g => DContext.Write(g.ToString())); DContext.WriteLine("");
       
+        List<TapCode> lCodes = new List<TapCode>();
+
         for ( int i = 0 ;  i < lBag.Count ; i += 2 )
         {
           int lRow = lBag[i  ].Count ;
@@ -224,12 +226,14 @@ namespace DIGITC2_ENGINE
         }
 
         lCodes.Add( new TapCode(0,0) ) ;
+
+        DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
+
+        lAllCodes.AddRange( lCodes ) ;  
       }
 
-      DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
-
       int lIdx = 0 ;
-      var lSymbols = lCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
+      var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
       rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lSymbols), "TapCodes") ) ;
 
@@ -299,6 +303,8 @@ namespace DIGITC2_ENGINE
       }
 
       var lInternalH = MathX.LERP(lInternalLag,lNonInternalLag,0.4);
+
+//lInternalH = 23 ;
 
       DContext.WriteLine($"Internal Threshold: {lInternalH}");
 

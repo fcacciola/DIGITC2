@@ -59,7 +59,6 @@ namespace DIGITC2_ENGINE
       End       = aEnd;
     }
 
-
     public PulseStep Copy() {  return new PulseStep( Amplitude, Start, End ); }  
 
     public void DumpSamples( List<float> aSamples )
@@ -67,6 +66,13 @@ namespace DIGITC2_ENGINE
       for( int i = 0; i < Length; i++ ) 
         aSamples.Add(Amplitude);
     }
+
+    public static PulseStep Merge( PulseStep aA,  PulseStep aB )  
+    {
+      return new PulseStep((aA.Amplitude + aB.Amplitude)/2.0f, aA.Start, aB.End);
+    }
+
+    public override string ToString() => $"{Level}" ;
 
     public int Length => End - Start ;
 
@@ -96,7 +102,7 @@ namespace DIGITC2_ENGINE
 
     public override string Type => "Pulse" ;
 
-    public override string Meaning => $"{Duration:F2} pulse at {(double)Start/(double)SIG.SamplingRate:F2} " ;
+    public override string Meaning => $"[{Duration:F4} ({StartTime:F4}->{EndTime:F4}]" ;
 
     public override double Value => MaxAmplitude ;
 
@@ -114,6 +120,23 @@ namespace DIGITC2_ENGINE
         aSamples.Add(0);
 
       Steps.ForEach( s => s.DumpSamples( aSamples ) ); 
+    }
+
+    public static PulseSymbol Merge( PulseSymbol aA, PulseSymbol aB )
+    {
+      List<PulseStep> lMergedSteps = new List<PulseStep>() ;
+
+      for( int i = 0 ; i < aA.Steps.Count - 1 ; ++ i )
+        lMergedSteps.Add( aA.Steps[i].Copy() ) ;
+
+      lMergedSteps.Add( PulseStep.Merge(aA.Steps.Last(), aB.Steps.First()));
+
+      for( int i = 1 ; i < aB.Steps.Count ; ++ i )
+        lMergedSteps.Add( aB.Steps[i].Copy() ) ;
+
+      var rMerged = new PulseSymbol(aA.Idx, aA.Start, aB.End, lMergedSteps);
+
+      return rMerged;
     }
 
     public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Duration:F2}"), Duration)  ;

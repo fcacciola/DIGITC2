@@ -51,6 +51,8 @@ namespace DIGITC2_ENGINE
     {
       var lBaseLine = EstimateBaseline(aInput.Samples, aParams.TrimRatio, aParams.Percentile);
 
+      DContext.WriteLine($"Noise Floor: {lBaseLine}");
+
       var lNewSamples = ApplyGate(aInput.Samples, lBaseLine);
 
       var rR = new DiscreteSignal(SIG.SamplingRate, lNewSamples);

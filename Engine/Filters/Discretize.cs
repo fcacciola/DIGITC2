@@ -18,6 +18,8 @@ namespace DIGITC2_ENGINE
     }
 
     public List<float> Values = new List<float>();
+
+    public override string ToString() =>  Values.Textualize();
   }
 
   public class Discretize : WaveFilter
@@ -55,10 +57,7 @@ namespace DIGITC2_ENGINE
 
       internal string Label ;
 
-      public override string ToString()
-      {
-        return string.Join(",",Thresholds);
-      }
+      public override string ToString() => Thresholds.ToString() ;
     }
 
 
@@ -69,7 +68,7 @@ namespace DIGITC2_ENGINE
       WaveSignal lSignal = aInput ;
       foreach ( var lGate in mGates )
       {
-        DContext.WriteLine($"Gate: {lGate}");
+        DContext.WriteLine($"Applying Discretization Gate: {lGate}");
         lSignal = Apply( lSignal, lGate ) ;
 
       }

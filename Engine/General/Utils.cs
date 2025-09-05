@@ -69,40 +69,40 @@ namespace DIGITC2_ENGINE
     public static int Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
   }
 
-  public class Textualizer
-  {
-    public static string Textualize( bool aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
+  //public class Textualizer
+  //{
+  //  public static string Textualize( bool aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
 
-    public static string Textualize( int aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
+  //  public static string Textualize( int aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
 
-    public static string Textualize( Enum aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
+  //  public static string Textualize( Enum aN, string aFmt = "F2" ) => string.Format("{0}", aN );  
 
-    public static string Textualize( string aN, string aFmt = "F2" ) => aN;  
+  //  public static string Textualize( string aN, string aFmt = "F2" ) => aN;  
 
-    public static string Textualize<T>( T aN, string aFmt = "F2" ) => string.Format("{0:" + aFmt + "}", aN );  
+  //  public static string Textualize<T>( T aN, string aFmt = "F2" ) => string.Format("{0:" + aFmt + "}", aN );  
 
-    public static string TextualizeArray<T>( T[] aArray, string aFmt = "F2", int aMaxSize = 64 ) 
-    {
-      List<string> lStrings = new List<string>();
-      int lLen = aArray.Length;
-      if ( lLen > aMaxSize )
-      {
-        for ( int i = 0; i < aMaxSize/2; i++ )  
-          lStrings.Add( Textualize(aArray[i],aFmt) ) ;
+  //  public static string TextualizeArray<T>( T[] aArray, string aFmt = "F2", int aMaxSize = 64 ) 
+  //  {
+  //    List<string> lStrings = new List<string>();
+  //    int lLen = aArray.Length;
+  //    if ( lLen > aMaxSize )
+  //    {
+  //      for ( int i = 0; i < aMaxSize/2; i++ )  
+  //        lStrings.Add( Textualize(aArray[i],aFmt) ) ;
 
-       lStrings.Add("...");
+  //     lStrings.Add("...");
        
-       for ( int i = lLen-(aMaxSize/2); i < lLen; i++ )  
-          lStrings.Add( Textualize(aArray[i],aFmt)) ;
-      }
-      else
-      {
-        for ( int i = 0; i < lLen; i++ )  
-          lStrings.Add( Textualize(aArray[i],aFmt)+" ") ;
-      }
-      return string.Join(",",lStrings);
-    } 
-  }
+  //     for ( int i = lLen-(aMaxSize/2); i < lLen; i++ )  
+  //        lStrings.Add( Textualize(aArray[i],aFmt)) ;
+  //    }
+  //    else
+  //    {
+  //      for ( int i = 0; i < lLen; i++ )  
+  //        lStrings.Add( Textualize(aArray[i],aFmt)+" ") ;
+  //    }
+  //    return string.Join(",",lStrings);
+  //  } 
+  //}
 
   public interface IToJSON
   {
@@ -138,6 +138,19 @@ namespace DIGITC2_ENGINE
       }
 
       return rJ ;
+    }
+  }
+
+  public static class GeneralExtensions
+  {
+    public static string Textualize<T>( this List<T> aList ) 
+    {
+      var lSB = new StringBuilder();
+      lSB.Append( "[" );
+      for ( int i = 0; i < aList.Count; i++ )
+        lSB.Append( $"{aList[i]}{(i<aList.Count-1?",":"")}" );
+      lSB.Append( "]" );
+      return lSB.ToString();
     }
   }
     
