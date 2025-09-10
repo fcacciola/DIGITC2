@@ -13,18 +13,18 @@ using DIGITC2_ENGINE ;
 namespace DIGITC2 {
 
 
-public sealed class Generate_MockAudio_WithTapCode : GeneratorTask
+public sealed class Generate_MockAudio_WithTapCode_Synthetic : GeneratorTask
 {
   public override void Run( Args aArgs )
   {
-    DContext.Setup( new Session("Generate_MockAudio_WithTapCode", aArgs, BaseFolder) ) ;
+    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_Synthetic", aArgs, BaseFolder) ) ;
 
-    DContext.WriteLine("Generating MockAudio With TapCode");
+    DContext.WriteLine("Generating MockAudio With TapCode Syntethically");
 
     string lSourceText = aArgs.Get("MockAudio_WithTapCode_Text") ;
     if ( !string.IsNullOrEmpty( lSourceText ) ) 
     { 
-      var lSource = MockWaveSource_WithTapCode.FromText(aArgs, lSourceText);  
+      var lSource = MockWaveSource_WithTapCode_Synthetic.FromText(aArgs, lSourceText);  
 
       var lSignal = lSource.CreateSignal() as WaveSignal;
 

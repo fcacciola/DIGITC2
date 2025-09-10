@@ -74,7 +74,7 @@ namespace Driver
       RegisterTask( new FromAudio_ByPulseDuration() ); 
       RegisterTask( new FromAudio_ByTapCode_Binary() ); 
       RegisterTask( new FromAudio_ByTapCode_DirectLetters() ); 
-      RegisterTask( new Generate_MockAudio_WithTapCode() ); 
+      RegisterTask( new Generate_MockAudio_WithTapCode_Synthetic() ); 
     }
 
     internal void Run( Args aArgs)
