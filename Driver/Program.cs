@@ -38,6 +38,8 @@ namespace DIGITC2
         {
           aWF.SaveTo(stream);
         }
+
+        DContext.WriteLine($"Signal saved to .WAV file:[{aFilename}]");
       }
       catch( Exception ex)
       {
@@ -47,12 +49,6 @@ namespace DIGITC2
 
     public static string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
 
-    public string ExpandRelativeFilePath ( string aPath )
-    {
-      if ( aPath.StartsWith("@") )
-           return BaseFolder + aPath.Substring(1);
-      else return aPath ;
-    }
   }
 
   public abstract class DecodingTask : Task
@@ -71,10 +67,10 @@ namespace Driver
   {
     internal TaskTable() 
     {
-      RegisterTask( new FromAudio_ByPulseDuration() ); 
       RegisterTask( new FromAudio_ByTapCode_Binary() ); 
       RegisterTask( new FromAudio_ByTapCode_DirectLetters() ); 
       RegisterTask( new Generate_MockAudio_WithTapCode_Synthetic() ); 
+      RegisterTask( new Generate_MockAudio_WithTapCode_FromSamples() ); 
     }
 
     internal void Run( Args aArgs)

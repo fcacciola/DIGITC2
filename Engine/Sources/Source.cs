@@ -66,15 +66,34 @@ namespace DIGITC2_ENGINE
       mFilename = aFilename;
     }
 
-    protected override Signal DoCreateSignal()
+    public DiscreteSignal Load()
     {
-      if ( mSignal == null ) 
+      DiscreteSignal rS = null ;
+      if ( File.Exists(mFilename) )
       {
         using (var stream = new FileStream(mFilename, FileMode.Open))
         {
           var waveContainer = new WaveFile(stream);
-          var lRep = waveContainer[Channels.Average];
-          Guard.AgainstInequality(lRep.SamplingRate, SIG.SamplingRate, "Sampling rate");
+          rS = waveContainer[Channels.Average];
+          Guard.AgainstInequality(rS.SamplingRate, SIG.SamplingRate, "Sampling rate");
+        }
+      }
+      return rS ;
+    }
+
+    public static DiscreteSignal Load( string aFilename )
+    {
+      WaveFileSource lS = new WaveFileSource( aFilename );  
+      return lS.Load();
+    }
+
+    protected override Signal DoCreateSignal()
+    {
+      if ( mSignal == null ) 
+      {
+        var lRep = Load();
+        if ( lRep != null ) 
+        {
           mSignal = new WaveSignal(lRep);
           mSignal.Name = Path.GetFileNameWithoutExtension(mFilename); 
           mSignal.Origin = mFilename; 

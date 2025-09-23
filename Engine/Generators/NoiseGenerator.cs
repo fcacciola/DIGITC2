@@ -13,8 +13,6 @@ public class NoiseLab
 {
   static public DiscreteSignal GenerateNoise( int aSamples, double aLevel )
   {
-    DContext.WriteLine("Generating Noise");
-    
     //double lAmplitud = aLevel / 200.0 ;
     DiscreteSignal rNoise = new WhiteNoiseBuilder()
                                 .SetParameter("min", - aLevel)
@@ -28,8 +26,6 @@ public class NoiseLab
 
   static public DiscreteSignal GenerateNoise( double aDuration, double aLevel )
   {
-    DContext.WriteLine("Generating Noise");
-    
     return GenerateNoise((int)Math.Ceiling(SIG.SamplingRate * aDuration), aLevel);
   }
 

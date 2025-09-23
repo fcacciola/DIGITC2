@@ -28,9 +28,7 @@ public sealed class Generate_MockAudio_WithTapCode_Synthetic : GeneratorTask
 
       var lSignal = lSource.CreateSignal() as WaveSignal;
 
-      string lOutputFile_ = aArgs.Get("MockAudio_WithTapCode_OutputFile");
-
-      string lOutputFile = ExpandRelativeFilePath(lOutputFile_);
+      string lOutputFile = aArgs.GetPath("MockAudio_WithTapCode_OutputFile");
 
       if ( !string.IsNullOrEmpty( lSourceText ) ) 
       {

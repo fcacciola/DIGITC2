@@ -155,8 +155,8 @@ public class TapEventBuilder_Synthetic : TapEventBuilder
 {
   public TapEventBuilder_Synthetic( TapCodeSignalBuilderParams aParams )
   {
-    mBurstDuration  = aParams.BurstDuration;
-    mBurstBaseLevel = aParams.BurstBaseLevel;  
+    mBurstDuration  = aParams.PulseDuration;
+    mBurstBaseLevel = aParams.PulseBaseLevel;  
     mTemperature    = aParams.Temperature;
   }
 
@@ -178,14 +178,30 @@ public class TapEventBuilder_FromSamples : TapEventBuilder
 {
   public TapEventBuilder_FromSamples( TapCodeSignalBuilderParams aParams )
   {
+    for( int i = 0 ; i < aParams.TapSamplesSequence.Length ; ++  i)
+    {
+      string lTapSampleFile = $"{aParams.TapSamplesFolder}\\{aParams.TapSamplesSequence[0]}.wav";
+      if ( File.Exists(lTapSampleFile) ) 
+      {
+        var lTapSample = WaveFileSource.Load(lTapSampleFile);
+        if ( lTapSample != null ) 
+          mTapSamples.Add( lTapSample );
+      }
+    }
   }
 
   public override TapEvent CreateTapEvent( double aTime ) 
   {
-    DiscreteSignal lTapSignal = null;
+    DiscreteSignal lTapSignal = mTapSamples[mPicker];
+
+    mPicker = ( mPicker + 1 ) % mTapSamples.Count;  
 
     return new TapEvent( lTapSignal, aTime ); 
   }
+
+  List<DiscreteSignal> mTapSamples = new List<DiscreteSignal>();
+
+  static int mPicker = 0 ;
 }
 
 
@@ -294,9 +310,10 @@ public class TapCodeSignalBuilderParams
 {
   public TapCodeSignalBuilderParams( Args aArgs )
   {
-    BurstBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode_BurstBaseLevel");
+    PulseBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode_PulseBaseLevel");
 
-    BurstDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode_TapBurstDuration").GetValueOrDefault(0.1);
+    // This is the duration of a single "Tap Pulse"
+    PulseDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode_TapPulseDuration").GetValueOrDefault(0.1);
 
     // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
     TapCodeSGap = aArgs.GetDouble("MockAudio_WithTapCode_SGap") ;
@@ -307,19 +324,26 @@ public class TapCodeSignalBuilderParams
     // This is the separation between two tap codes
     TapCodeSeparation = aArgs.GetDouble("MockAudio_WithTapCode_Separation") ;
 
-    WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.7);
+    WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.3);
 
     // Randomization parameter. 0 means no randomizarion. 1 means full randomiuzatiion.
     Temperature = aArgs.GetDouble("MockAudio_WithTapCode_Temperature");
+
+    // Folder with .wav files of various Tap samples
+    TapSamplesFolder = aArgs.GetPath("MockAudio_WithTapCode_TapSamplesFolder") ;
+
+    TapSamplesSequence = aArgs.Get("MockAudio_WithTapCode_TapSamplesSequence") ;
   }
 
-  public double BurstDuration ;
-  public double BurstBaseLevel ;  
+  public double PulseDuration ;
+  public double PulseBaseLevel ;  
   public double TapCodeSGap ;
   public double TapCodeLGap ;
   public double TapCodeSeparation ;
   public double WhiteNoiseLevel ;
   public double Temperature ;  
+  public string TapSamplesFolder ;
+  public string TapSamplesSequence ;
 }
 
 
@@ -367,7 +391,9 @@ class TapCodeSignalBuilder
 
 public abstract class MockWaveSource_WithTapCode_Base : MockWaveSource_FromBits
 {
-  protected MockWaveSource_WithTapCode_Base( BaseParams aBaseParams, TapCodeSignalBuilderParams aParams, TapEventBuilder aTapEventBuilder ) : base(aBaseParams)
+  protected MockWaveSource_WithTapCode_Base( BaseParams                 aBaseParams
+                                           , TapCodeSignalBuilderParams aParams
+                                           , TapEventBuilder            aTapEventBuilder ) : base(aBaseParams)
   {
     mParams          = aParams;
     mTapEventBuilder = aTapEventBuilder;

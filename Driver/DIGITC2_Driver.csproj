@@ -96,10 +96,13 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MockAudio\MockWaveSource_WithTapCode_Synthetic.cs" />
+    <Compile Include="MockAudio\MockWaveSource_WithTapCode.cs" />
     <Compile Include="MockAudio\MockWaveSource_ByDuration.cs" />
     <Compile Include="MockAudio\MockWaveSource_FromBits.cs" />
-    <Content Include="Input\Params0.txt">
+    <Content Include="Input\GenerateParams0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Input\ProcessParams0.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Input\Samples\dracula.txt">

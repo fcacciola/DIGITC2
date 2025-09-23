@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,28 @@ namespace DIGITC2_ENGINE
 
     public string Get(string aKey) => Settings.ContainsKey(aKey) ? Settings[aKey] : null; 
     
+    public string GetPath( string aKey ) => ExpandRelativeFilePath(Get(aKey));
+
+    public List<string> GetPaths( string aKey )
+    {
+      string lRaw = Get(aKey) ;
+
+      List<string> rPaths = new List<string>() ;
+
+      if ( lRaw.Contains(",") )
+      {
+        foreach( string lPath in lRaw.Split(',') )
+          rPaths.Add( ExpandRelativeFilePath(lPath) );
+      }
+      else
+      {
+        rPaths.Add( ExpandRelativeFilePath(lRaw) ) ;
+      }
+
+      return rPaths ;
+     }
+
+
     public int?    GetOptionalInt   (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToInt32  (v) ; else return null ; }
     public float?  GetOptionalFloat (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToSingle (v) ; else return null ; }
     public double? GetOptionalDouble(string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToDouble (v) ; else return null ; }
@@ -107,5 +130,15 @@ namespace DIGITC2_ENGINE
       if ( !Settings.ContainsKey(aKey) )
         Settings.Add(aKey, aValue);
     }
+
+    string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
+
+    string ExpandRelativeFilePath ( string aPath )
+    {
+      if ( aPath.StartsWith("@") )
+           return BaseFolder + aPath.Substring(1);
+      else return aPath ;
+    }
+
   }
 }

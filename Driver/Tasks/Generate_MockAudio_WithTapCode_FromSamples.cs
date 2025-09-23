@@ -24,13 +24,11 @@ public sealed class Generate_MockAudio_WithTapCode_FromSamples : GeneratorTask
     string lSourceText = aArgs.Get("MockAudio_WithTapCode_Text") ;
     if ( !string.IsNullOrEmpty( lSourceText ) ) 
     { 
-      var lSource = MockWaveSource_WithTapCode_Synthetic.FromText(aArgs, lSourceText);  
+      var lSource = MockWaveSource_WithTapCode_FromSamples.FromText(aArgs, lSourceText);  
 
       var lSignal = lSource.CreateSignal() as WaveSignal;
 
-      string lOutputFile_ = aArgs.Get("MockAudio_WithTapCode_OutputFile");
-
-      string lOutputFile = ExpandRelativeFilePath(lOutputFile_);
+      string lOutputFile = aArgs.GetPath("MockAudio_WithTapCode_OutputFile");
 
       if ( !string.IsNullOrEmpty( lSourceText ) ) 
       {
