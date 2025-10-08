@@ -75,7 +75,7 @@ namespace DIGITC2_ENGINE
       public double Time ;
       public bool   IsInternalGap ;
 
-      public override string ToString() => $"[{LagFromPrev}s->{Time}s { ( IsInternalGap ? "IG" : "" ) } ]";
+      public override string ToString() => $"[LagFromPrev: {(LagFromPrev/100)} s | Onset: {Time}s { ( IsInternalGap ? "IG" : "" ) } ]";
     }
 
     // Each TapGroup corresponds to a sequence of closely together Taps.

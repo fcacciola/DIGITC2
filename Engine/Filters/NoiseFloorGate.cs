@@ -49,7 +49,11 @@ namespace DIGITC2_ENGINE
 
     public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams)
     {
-      var lBaseLine = EstimateBaseline(aInput.Samples, aParams.TrimRatio, aParams.Percentile);
+      aInput.Sanitize();
+
+      var lEnvelope = Envelope.Apply(aInput, new Envelope.Params{FollowerAttackTime=0.0005f, FollowerReleaseTime=0.001f});
+    
+      var lBaseLine = EstimateBaseline(lEnvelope.Samples, aParams.TrimRatio, aParams.Percentile);
 
       DContext.WriteLine($"Noise Floor: {lBaseLine}");
 
@@ -78,6 +82,8 @@ namespace DIGITC2_ENGINE
 
     static float EstimateBaseline(float[] aSamples, float aTrimRatio = 0.05f, int aPercentile = 10)
     {
+      Array.Sort(aSamples); 
+
       var lTrimmed = Trim(aSamples, aTrimRatio);
 
       float rR = lTrimmed.Percentile(aPercentile);

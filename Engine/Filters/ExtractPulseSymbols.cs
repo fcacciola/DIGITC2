@@ -157,7 +157,7 @@ namespace DIGITC2_ENGINE
     {
       Process( new Options(){ Label              = "A"
                             , VeryShortThreshold = SIG.SamplingRate / 1000 * 15 
-                            , DullThreshold      = 15
+                            , DullThreshold      = 5
                             , SplitThreshold     = 5
                             , SplitLevelDiff     = 5
                             }
@@ -405,41 +405,28 @@ namespace DIGITC2_ENGINE
       DContext.Unindent();  
     }
 
-    double FindVeryShortThreshold()
+    double FindContiguousPulsesGapDuration()
     {
       double rR = 0 ;
 
-      var lDist = new Distribution( mData.Pulses3.ConvertAll( s => s.ToSample() ) ) ;
+      var lDurations = mData.Pulses2.ConvertAll( s => s.ToSample() ) ;
+
+      var lDist = new Distribution( lDurations ) ;
 
       var lFullRangeHistogram = new Histogram(lDist).Table ;
 
       var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
-      var lRawPeaks = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-      var lPeaks    = lRawPeaks.OrderByDescending( xp => xp.Value.X.Value ).ToList();
+      var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
+      var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
+      var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
 
-     if ( lPeaks.Count > 0 ) 
-     {  
-       double lH = lPeaks[0].Value.X.Value ;
-       double lL = lH / 2 ;
+      if ( lPeaks.Count >= 3 ) 
+      {  
+        rR = MathX.LERP(lPeaks[0],lPeaks[1],.4);
+      }
 
-       if (  lPeaks.Count > 1 ) 
-         lL = lPeaks[1].Value.X.Value ;
-
-       rR = MathX.LERP(lL,lH,.6);
-     }
-
-rR = 0 ;
       return rR;
-    }
-
-    void RemoveUnfitPulses()
-    {
-      double lVeryShortPulses = FindVeryShortThreshold();
-
-      mData.Pulses4.AddRange( mData.Pulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
-
-      PulseFilterHelper.PlotPulses(mData.Pulses4, $"{mData.Options.Label}_4");
     }
 
     void MergeContiguousPulses()
@@ -450,7 +437,7 @@ rR = 0 ;
       DContext.WriteLine("Merging Contiguous Pulses");
       DContext.Indent();  
 
-      double lContiguousPulsesGap = 0.0025 ;
+      double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; //0.0070 ;
 
       var lPulseA = mData.Pulses2[0];
 
@@ -460,7 +447,7 @@ rR = 0 ;
 
         var lGap = lPulseB.StartTime - lPulseA.EndTime;
 
-        if ( lGap < lContiguousPulsesGap ) 
+        if ( lGap < lContiguousPulsesGapDuration ) 
         {
           DContext.WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
           var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
@@ -477,6 +464,40 @@ rR = 0 ;
       PulseFilterHelper.PlotPulses(mData.Pulses3, $"{mData.Options.Label}_3");
       DContext.Unindent();  
     }
+
+    double FindVeryShortThreshold()
+    {
+      double rR = 0 ;
+
+      var lDurations = mData.Pulses3.ConvertAll( s => s.ToSample() ) ;
+
+      var lDist = new Distribution( lDurations ) ;
+
+      var lFullRangeHistogram = new Histogram(lDist).Table ;
+
+      var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
+
+      var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
+      var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
+      var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
+
+      if ( lPeaks.Count >= 2 ) 
+      {  
+        rR = MathX.LERP(lPeaks[0],lPeaks[1],.6);
+      }
+
+      return rR;
+    }
+
+    void RemoveUnfitPulses()
+    {
+      double lVeryShortPulses = FindVeryShortThreshold();
+
+      mData.Pulses4.AddRange( mData.Pulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
+
+      PulseFilterHelper.PlotPulses(mData.Pulses4, $"{mData.Options.Label}_4");
+    }
+
 
     class Options
     {
