@@ -36,12 +36,10 @@ namespace DIGITC2_ENGINE
 
     public class Params 
     {
-      public LowPassFilterParams LowPassA = new LowPassFilterParams(6000);
-      public LowPassFilterParams LowPassB = new LowPassFilterParams(3000);
-      public LowPassFilterParams LowPassC = new LowPassFilterParams(500);
-
       public float FollowerAttackTime  = 0.005f;
       public float FollowerReleaseTime = 0.01f;
+
+      public override string ToString() => $"A_{(int)(FollowerAttackTime*1000)}_R_{(int)(FollowerReleaseTime*1000)}";
     }
 
     public Envelope() 

@@ -19,7 +19,7 @@ namespace DIGITC2_ENGINE
 {
   public class NoiseFloorGate : WaveFilter
   {
-    public class Params 
+    public class NoiseFloorEstimationParams 
     {
       public float TrimRatio  = 0.05f ;
       public int   Percentile = 10;
@@ -34,36 +34,49 @@ namespace DIGITC2_ENGINE
       DContext.WriteLine("Gating Above Noise Floor");
       DContext.Indent();
 
-      var lNewRep = Apply(aInput.Rep, mParams) ; 
+      aInput.Rep.Sanitize() ;
 
-      var rR = aInput.CopyWith(lNewRep);
+      ApplyEnvelopeThenGate(aInput, aInputPacket, new Envelope.Params{FollowerAttackTime=0.0005f, FollowerReleaseTime=0.001f}, rOutput );
+      ApplyEnvelopeThenGate(aInput, aInputPacket, new Envelope.Params{FollowerAttackTime=0.0010f, FollowerReleaseTime=0.002f}, rOutput );
 
-      string lLabel = "NoiseFloorGate";
-
-      if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
-
-      rOutput.Add( new Packet(Name, aInputPacket, rR, lLabel));
       DContext.Unindent();
     }
 
-    public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams)
+    void ApplyEnvelopeThenGate( WaveSignal aInput, Packet aInputPacket, Envelope.Params aEnvelopeParams, List<Packet> rOutput ) 
     {
-      aInput.Sanitize();
+      var lEnvelope = Envelope.Apply(aInput.Rep, aEnvelopeParams);
 
-      var lEnvelope = Envelope.Apply(aInput, new Envelope.Params{FollowerAttackTime=0.0005f, FollowerReleaseTime=0.001f});
-    
-      var lBaseLine = EstimateBaseline(lEnvelope.Samples, aParams.TrimRatio, aParams.Percentile);
+      string lEnvelopeLabel = $"Envelope_{aEnvelopeParams}";
+      
+      if ( DContext.Session.Args.GetBool("Plot") )
+        lEnvelope.SaveTo( DContext.Session.OutputFile( $"{lEnvelopeLabel}.wav") ) ;
 
-      DContext.WriteLine($"Noise Floor: {lBaseLine}");
+      var lBaseLine = EstimateBaseline(lEnvelope.Samples, new NoiseFloorEstimationParams() );
 
-      var lNewSamples = ApplyGate(aInput.Samples, lBaseLine);
+      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine       , lEnvelopeLabel, rOutput );
+      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine * 0.5f, lEnvelopeLabel, rOutput );
+      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine * 2.0f, lEnvelopeLabel, rOutput );
+    }
 
-      var rR = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
+    void ApplyGate( WaveSignal aInput, Packet aInputPacket, DiscreteSignal aSmoothed, float aFloor, string aEnvelopeLabel, List<Packet> rOutput ) 
+    {
+      DContext.WriteLine($"Applying Noise Gate at: {aFloor}");
 
-      rR.Sanitize();
+      var lNewSamples = RawApplyGate(aSmoothed.Samples, aFloor);
 
-      return rR ;
+      var lGated = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
+
+      lGated.Sanitize();
+
+      string lLabel = $"NoiseGate_{aEnvelopeLabel}_{(int)(aFloor*100)}]";
+
+      if ( DContext.Session.Args.GetBool("Plot") )
+        lGated.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
+
+      var lES = aInput.CopyWith(lGated);
+      lES.Name = lLabel;
+
+      rOutput.Add( new Packet(Name, aInputPacket, lES, lLabel) );
     }
 
     static float[] Trim( float[] aSamples, float aTrimRatio )
@@ -80,18 +93,18 @@ namespace DIGITC2_ENGINE
     }
 
 
-    static float EstimateBaseline(float[] aSamples, float aTrimRatio = 0.05f, int aPercentile = 10)
+    static float EstimateBaseline(float[] aSamples, NoiseFloorEstimationParams aParams )
     {
       Array.Sort(aSamples); 
 
-      var lTrimmed = Trim(aSamples, aTrimRatio);
+      var lTrimmed = Trim(aSamples, aParams.TrimRatio);
 
-      float rR = lTrimmed.Percentile(aPercentile);
+      float rR = lTrimmed.Percentile(aParams.Percentile);
 
       return rR ;
     }
 
-    static float[] ApplyGate(float[] envelope, float aBaseline)
+    static float[] RawApplyGate(float[] envelope, float aBaseline)
     {
       float[] filtered = new float[envelope.Length];
 
@@ -105,7 +118,7 @@ namespace DIGITC2_ENGINE
       return filtered;
     }
 
-    Params mParams = new Params();
+    NoiseFloorEstimationParams mParams = new NoiseFloorEstimationParams();
 
     public override string Name => this.GetType().Name ;
 
