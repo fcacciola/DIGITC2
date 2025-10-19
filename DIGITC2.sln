@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.6.33829.357
+VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIGITC2_Engine", "Engine\DIGITC2_Engine.csproj", "{C1026332-C0BB-44EC-A49A-A18FF0444292}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIGITC2_Engine", "Engine\DIGITC2_Engine.csproj", "{A2632220-A407-4F83-A844-FB8AF25E74AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIGITC2_Driver", "Driver\DIGITC2_Driver.csproj", "{16AC498A-9A91-4298-BCE0-FA5CE2DE78BF}"
 EndProject
@@ -13,10 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C1026332-C0BB-44EC-A49A-A18FF0444292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1026332-C0BB-44EC-A49A-A18FF0444292}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1026332-C0BB-44EC-A49A-A18FF0444292}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1026332-C0BB-44EC-A49A-A18FF0444292}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2632220-A407-4F83-A844-FB8AF25E74AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2632220-A407-4F83-A844-FB8AF25E74AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2632220-A407-4F83-A844-FB8AF25E74AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2632220-A407-4F83-A844-FB8AF25E74AC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{16AC498A-9A91-4298-BCE0-FA5CE2DE78BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{16AC498A-9A91-4298-BCE0-FA5CE2DE78BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16AC498A-9A91-4298-BCE0-FA5CE2DE78BF}.Release|Any CPU.ActiveCfg = Release|Any CPU

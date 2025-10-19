@@ -9,7 +9,6 @@ using NWaves.Signals;
 
 using MathNet.Numerics.Statistics;
 using System.Runtime.InteropServices;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace DIGITC2_ENGINE
 {

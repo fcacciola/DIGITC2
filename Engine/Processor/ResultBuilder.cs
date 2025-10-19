@@ -8,10 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-using CSCore.XAudio2;
-
-using DocumentFormat.OpenXml.Drawing.Charts;
-
 namespace DIGITC2_ENGINE
 {
   public class PipelineResult

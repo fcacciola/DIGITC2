@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 
 using DIGITC2;
@@ -12,7 +11,6 @@ using NWaves.Signals;
 using NWaves.Signals.Builders;
 
 using DIGITC2_ENGINE ;
-using System.Runtime.CompilerServices;
 
 namespace DIGITC2
 {

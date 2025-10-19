@@ -7,8 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-using DocumentFormat.OpenXml.Drawing.Charts;
-
 namespace DIGITC2_ENGINE
 {
   public abstract class PacketData
