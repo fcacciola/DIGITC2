@@ -7,16 +7,16 @@ namespace DIGITC2 {
 
 public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 { 
-  public override void Run( Args aArgs  )
+  public override void Run(Settings aSettings, List<Config> aConfigs)
   {
-    var lFiles = aArgs.GetPaths("InputAudioFileList") ;
+    var lFile = aSettings.GetPath("InputAudioFile") ;
 
-    lFiles.ForEach( f => RunWithFile(aArgs,f) );  
+    RunWithFile(aSettings, aConfigs, lFile)   
   }
 
-  void RunWithFile( Args aArgs, string aWaveFilename  )
+  void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
   {
-    var lSession = new Session( this.GetType().Name, aArgs, BaseFolder);
+    var lSession = new Session( this.GetType().Name, aSettings, BaseFolder);
 
     DContext.Setup( lSession ) ;
 
@@ -28,7 +28,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 
       var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
 
-      var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
+      var lResult = Processor.Process(lSession.Name, aConfigs, lPipeline, lSignal);
 
       lResult.Save( lSession.CurrentOutputFolder )  ;
     }

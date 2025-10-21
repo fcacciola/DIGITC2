@@ -18,14 +18,14 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get(Name,"Pipelines"));
+      mPipelineSelection = new PipelineSelection(DContext.Session.Settings.Get(Name,"Pipelines"));
 
-      mFitnessMap = new FitnessMap(DContext.Session.Args.Get(Name,"FitnessMap"));
+      mFitnessMap = new FitnessMap(DContext.Session.Settings.Get(Name,"FitnessMap"));
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
+      mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
     }
 
-    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Collecting Bits into Bytes");
       DContext.Indent();

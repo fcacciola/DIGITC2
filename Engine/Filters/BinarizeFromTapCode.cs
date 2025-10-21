@@ -24,16 +24,16 @@ public class BinarizeFromTapCode : LexicalFilter
 
   public override void Setup()
   {
-    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get(Name,"Pipelines"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Settings.Get(Name,"Pipelines"));
 
-    mMinCount = DContext.Session.Args.GetOptionalInt(Name,"MinCount").GetValueOrDefault(20);
+    mMinCount = DContext.Session.Settings.GetOptionalInt(Name,"MinCount").GetValueOrDefault(20);
 
-    mFitnessMap = new FitnessMap(DContext.Session.Args.Get(Name,"FitnessMap"));
+    mFitnessMap = new FitnessMap(DContext.Session.Settings.Get(Name,"FitnessMap"));
 
-    mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name,"QuitThreshold").GetValueOrDefault(1);
+    mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name,"QuitThreshold").GetValueOrDefault(1);
   }
 
-  protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+  protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
   {
     DContext.WriteLine("Binarizing Tap Codes via Binary Polybius Squares");
     DContext.Indent();

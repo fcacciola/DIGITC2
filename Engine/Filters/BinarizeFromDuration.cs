@@ -263,7 +263,7 @@ namespace DIGITC2_ENGINE
        LexicalSignal lSignalA = lPipelineA.GetSignal() ;
        LexicalSignal lSignalB = lPipelineB.GetSignal() ;
 
-       if ( DContext.Session.Args.GetBool("Plot") )
+       if ( DContext.Session.Settings.GetBool("Plot") )
        {
          PlotBits(lSignalA, lPipelineA.Label);
          PlotBits(lSignalB, lPipelineB.Label);

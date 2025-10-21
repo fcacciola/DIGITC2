@@ -8,29 +8,28 @@ namespace DIGITC2_ENGINE
 {
   public abstract class Filter 
   {
-    public virtual void Setup() {}
-    public virtual void Cleanup() {}
+    public virtual void Setup  ( Config aConfig ) {}
+    public virtual void Cleanup( Config aConfig ) {}
 
-    public List<Packet> Apply( Packet aInput ) 
+    public (Packet,List<Config>) Apply( Config aConfig, Packet aInput ) 
     {
-      List<Packet> rOutput = new List<Packet>();
+      Packet rPacket = null ;
+
+      List<Config> rBranches = new List<Config>();
 
       try
       {
-        DoApply(aInput, rOutput);
+        rPacket = DoApply(aConfig, aInput, rBranches);
       }
       catch ( Exception x )
       {
-        if ( rOutput.Count > 0 ) 
-          rOutput.First().ShouldQuit = true ;
-
         DContext.Error(x);
       }
 
-      return rOutput; 
+      return (rPacket,rBranches); 
     }
 
-    protected abstract void DoApply( Packet aInput, List<Packet> rOutput ) ;
+    protected abstract Packet DoApply( Config aConfig, Packet aInput, List<Config> rBranches ) ;
 
     public abstract string Name { get; } 
 
@@ -41,16 +40,16 @@ namespace DIGITC2_ENGINE
   {
     protected WaveFilter() : base() {}
 
-    protected override void DoApply( Packet aInput, List<Packet> rOuput )
+    protected override Packet DoApply( Config aConfig, Packet aInput, List<Config> rBranches )
     {
       WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
       if ( lWaveSignal == null )
         throw new ArgumentException("Input Signal must be an Audio Signal.");
 
-      Process(lWaveSignal, aInput, rOuput);
+      return Process(lWaveSignal, aConfig, aInput, rBranches);
     }
     
-    protected abstract void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput );  
+    protected abstract Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches  );  
 
   }
 
@@ -58,16 +57,16 @@ namespace DIGITC2_ENGINE
   {
     protected LexicalFilter() : base() {}
 
-    protected override void DoApply( Packet aInput, List<Packet> rOuput )
+    protected override Packet DoApply( Config aConfig, Packet aInput, List<Config> rBranches )
     {
       LexicalSignal lLexicalSignal = aInput.Signal as LexicalSignal; 
       if ( lLexicalSignal == null )
         throw new ArgumentException("Input Signal must be a gated Lexical Signal.");
 
-      Process(lLexicalSignal, aInput, rOuput );
+      return Process(lLexicalSignal, aConfig, aInput, rBranches );
     }
     
-    protected abstract void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOuput);  
+    protected abstract Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches  );  
 
   }
 

@@ -47,27 +47,6 @@ BytesAsLanguageDigits_QuitThreshold=30
 TokenLengthDistribution_FitnessMap=15,25,40,60
 TokenLengthDistribution_QuitThreshold=5
 
-//
-// MOCK AUDIO Settings
-// 
-// These tasks generate WAV files that can be later used 
-// for testing and calibration
-//
-
-// Tap Code Generator
-//
-MockAudioWithTapCode_Text=This is a much larger test in one sentence
-MockAudioWithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode_C_300.wav
-MockAudioWithTapCode_PulseBaseLevel=0.5
-MockAudioWithTapCode_TapPulseDuration=0.1
-MockAudioWithTapCode_SGap=0.03
-MockAudioWithTapCode_LGap=0.2
-MockAudioWithTapCode_Separation=0.5
-MockAudioWithTapCode_WhiteNoiseLevel=0.3
-MockAudioWithTapCode_Temperature=1.0
-MockAudioWithTapCode_TapSamplesFolder=@/Input/Taps
-MockAudioWithTapCode_TapSamplesSequence=B
-
 
 // Plot: Specify whether to save Images with plots of important data such as Histograms
 // Used only for testing and calibration. Set to 'false' when just using the program

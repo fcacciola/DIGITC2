@@ -308,31 +308,31 @@ public class SingleTapCodeSignalBuilder
 
 public class TapCodeSignalBuilderParams
 {
-  public TapCodeSignalBuilderParams( Args aArgs )
+  public TapCodeSignalBuilderParams( Settings aSettings )
   {
-    PulseBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode","PulseBaseLevel");
+    PulseBaseLevel = aSettings.GetDouble("MockAudio_WithTapCode_PulseBaseLevel");
 
     // This is the duration of a single "Tap Pulse"
-    PulseDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode","TapPulseDuration").GetValueOrDefault(0.1);
+    PulseDuration = aSettings.GetOptionalDouble("MockAudio_WithTapCode_TapPulseDuration").GetValueOrDefault(0.1);
 
     // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
-    TapCodeSGap = aArgs.GetDouble("MockAudio_WithTapCode","SGap") ;
+    TapCodeSGap = aSettings.GetDouble("MockAudio_WithTapCode_SGap") ;
 
     // This is the LONG Gap between the ROW and the COLUMN in a tap code
-    TapCodeLGap =  aArgs.GetDouble("MockAudio_WithTapCode","LGap") ;
+    TapCodeLGap =  aSettings.GetDouble("MockAudio_WithTapCode_LGap") ;
 
     // This is the separation between two tap codes
-    TapCodeSeparation = aArgs.GetDouble("MockAudio_WithTapCode","Separation") ;
+    TapCodeSeparation = aSettings.GetDouble("MockAudio_WithTapCode_Separation") ;
 
-    WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode","WhiteNoiseLevel").GetValueOrDefault(0.3);
+    WhiteNoiseLevel = aSettings.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.3);
 
     // Randomization parameter. 0 means no randomizarion. 1 means full randomiuzatiion.
-    Temperature = aArgs.GetDouble("MockAudio_WithTapCode","Temperature");
+    Temperature = aSettings.GetDouble("MockAudio_WithTapCode_Temperature");
 
     // Folder with .wav files of various Tap samples
-    TapSamplesFolder = aArgs.GetPath("MockAudio_WithTapCode","TapSamplesFolder") ;
+    TapSamplesFolder = aSettings.GetPath("MockAudio_WithTapCode_TapSamplesFolder") ;
 
-    TapSamplesSequence = aArgs.Get("MockAudio_WithTapCode","TapSamplesSequence") ;
+    TapSamplesSequence = aSettings.Get("MockAudio_WithTapCode_TapSamplesSequence") ;
   }
 
   public double PulseDuration ;
@@ -443,11 +443,11 @@ public class MockWaveSource_WithTapCode_Synthetic : MockWaveSource_WithTapCode_B
   {
   }
 
-  public static MockWaveSource_WithTapCode_Synthetic FromText( Args aArgs, string aText )
+  public static MockWaveSource_WithTapCode_Synthetic FromText( Settings aSettings, string aText )
   {
     var lBaseParams = new BaseParams(){Text=aText} ;
 
-    var lParams = new TapCodeSignalBuilderParams(aArgs) ;
+    var lParams = new TapCodeSignalBuilderParams(aSettings) ;
 
     return new MockWaveSource_WithTapCode_Synthetic(lBaseParams, lParams);
   }
@@ -461,11 +461,11 @@ public class MockWaveSource_WithTapCode_FromSamples : MockWaveSource_WithTapCode
   {
   }
 
-  public static MockWaveSource_WithTapCode_FromSamples FromText( Args aArgs, string aText )
+  public static MockWaveSource_WithTapCode_FromSamples FromText( Settings aSettings, string aText )
   {
     var lBaseParams = new BaseParams(){Text=aText} ;
 
-    var lParams = new TapCodeSignalBuilderParams(aArgs) ;
+    var lParams = new TapCodeSignalBuilderParams(aSettings) ;
 
     return new MockWaveSource_WithTapCode_FromSamples(lBaseParams, lParams);
   }

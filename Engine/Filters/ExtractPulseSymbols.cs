@@ -55,7 +55,7 @@ namespace DIGITC2_ENGINE
 
     static public void PlotPulses( List<PulseSymbol> aPulses, string aLabel )
     {
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
       {
         List<float> lSamples = new List<float> ();
         aPulses.ForEach( s => s.DumpSamples(lSamples ) );
@@ -69,7 +69,7 @@ namespace DIGITC2_ENGINE
     {
       (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
       { 
         lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_Histogram.png"));
         lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_RankSize.png"));
@@ -152,7 +152,7 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process (WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       Process( new Options(){ Label              = "A"
                             , VeryShortThreshold = SIG.SamplingRate / 1000 * 15 

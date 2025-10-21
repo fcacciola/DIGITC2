@@ -72,7 +72,7 @@ public class NoiseLab
 
 public abstract class AudioGenerator
 {
-  public abstract DiscreteSignal Generate(Args aArgs) ;
+  public abstract DiscreteSignal Generate(Config aArgs) ;
 }
 
 

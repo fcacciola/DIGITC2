@@ -61,7 +61,7 @@ namespace DIGITC2_ENGINE
     }
 
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
+    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine($"Discretizing Input Signal.");
       DContext.Indent();
@@ -83,7 +83,7 @@ namespace DIGITC2_ENGINE
       
       var rR = aInput.CopyWith(rDiscrete);
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
         rR.SaveTo( DContext.Session.OutputFile( $"Gated_{aGate.Label}.wav") ) ;
 
       return rR ;

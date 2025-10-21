@@ -1,0 +1,20 @@
+
+# SplitBands_FrequencyCenters=7500,10000
+
+BinarizeFromTapCode_PSquare=Binary
+BinarizeFromTapCode_MinCount=2
+BinarizeFromTapCode_FitnessMap=50,80,90,97
+BinarizeFromTapCode_QuitThreshold=1
+
+BinaryToBytes_BitSize=8bits
+BinaryToBytes_FitnessMap=50,80,90,97
+BinaryToBytes_QuitThreshold=1
+
+TapCodeToBytes_Alphabet=LatinAlphabet_Extended
+
+BytesAsLanguageDigits_FitnessMap=35,50,85,95
+BytesAsLanguageDigits_QuitThreshold=30
+
+TokenLengthDistribution_FitnessMap=15,25,40,60
+TokenLengthDistribution_QuitThreshold=5
+

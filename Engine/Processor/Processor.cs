@@ -12,10 +12,10 @@ namespace DIGITC2_ENGINE
 
 public class Processor
 {
-  public static Result Process ( string aName, MainPipeline aMainPipeline, Signal aStartSignal )
+  public static Result Process ( string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lResultBuilder = lProcessor.Process( aStartSignal ) ;
+    var lResultBuilder = lProcessor.Process( aStartSignal, aConfigs ) ;
     return lResultBuilder.BuildResult(aName);
   }
 
@@ -24,16 +24,23 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public ResultBuilder Process( Signal aStartSignal )
+  public ResultBuilder Process( Signal aStartSignal, List<Config> aConfigs )
   {
-    ResultBuilder rResult = new ResultBuilder();
-
     var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
     DContext.Session.PushBucket(lStartBucket);
+    ResultBuilder rResult = new ResultBuilder();
+    aConfigs.ForEach( lConfig => Process(aStartSignal, lConfig, lStartBucket, rResult) ) ;
+    DContext.Session.GotoBucket(lStartBucket) ;
+    DContext.CloseLogger();
+    return rResult ;
+  }
+
+  public void Process( Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, ResultBuilder rResult )
+  {
 
     try
     {
-      mMainPipeline.Start(aStartSignal, lStartBucket ) ;
+      mMainPipeline.Start(aConfig, aStartSignal, aStartBucket ) ;
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
@@ -61,10 +68,6 @@ public class Processor
       DContext.Error(x);
     }
 
-    DContext.Session.GotoBucket(lStartBucket) ;
-    DContext.CloseLogger();
-
-    return rResult ;  
   }
 
   public void EnqueuePipeline ( Pipeline aPipeline ) 
@@ -72,11 +75,11 @@ public class Processor
     mPipelines.Enqueue( aPipeline ) ;  
   }
 
-  public void BranchOut ( Pipeline aPipeline, Packet aNewStartPacket )
+  public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig )
   {
     var lCurrFilterBucket = DContext.Session.CurrentBucket();   
 
-    var lNewPipeline = aPipeline.BranchOut(lCurrFilterBucket, aNewStartPacket ) ;
+    var lNewPipeline = aPipeline.BranchOut(lCurrFilterBucket, aStartPacket, aConfig ) ;
 
     EnqueuePipeline( lNewPipeline ) ; 
 

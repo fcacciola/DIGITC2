@@ -50,8 +50,8 @@ namespace DIGITC2_ENGINE
 
     public override void Setup() 
     { 
-      mSeparatorCountThreshold = DContext.Session.Args.GetOptionalInt(Name, "SeparatorCountThreshold").GetValueOrDefault(5);
-      mMinNumberOfTaps         = DContext.Session.Args.GetOptionalInt(Name, "MinTapCount").GetValueOrDefault(16);
+      mSeparatorCountThreshold = DContext.Session.Settings.GetOptionalInt(Name, "SeparatorCountThreshold").GetValueOrDefault(5);
+      mMinNumberOfTaps         = DContext.Session.Settings.GetOptionalInt(Name, "MinTapCount").GetValueOrDefault(16);
     }
 
     double Interval( double aET, double aST )
@@ -111,7 +111,7 @@ namespace DIGITC2_ENGINE
       return rTaps ; 
     }
 
-    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Decoding Taps...");
       DContext.Indent();
@@ -259,7 +259,7 @@ namespace DIGITC2_ENGINE
 
       var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
       { 
         lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile("Durations_Histogram.png"));
       }

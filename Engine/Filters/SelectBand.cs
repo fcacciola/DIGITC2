@@ -112,17 +112,18 @@ namespace DIGITC2_ENGINE
     (double,double,double)[] mFrequencies ;
   }
 
-  public class SplitBands : WaveFilter
+  public class SelectBand : WaveFilter
   {
-    public SplitBands() 
+    public SelectBand() 
     {
     }
 
-    public override void Setup()
+    public override void Setup( Config aConfig )
     {
       // An Empty list means to do NO SPLITTNG
 
-      string lFCV = DContext.Session.Args.Get(Name, "FrequencyCenters");
+      string lFCV = aConfig.For(Name).Get("Frequency");
+
       if ( !string.IsNullOrEmpty(lFCV) ) 
       {
         var lFCListStr = lFCV.Split(',');
@@ -141,31 +142,31 @@ namespace DIGITC2_ENGINE
 
     }
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       // mSPlitter can be null if the settings do not specify the frequency centers
       // as a way to indcate to not split the audio in bands.
 
-      if ( mSplitter != null ) 
-      {  
-        var lBands = mSplitter.Split(aInput.Rep); 
+      //if ( mSplitter != null ) 
+      //{  
+      //  var lBands = mSplitter.Split(aInput.Rep); 
 
-        foreach ( var lBand in lBands)
-        {
-          var lES = aInput.CopyWith(lBand.Signal);
-          lES.Name = $"Band_{lBand.Label}";
+      //  foreach ( var lBand in lBands)
+      //  {
+      //    var lES = aInput.CopyWith(lBand.Signal);
+      //    lES.Name = $"Band_{lBand.Label}";
 
-          if ( DContext.Session.Args.GetBool("Plot") )
-            lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
+      //    if ( DContext.Session.Settings.GetBool("Plot") )
+      //      lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
 
-          rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;
-        }
-      }
-      else
+      //    rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;
+      //  }
+      //}
+      //else
       {
         DContext.WriteLine("Passing input signal AS-IS. No band splitting specified.");
 
-        rOutput.Add(new Packet(Name, aInputPacket, aInput.Copy(), $"{aInput.Name}_UNSPLIT") ) ;
+        return new Packet(aConfig, Name, aInputPacket, aInput.Copy(), $"{aInput.Name}_UNSPLIT") ;
       }
     }
 

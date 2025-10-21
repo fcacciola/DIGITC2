@@ -7,27 +7,16 @@ namespace DIGITC2 {
 
 public sealed class FromAudio_ByTapCode_DirectLetters : DecodingTask
 { 
-  public override void Run( Args aArgs  )
+  public override void Run(Settings aSettings, List<Config> aConfigs)
   {
-    string lArg = aArgs.Get("InputAudioFile" ) ;
+    var lFile = aSettings.GetPath("InputAudioFile") ;
 
-    List<string> lFiles = new List<string>() ;
-
-    if ( lArg.Contains(",") )
-    {
-      lFiles.AddRange( lArg.Split(','));
-    }
-    else
-    {
-      lFiles.Add(lArg) ;
-    }
-
-    lFiles.ForEach( f => RunWithFile(aArgs,f) );  
+    RunWithFile(aSettings, aConfigs, lFile) ;
   }
 
-  void RunWithFile( Args aArgs, string aWaveFilename  )
+  void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
   {
-    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, BaseFolder)  ;
+    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aSettings, BaseFolder)  ;
 
     DContext.Setup( lSession) ;
 
@@ -39,7 +28,7 @@ public sealed class FromAudio_ByTapCode_DirectLetters : DecodingTask
 
       var lPipeline = PipelineFactory.FromAudio_ByTapCode_ToDirectLetters() ;
 
-      var lResult = Processor.Process(lSession.Name, lPipeline, lSignal);
+      var lResult = Processor.Process(lSession.Name, lPipeline, aConfigs, lSignal);
 
       lResult.Save(lSession.CurrentOutputFolder) ;
     }

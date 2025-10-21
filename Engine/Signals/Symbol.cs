@@ -212,7 +212,7 @@ namespace DIGITC2_ENGINE
 
     public override string Meaning => string.Join("|", Symbols.ConvertAll( s => s.Meaning ) );
     
-    public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Args.GetInt("MaxWordLength")) ;
+    public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
     
     public override double Value => Symbols.Count ;
 
@@ -234,7 +234,7 @@ namespace DIGITC2_ENGINE
 
     public override string Meaning => $"[{Word}]" ;
 
-    public int UpperBound => Math.Max(Word.Length,DContext.Session.Args.GetInt("MaxWordLength")) ;
+    public int UpperBound => Math.Max(Word.Length,DContext.Session.Settings.GetInt("MaxWordLength")) ;
 
     public override double Value => Word.Length ;
 

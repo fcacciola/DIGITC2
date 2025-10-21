@@ -24,8 +24,8 @@ namespace DIGITC2_ENGINE
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get(Name, "FitnessMap"));
+      mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DContext.Session.Settings.Get(Name, "FitnessMap"));
     }
 
     // According to Claude Sonnet 4:
@@ -68,7 +68,8 @@ namespace DIGITC2_ENGINE
 
       mReference = new DTable(lDPs);
     }
-    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+
+    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Scoring Tokens Length Distribution As Language Words");
       DContext.Indent();

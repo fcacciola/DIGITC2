@@ -1,0 +1,10 @@
+# FromAudio_ByPulseDuration=true
+FromAudio_ByTapCode_Binary=true
+# FromAudio_ByTapCode_DirectLetters=true
+
+InputAudioFile=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
+
+Plot=true
+
+# SaveReference=true 
+

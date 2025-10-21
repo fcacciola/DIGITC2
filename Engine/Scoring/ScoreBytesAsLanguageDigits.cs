@@ -36,8 +36,8 @@ namespace DIGITC2_ENGINE
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get(Name, "FitnessMap"));
+      mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name, "_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DContext.Session.Settings.Get(Name, "FitnessMap"));
     }
 
     //
@@ -70,7 +70,7 @@ namespace DIGITC2_ENGINE
 
     string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
 
-    protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Scoring Bytes As Language Digits");
       DContext.Indent();

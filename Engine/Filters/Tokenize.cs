@@ -45,7 +45,7 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    protected override void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
+    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       Process( new TokenSeparators() , aInput, aInputPacket, rOutput);
     }

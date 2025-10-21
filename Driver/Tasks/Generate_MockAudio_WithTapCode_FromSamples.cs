@@ -15,20 +15,20 @@ namespace DIGITC2 {
 
 public sealed class Generate_MockAudio_WithTapCode_FromSamples : GeneratorTask
 {
-  public override void Run( Args aArgs )
+  public override void Run( Settings aSettings, List<Config> aConfigs )
   {
-    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_FromSamples", aArgs, BaseFolder) ) ;
+    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_FromSamples", aSettings, BaseFolder) ) ;
 
     DContext.WriteLine("Generating MockAudio With TapCode From Samples");
 
-    string lSourceText = aArgs.Get("MockAudio_WithTapCode","Text") ;
+    string lSourceText = aSettings.Get("MockAudio_WithTapCode_Text") ;
     if ( !string.IsNullOrEmpty( lSourceText ) ) 
     { 
-      var lSource = MockWaveSource_WithTapCode_FromSamples.FromText(aArgs, lSourceText);  
+      var lSource = MockWaveSource_WithTapCode_FromSamples.FromText(aSettings, lSourceText);  
 
       var lSignal = lSource.CreateSignal() as WaveSignal;
 
-      string lOutputFile = aArgs.GetPath("MockAudio_WithTapCode","OutputFile");
+      string lOutputFile = aSettings.GetPath("MockAudio_WithTapCode_OutputFile");
 
       if ( !string.IsNullOrEmpty( lSourceText ) ) 
       {

@@ -9,14 +9,16 @@
 
   <ItemGroup>
     <None Remove="Input\GenerateParams0.txt" />
-    <None Remove="Input\ProcessParams0.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Input\ProcessParams_0.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Input\GenerateParams0.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Input\ProcessParams0.txt">
+    <Content Include="Input\ProcessSettings.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

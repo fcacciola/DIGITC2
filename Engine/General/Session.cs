@@ -37,10 +37,10 @@ namespace DIGITC2_ENGINE
 
   public class Session
   {
-    public Session( string aName, Args aArgs, string aBaseFolder )
+    public Session( string aName, Settings aSettings, string aBaseFolder )
     {
       Name             = aName ;
-      Args             = aArgs;
+      Settings         = aSettings;
       BaseFolder       = aBaseFolder ;
       InputFolder      = Path.Combine(BaseFolder,"Input") ; 
       RootOutputFolder = Path.Combine(BaseFolder,"Output") ; 
@@ -142,13 +142,13 @@ namespace DIGITC2_ENGINE
 
     public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
 
-    public string Name ;
-    public Args   Args ;
-    public string BaseFolder ;
-    public string InputFolder ;
-    public string RootOutputFolder ;
-    public string CurrentOutputFolder ;
-
+    public string   Name ;
+    public Settings Settings ;
+    public string   BaseFolder ;
+    public string   InputFolder ;
+    public string   RootOutputFolder ;
+    public string   CurrentOutputFolder ;
+                    
     Stack<OutputBucket> mBuckets = new Stack<OutputBucket>();
   }
 }

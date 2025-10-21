@@ -45,12 +45,12 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Extracting Envelope from input signal");
       DContext.Indent();
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
         aInput.SaveTo( DContext.Session.OutputFile( $"Envelope_Input.wav") ) ;
 
       var lNewRep = Apply(aInput.Rep, mParams) ; 
@@ -83,7 +83,7 @@ namespace DIGITC2_ENGINE
       var rR = envelopeFollower.ApplyTo( aInput );
       rR.Sanitize(); 
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
         rR.SaveTo( DContext.Session.OutputFile( $"Envelope.wav") ) ;
 
       return rR ;

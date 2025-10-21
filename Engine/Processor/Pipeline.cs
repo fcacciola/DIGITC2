@@ -36,13 +36,13 @@ public class PipelineSelection
 
 public class Pipeline
 {
-  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aNewStartPacket )
+  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aStartPacket, Config aConfig )
   {
     var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
          return null ;
-    else return new Pipeline( aStartBucket, aNewStartPacket, mLevel + 1, lRemainingFilters ) ;
+    else return new Pipeline( aConfig, aStartBucket, aStartPacket, mLevel + 1, lRemainingFilters ) ;
   }
 
   public PipelineResultBuilder Process( Processor aProcessor )
@@ -52,6 +52,7 @@ public class Pipeline
     mFilterIdx = 0  ;
 
     var lPacket = mStartPacket ;
+    lPacket.Config = Config ;
 
     foreach( var lFilter in mFilters )
     {
@@ -65,27 +66,22 @@ public class Pipeline
 
         DContext.Session.PushBucket(OutputBucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
 
-        var lOutput = lFilter.Apply(lPacket);
+        List<Config> lBranches ;
+        (lPacket,lBranches) = lFilter.Apply(Config, lPacket);
 
-        lOutput.ForEach( p => p.OutputFolder = DContext.Session.CurrentOutputFolder );
-
-        if ( lOutput.Count > 0 )
+        if ( lPacket is not null )
         {
-          lPacket = lOutput.First() ; 
+          lPacket.OutputFolder = DContext.Session.CurrentOutputFolder ;
 
-          if ( lPacket != null )
+          rRB.Add( lPacket ) ;
+
+          if ( lPacket.ShouldQuit )
           {
-            rRB.Add( lPacket ) ;
-
-            if ( lPacket.ShouldQuit )
-            {
-              DContext.WriteLine("Filter asked to Quit Processor.");
-              break ;
-            }
+            DContext.WriteLine("Filter asked to Quit Processor.");
+            break ;
           }
 
-          for ( int i = 1 ; i < lOutput.Count ; i++ ) 
-            aProcessor.BranchOut( this, lOutput[i] ) ; 
+          lBranches.ForEach( b => aProcessor.BranchOut( this, lPacket, b) ) ; 
         }
         else
         {
@@ -104,6 +100,8 @@ public class Pipeline
     return rRB ;  
   }
 
+  public Config Config { get ; set ; }
+
   public string Name { get ; private set ; }
 
   public int Level => mLevel ;
@@ -112,15 +110,16 @@ public class Pipeline
 
   public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
-  protected Pipeline( string aName, OutputBucket aStartBucket )
+  protected Pipeline( Config aConfig, string aName, OutputBucket aStartBucket )
   { 
-    Name = aName;
-
+    Config      = aConfig ;
+    Name        = aName;
     StartBucket = aStartBucket ;
   }
 
-  Pipeline( OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( Config aConfig, OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
   { 
+    Config       = aConfig ;
     Name         = aPacket.Name ;  
     StartBucket  = aStartBucket ;
 
@@ -129,6 +128,7 @@ public class Pipeline
     mFilters     = aFilters ;
     mFilterIdx   = 0 ; 
   }
+
 
   protected List<Filter> mFilters     = new List<Filter>();
   protected Packet       mStartPacket = null ;
@@ -140,7 +140,7 @@ public class Pipeline
 
 public class MainPipeline : Pipeline
 {
-  public MainPipeline() : base("Main", null )
+  public MainPipeline() : base(null, "Main", null )
   { 
   }
 
@@ -157,18 +157,20 @@ public class MainPipeline : Pipeline
     return this ;
   } 
     
-  public void Start( Signal aStartSignal, OutputBucket aStartBucket ) 
+  public void Start( Config aConfig, Signal aStartSignal, OutputBucket aStartBucket ) 
   {
-    mStartPacket = new Packet(null, null, aStartSignal, "") ;
+    Config = aConfig ;
+
+    mStartPacket = new Packet(null, null, null, aStartSignal, "") ;
 
     StartBucket = aStartBucket ;
 
-    mFilters.ForEach( filter => filter.Setup() ) ;
+    mFilters.ForEach( filter => filter.Setup(Config) ) ;
   }
 
   public void End()
   {
-    mFilters.ForEach( filter => filter.Cleanup() ) ;
+    mFilters.ForEach( filter => filter.Cleanup(Config) ) ;
   }
 
 }

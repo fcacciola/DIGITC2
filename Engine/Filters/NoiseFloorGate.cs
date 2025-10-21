@@ -29,7 +29,7 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
     {
       DContext.WriteLine("Gating Above Noise Floor");
       DContext.Indent();
@@ -48,7 +48,7 @@ namespace DIGITC2_ENGINE
 
       string lEnvelopeLabel = $"Envelope_{aEnvelopeParams}";
       
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
         lEnvelope.SaveTo( DContext.Session.OutputFile( $"{lEnvelopeLabel}.wav") ) ;
 
       var lBaseLine = EstimateBaseline(lEnvelope.Samples, new NoiseFloorEstimationParams() );
@@ -70,7 +70,7 @@ namespace DIGITC2_ENGINE
 
       string lLabel = $"NoiseGate_{aEnvelopeLabel}_{(int)(aFloor*100)}]";
 
-      if ( DContext.Session.Args.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("Plot") )
         lGated.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
 
       var lES = aInput.CopyWith(lGated);

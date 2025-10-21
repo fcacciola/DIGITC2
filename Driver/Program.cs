@@ -16,7 +16,7 @@ namespace DIGITC2
 {
   public abstract class Task
   {
-    public abstract void Run( Args aArgs ) ;
+    public abstract void Run( Settings aSettings, List<Config> aConfigs ) ;
 
     public static void Save( WaveSignal aS, string aFilename )
     {
@@ -71,12 +71,12 @@ namespace Driver
       RegisterTask( new Generate_MockAudio_WithTapCode_FromSamples() ); 
     }
 
-    internal void Run( Args aArgs)
+    internal void Run( Params aMainParams, List<Config> aConfigs)
     {
       foreach( var lKV in mTasks )
       {
-        if ( aArgs.GetBool(lKV.Key) )
-          lKV.Value.Run( aArgs );
+        if ( aMainParams.GetBool(lKV.Key) )
+          lKV.Value.Run( aMainParams, aConfigs );
       }
     }
 
@@ -90,15 +90,31 @@ namespace Driver
 
   internal class Program
   {
- 
+    static List<Config> LoadConfigs(string[] aArgs)
+    {
+      List<Config> rR = new List<Config>();  
+      for( int i = 1 ; i < aArgs.Length ; ++ i )
+      {
+        var lConfig = Config.FromFile(aArgs[i]); 
+        if ( lConfig != null )  
+          rR.Add(lConfig);  
+      }
+      return rR;  
+    }
+
     [STAThread]
     static void Main(string[] args)
     {
-      Args lArgs = Args.FromCmdLine(args);
+      if ( args.Length >= 2 )
+      {
+        var lMainParams = Params.FromFile(args[0]); 
+        var lConfigs = LoadConfigs(args);
 
-      TaskTable lTasks = new TaskTable();
+        TaskTable lTasks = new TaskTable();
 
-      lTasks.Run( lArgs );  
+        lTasks.Run(lMainParams, lConfigs);  
+
+      }
     }
   }
 }

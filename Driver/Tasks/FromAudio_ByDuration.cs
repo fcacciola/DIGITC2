@@ -7,27 +7,16 @@ namespace DIGITC2 {
 
 public sealed class FromAudio_ByPulseDuration : DecodingTask
 {
-  public override void Run( Args aArgs  )
+  public override void Run(Settings aSettings, List<Config> aConfigs)
   {
-    string lArg = aArgs.Get("InputAudioFile" ) ;
+    var lFile = aSettings.GetPath("InputAudioFile") ;
 
-    List<string> lFiles = new List<string>() ;
-
-    if ( lArg.Contains(",") )
-    {
-      lFiles.AddRange( lArg.Split(','));
-    }
-    else
-    {
-      lFiles.Add(lArg) ;
-    }
-
-    lFiles.ForEach( f => RunWithFile(aArgs,f) );  
+    RunWithFile(aSettings, aConfigs, lFile) ;
   }
 
-  void RunWithFile( Args aArgs, string aWaveFilename  )
+  void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
   {
-    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aArgs, Task.BaseFolder) ;
+    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aSettings, Task.BaseFolder) ;
 
     DContext.Setup(lSession) ;
 

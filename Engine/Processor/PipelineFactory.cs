@@ -32,7 +32,7 @@ namespace DIGITC2_ENGINE
     {
       var rPipeline = new MainPipeline();
 
-      rPipeline.Add( new SplitBands() )
+      rPipeline.Add( new SelectBand() )
                .Add( new NoiseFloorGate() )  
                .Add( new Envelope() )
 //               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7) ) )
