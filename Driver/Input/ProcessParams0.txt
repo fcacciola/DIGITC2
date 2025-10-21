@@ -11,15 +11,15 @@
 // a text message from it using a particular strategy
 //
 
-# FromAudio_ByPulseDuration=true
-FromAudio_ByTapCode_Binary=true
-# FromAudio_ByTapCode_DirectLetters=true
+# Main_FromAudio_ByPulseDuration=true
+Main_FromAudio_ByTapCode_Binary=true
+# Main_FromAudio_ByTapCode_DirectLetters=true
 
 // Alternatively, for testing and calibration purposes
 // you can run a "Generate_" task.
 
-# Generate_MockAudio_WithTapCode_Synthetic=true
-# Generate_MockAudio_WithTapCode_FromSamples=true
+# Main_Generate_MockAudio_WithTapCode_Synthetic=true
+# Main_Generate_MockAudio_WithTapCode_FromSamples=true
 
 // The next section contains general and task specific parameters
 // ** NOTE ** File names that start with @ are relative to the 
@@ -33,7 +33,7 @@ FromAudio_ByTapCode_Binary=true
 
 // This specifies the "comma separated" list of input audio files to process
 
-InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
+Main_InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
 
 // Comment this out to indicate that the input signal should NOT be split into frequency bands
 # SplitBands_FrequencyCenters=7500,10000
@@ -80,7 +80,7 @@ MockAudio_WithTapCode_TapSamplesSequence=B
 // Plot: Specify whether to save Images with plots of important data such as Histograms
 // Used only for testing and calibration. Set to 'false' when just using the program
 
-Plot=true
+Main_Plot=true
 
 // SaveReference: Saves special references data used by normal processing, such as histograms. 
 // Used only for testing and calibration. Set to 'false' when just using the program

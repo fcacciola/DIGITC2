@@ -310,29 +310,29 @@ public class TapCodeSignalBuilderParams
 {
   public TapCodeSignalBuilderParams( Args aArgs )
   {
-    PulseBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode_PulseBaseLevel");
+    PulseBaseLevel = aArgs.GetDouble("MockAudio_WithTapCode","PulseBaseLevel");
 
     // This is the duration of a single "Tap Pulse"
-    PulseDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode_TapPulseDuration").GetValueOrDefault(0.1);
+    PulseDuration = aArgs.GetOptionalDouble("MockAudio_WithTapCode","TapPulseDuration").GetValueOrDefault(0.1);
 
     // This is the SHORT Gap between two taps in a single ROW or COLUMN in a tap code
-    TapCodeSGap = aArgs.GetDouble("MockAudio_WithTapCode_SGap") ;
+    TapCodeSGap = aArgs.GetDouble("MockAudio_WithTapCode","SGap") ;
 
     // This is the LONG Gap between the ROW and the COLUMN in a tap code
-    TapCodeLGap =  aArgs.GetDouble("MockAudio_WithTapCode_LGap") ;
+    TapCodeLGap =  aArgs.GetDouble("MockAudio_WithTapCode","LGap") ;
 
     // This is the separation between two tap codes
-    TapCodeSeparation = aArgs.GetDouble("MockAudio_WithTapCode_Separation") ;
+    TapCodeSeparation = aArgs.GetDouble("MockAudio_WithTapCode","Separation") ;
 
-    WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode_WhiteNoiseLevel").GetValueOrDefault(0.3);
+    WhiteNoiseLevel = aArgs.GetOptionalDouble("MockAudio_WithTapCode","WhiteNoiseLevel").GetValueOrDefault(0.3);
 
     // Randomization parameter. 0 means no randomizarion. 1 means full randomiuzatiion.
-    Temperature = aArgs.GetDouble("MockAudio_WithTapCode_Temperature");
+    Temperature = aArgs.GetDouble("MockAudio_WithTapCode","Temperature");
 
     // Folder with .wav files of various Tap samples
-    TapSamplesFolder = aArgs.GetPath("MockAudio_WithTapCode_TapSamplesFolder") ;
+    TapSamplesFolder = aArgs.GetPath("MockAudio_WithTapCode","TapSamplesFolder") ;
 
-    TapSamplesSequence = aArgs.Get("MockAudio_WithTapCode_TapSamplesSequence") ;
+    TapSamplesSequence = aArgs.Get("MockAudio_WithTapCode","TapSamplesSequence") ;
   }
 
   public double PulseDuration ;

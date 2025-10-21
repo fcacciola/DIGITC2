@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "DIGITC2_Driver": {
+      "commandName": "Project",
+      "commandLineArgs": "@=Input\\ProcessParams0.txt"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}

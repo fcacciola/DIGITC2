@@ -24,13 +24,13 @@ public class BinarizeFromTapCode : LexicalFilter
 
   public override void Setup()
   {
-    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinarizeFromTapCode_Pipelines"));
+    mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get(Name,"Pipelines"));
 
-    mMinCount = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_MinCount").GetValueOrDefault(20);
+    mMinCount = DContext.Session.Args.GetOptionalInt(Name,"MinCount").GetValueOrDefault(20);
 
-    mFitnessMap = new FitnessMap(DContext.Session.Args.Get("BinarizeFromTapCode_FitnessMap"));
+    mFitnessMap = new FitnessMap(DContext.Session.Args.Get(Name,"FitnessMap"));
 
-    mQuitThreshold = DContext.Session.Args.GetOptionalInt("BinarizeFromTapCode_QuitThreshold").GetValueOrDefault(1);
+    mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name,"QuitThreshold").GetValueOrDefault(1);
   }
 
   protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )

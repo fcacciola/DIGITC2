@@ -25,7 +25,7 @@ Generate_MockAudio_WithTapCode_FromSamples=true
 
 // This specifies the "comma separated" list of input audio files to process
 
-InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
+Main_InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
 
 // Comment this out to indicate that the input signal should NOT be split into frequency bands
 # SplitBands_FrequencyCenters=7500,10000
@@ -56,25 +56,25 @@ TokenLengthDistribution_QuitThreshold=5
 
 // Tap Code Generator
 //
-MockAudio_WithTapCode_Text=This is a much larger test in one sentence
-MockAudio_WithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode_C_300.wav
-MockAudio_WithTapCode_PulseBaseLevel=0.5
-MockAudio_WithTapCode_TapPulseDuration=0.1
-MockAudio_WithTapCode_SGap=0.03
-MockAudio_WithTapCode_LGap=0.2
-MockAudio_WithTapCode_Separation=0.5
-MockAudio_WithTapCode_WhiteNoiseLevel=0.3
-MockAudio_WithTapCode_Temperature=1.0
-MockAudio_WithTapCode_TapSamplesFolder=@/Input/Taps
-MockAudio_WithTapCode_TapSamplesSequence=B
+MockAudioWithTapCode_Text=This is a much larger test in one sentence
+MockAudioWithTapCode_OutputFile=@/Input/Samples/MockAudio_WithTapCode_C_300.wav
+MockAudioWithTapCode_PulseBaseLevel=0.5
+MockAudioWithTapCode_TapPulseDuration=0.1
+MockAudioWithTapCode_SGap=0.03
+MockAudioWithTapCode_LGap=0.2
+MockAudioWithTapCode_Separation=0.5
+MockAudioWithTapCode_WhiteNoiseLevel=0.3
+MockAudioWithTapCode_Temperature=1.0
+MockAudioWithTapCode_TapSamplesFolder=@/Input/Taps
+MockAudioWithTapCode_TapSamplesSequence=B
 
 
 // Plot: Specify whether to save Images with plots of important data such as Histograms
 // Used only for testing and calibration. Set to 'false' when just using the program
 
-Plot=true
+Main_Plot=true
 
 // SaveReference: Saves special references data used by normal processing, such as histograms. 
 // Used only for testing and calibration. Set to 'false' when just using the program
-# SaveReference=true 
+# Main_SaveReference=true 
 

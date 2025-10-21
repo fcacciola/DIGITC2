@@ -18,11 +18,11 @@ namespace DIGITC2_ENGINE
 
     public override void Setup()
     {
-      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get("BinaryToBytes_Pipelines"));
+      mPipelineSelection = new PipelineSelection(DContext.Session.Args.Get(Name,"Pipelines"));
 
-      mFitnessMap = new FitnessMap(DContext.Session.Args.Get("BinaryToBytes_FitnessMap"));
+      mFitnessMap = new FitnessMap(DContext.Session.Args.Get(Name,"FitnessMap"));
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt("BinaryToBytes_QuitThreshold").GetValueOrDefault(1);
+      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
     }
 
     protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )

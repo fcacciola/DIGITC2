@@ -24,8 +24,8 @@ namespace DIGITC2_ENGINE
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt("TokenLengthDistribution_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("TokenLengthDistribution_FitnessMap"));
+      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get(Name, "FitnessMap"));
     }
 
     // According to Claude Sonnet 4:

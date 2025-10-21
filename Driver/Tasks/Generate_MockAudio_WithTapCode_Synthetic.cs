@@ -21,14 +21,14 @@ public sealed class Generate_MockAudio_WithTapCode_Synthetic : GeneratorTask
 
     DContext.WriteLine("Generating MockAudio With TapCode Syntethically");
 
-    string lSourceText = aArgs.Get("MockAudio_WithTapCode_Text") ;
+    string lSourceText = aArgs.Get("MockAudio_WithTapCode","Text") ;
     if ( !string.IsNullOrEmpty( lSourceText ) ) 
     { 
       var lSource = MockWaveSource_WithTapCode_Synthetic.FromText(aArgs, lSourceText);  
 
       var lSignal = lSource.CreateSignal() as WaveSignal;
 
-      string lOutputFile = aArgs.GetPath("MockAudio_WithTapCode_OutputFile");
+      string lOutputFile = aArgs.GetPath("MockAudio_WithTapCode","OutputFile");
 
       if ( !string.IsNullOrEmpty( lSourceText ) ) 
       {

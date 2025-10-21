@@ -36,8 +36,8 @@ namespace DIGITC2_ENGINE
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Args.GetOptionalInt("BytesAsLanguageDigits_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get("BytesAsLanguageDigits_FitnessMap"));
+      mQuitThreshold = DContext.Session.Args.GetOptionalInt(Name, "_QuitThreshold").GetValueOrDefault(1);
+      mFitnessMap    = new FitnessMap(DContext.Session.Args.Get(Name, "FitnessMap"));
     }
 
     //

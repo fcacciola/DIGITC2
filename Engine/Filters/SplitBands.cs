@@ -122,7 +122,7 @@ namespace DIGITC2_ENGINE
     {
       // An Empty list means to do NO SPLITTNG
 
-      string lFCV = DContext.Session.Args.Get("SplitBands_FrequencyCenters");
+      string lFCV = DContext.Session.Args.Get(Name, "FrequencyCenters");
       if ( !string.IsNullOrEmpty(lFCV) ) 
       {
         var lFCListStr = lFCV.Split(',');

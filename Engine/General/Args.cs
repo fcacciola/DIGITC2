@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,11 @@ namespace DIGITC2_ENGINE
 {
   public class Args
   {
-    public Dictionary<string, string> Settings = new Dictionary<string, string>();
+    public class Section
+    {
+      public Dictionary<string, string> Settings = new Dictionary<string, string>();
+    }
+    public Dictionary<string, Section> Sections = new Dictionary<string, Section>();
 
     public Args() {}
 
@@ -19,13 +24,38 @@ namespace DIGITC2_ENGINE
     static public Args FromCmdLine   (string[] args) => new Args(args);
     static public Args FromDictionary( IDictionary<string, string> aArgs ) => new Args(aArgs);
 
-    public string Get(string aKey) => Settings.ContainsKey(aKey) ? Settings[aKey] : null; 
-    
-    public string GetPath( string aKey ) => ExpandRelativeFilePath(Get(aKey));
-
-    public List<string> GetPaths( string aKey )
+    Section GetSection( string aSection )
     {
-      string lRaw = Get(aKey) ;
+      if ( ! Sections.ContainsKey(aSection) )
+        Sections.Add(aSection, new Section());
+      return Sections[aSection];
+    }
+
+    public string Get(string aSection, string aKey)
+    {
+      Section lSsection = GetSection( aSection );
+      return lSsection.Settings.ContainsKey(aKey) ? lSsection.Settings[aKey] : null; 
+    }
+
+    public string Get(string aKey) => Get(MAIN,aKey);
+
+    public void Set(string aSection, string aKey, string aValue )
+    {
+      Section lSection = GetSection( aSection );
+      if ( !lSection.Settings.ContainsKey(aKey) )
+           lSection.Settings.Add(aKey, aValue);
+      else lSection.Settings[aKey] = aValue; 
+    }
+    
+    public string GetPath( string aSection, string aKey ) => ExpandRelativeFilePath(Get(aSection,aKey));
+
+    public string GetPath( string aKey ) => GetPath(MAIN,aKey);
+
+    public static string MAIN = "Main" ;
+
+    public List<string> GetPaths( string aSection, string aKey )
+    {
+      string lRaw = Get(aSection,aKey) ;
 
       List<string> rPaths = new List<string>() ;
 
@@ -40,33 +70,48 @@ namespace DIGITC2_ENGINE
       }
 
       return rPaths ;
-     }
+    }
 
+    public List<string> GetPaths( string aKey ) => GetPaths(MAIN,aKey) ;  
 
-    public int?    GetOptionalInt   (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToInt32  (v) ; else return null ; }
-    public float?  GetOptionalFloat (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToSingle (v) ; else return null ; }
-    public double? GetOptionalDouble(string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToDouble (v) ; else return null ; }
-    public bool?   GetOptionalBool  (string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToBoolean(v) ; else return null ; }
+    public int?    GetOptionalInt   (string aSection, string aKey) { string v = Get(aSection, aKey); if ( v != null ) return Convert.ToInt32  (v) ; else return null ; }
+    public float?  GetOptionalFloat (string aSection, string aKey) { string v = Get(aSection, aKey); if ( v != null ) return Convert.ToSingle (v) ; else return null ; }
+    public double? GetOptionalDouble(string aSection, string aKey) { string v = Get(aSection, aKey); if ( v != null ) return Convert.ToDouble (v) ; else return null ; }
+    public bool?   GetOptionalBool  (string aSection, string aKey) { string v = Get(aSection, aKey); if ( v != null ) return Convert.ToBoolean(v) ; else return null ; }
 
-    public int    GetInt   (string aKey) => GetOptionalInt   (aKey) ?? 0 ;
-    public float  GetFloat (string aKey) => GetOptionalFloat (aKey) ?? 0.0f;
-    public double GetDouble(string aKey) => GetOptionalDouble(aKey) ?? 0.0;
-    public bool   GetBool  (string aKey) => GetOptionalBool  (aKey) ?? false;
+    public int    GetInt   (string aSection, string aKey) => GetOptionalInt   (aSection, aKey) ?? 0 ;
+    public float  GetFloat (string aSection, string aKey) => GetOptionalFloat (aSection, aKey) ?? 0.0f;
+    public double GetDouble(string aSection, string aKey) => GetOptionalDouble(aSection, aKey) ?? 0.0;
+    public bool   GetBool  (string aSection, string aKey) => GetOptionalBool  (aSection, aKey) ?? false;
+
+    public int    GetInt   (string aKey) => GetInt (MAIN,aKey);
+    public bool   GetBool  (string aKey) => GetBool(MAIN,aKey);
 
     bool IsValidLine(string line)
     {
       return !line.StartsWith("#") && !line.StartsWith("//") && line.Contains("=");
     }
 
+    (string,string) SplitSectionKey(string aL) 
+    {
+      var lLoc = aL.IndexOf('_');
+      string lSection = aL.Substring(0, lLoc);  
+      string lKey = aL.Substring(lLoc + 1);
+      return (lSection, lKey);  
+    }
+
     Args( IDictionary<string, string> aArgs )  
     {
       foreach( var lKV in aArgs )
-        Settings.Add(lKV.Key, lKV.Value );  
+      {
+        var (lSection,lKey) = SplitSectionKey(lKV.Key);
+        Set(lSection,lKey,lKV.Value);
+      }
     }
 
     Args(string file)
     {
-      Settings.Clear();
+      Sections.Clear();
       LoadFromFile(file); 
     }
 
@@ -79,33 +124,18 @@ namespace DIGITC2_ENGINE
           var lTokens = lArg.Split('=');
           if ( lTokens.Length == 2 ) 
           {
-            var lKey   = lTokens[0];  
             var lValue = lTokens[1];  
 
-            if ( lKey == "@" )
+            if ( lTokens[0] == "@" )
             {
               LoadFromFile(lValue); 
             }
             else
             { 
-              Add(lKey, lValue);
+              var (lSection,lKey)  = SplitSectionKey(lTokens[0]);  
+              Set(lSection,lKey, lValue);
             }
           }
-        }
-        else
-        {
-          int c = 0 ;
-          do
-          {
-            string lKey = $"File{c}";
-            if ( !Settings.ContainsKey(lKey) )
-            {
-              Add(lKey, lArg);
-              break;
-            }
-            ++ c;
-          }
-          while ( c < aArgs.Length ) ;
         }
       }
     }
@@ -119,17 +149,14 @@ namespace DIGITC2_ENGINE
                         .Select(line => line.Split('='))
                         .ToDictionary(line => line[0], line => line[1]);
 
-        foreach( var lKB in  lRead) 
-           Add(lKB.Key, lKB.Value);
+        foreach( var lKV in  lRead) 
+        {
+          var (lSection,lKey) = SplitSectionKey(lKV.Key);
+          Set(lSection, lKey, lKV.Value);
+        }
       }
     }
 
-
-    void Add( string aKey, string aValue )  
-    {
-      if ( !Settings.ContainsKey(aKey) )
-        Settings.Add(aKey, aValue);
-    }
 
     string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
 

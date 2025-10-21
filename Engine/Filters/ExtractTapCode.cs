@@ -50,8 +50,8 @@ namespace DIGITC2_ENGINE
 
     public override void Setup() 
     { 
-      mSeparatorCountThreshold = DContext.Session.Args.GetOptionalInt("ExtractTapCode_SeparatorCountThreshold").GetValueOrDefault(5);
-      mMinNumberOfTaps         = DContext.Session.Args.GetOptionalInt("ExtractTapCode_MinTapCount").GetValueOrDefault(16);
+      mSeparatorCountThreshold = DContext.Session.Args.GetOptionalInt(Name, "SeparatorCountThreshold").GetValueOrDefault(5);
+      mMinNumberOfTaps         = DContext.Session.Args.GetOptionalInt(Name, "MinTapCount").GetValueOrDefault(16);
     }
 
     double Interval( double aET, double aST )
