@@ -170,7 +170,7 @@ public class MainPipeline : Pipeline
 
   public void End()
   {
-    mFilters.ForEach( filter => filter.Cleanup(Config) ) ;
+    mFilters.ForEach( filter => filter.Cleanup() ) ;
   }
 
 }

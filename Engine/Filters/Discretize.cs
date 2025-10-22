@@ -11,7 +11,7 @@ namespace DIGITC2_ENGINE
 {
   public class GateThresholds
   {
-    public GateThresholds( params int[] aThresholds ) 
+    public GateThresholds( List<int> aThresholds ) 
     { 
       foreach( int lThreshold in aThresholds ) 
         Values.Add( lThreshold / 10.0f );
@@ -24,10 +24,14 @@ namespace DIGITC2_ENGINE
 
   public class Discretize : WaveFilter
   {
-    public Discretize( params GateThresholds[] aGTs ) 
+    public Discretize( ) 
     { 
-      foreach( var lGT in aGTs ) 
-        mGates.Add( new Gate($"{lGT.Values.Count}_steps",lGT) ) ;
+    }
+
+    protected override void OnSetup()
+    {
+      var lGT = new GateThresholds(Params.GetIntList("GateThresholds"));
+      mGates.Add( new Gate($"{lGT.Values.Count}_steps",lGT) ) ;
     }
 
     public class Gate
@@ -61,20 +65,16 @@ namespace DIGITC2_ENGINE
     }
 
 
-    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine($"Discretizing Input Signal.");
-      DContext.Indent();
-      WaveSignal lSignal = aInput ;
+      WaveSignal lSignal = WaveInput ;
       foreach ( var lGate in mGates )
       {
-        DContext.WriteLine($"Applying Discretization Gate: {lGate}");
+        WriteLine($"Applying Discretization Gate: {lGate}");
         lSignal = Apply( lSignal, lGate ) ;
 
       }
-      rOuput.Add( new Packet(Name, aInputPacket, lSignal, $"Discretized.") ) ;
-
-      DContext.Unindent();
+      return CreateOutput( lSignal, $"Discretized.") ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )
@@ -83,8 +83,7 @@ namespace DIGITC2_ENGINE
       
       var rR = aInput.CopyWith(rDiscrete);
 
-      if ( DContext.Session.Settings.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"Gated_{aGate.Label}.wav") ) ;
+      Save(rR, $"Gated_{aGate.Label}.wav") ;
 
       return rR ;
     }

@@ -118,11 +118,11 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public override void Setup( Config aConfig )
+    protected override void OnSetup()
     {
       // An Empty list means to do NO SPLITTNG
 
-      string lFCV = aConfig.For(Name).Get("Frequency");
+      string lFCV = Params.Get("Frequency");
 
       if ( !string.IsNullOrEmpty(lFCV) ) 
       {
@@ -142,7 +142,7 @@ namespace DIGITC2_ENGINE
 
     }
 
-    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
       // mSPlitter can be null if the settings do not specify the frequency centers
       // as a way to indcate to not split the audio in bands.
@@ -166,7 +166,7 @@ namespace DIGITC2_ENGINE
       {
         DContext.WriteLine("Passing input signal AS-IS. No band splitting specified.");
 
-        return new Packet(aConfig, Name, aInputPacket, aInput.Copy(), $"{aInput.Name}_UNSPLIT") ;
+        return CreateOutput(WaveInput.Copy(), $"{WaveInput.Name}_UNSPLIT") ;
       }
     }
 

@@ -22,46 +22,30 @@ public class BinarizeFromTapCode : LexicalFilter
   { 
   }
 
-  public override void Setup()
+  protected override void OnSetup()
   {
-    mPipelineSelection = new PipelineSelection(DContext.Session.Settings.Get(Name,"Pipelines"));
+    switch( Params.Get("PSquare") )
+    {
+      case "Binary_3_1_Guarded": mPolybiusSquare = PolybiusSquare.Binary_3_1_Guarded ; break ;
+      case "Binary_2_1_Guarded": mPolybiusSquare = PolybiusSquare.Binary_2_1_Guarded; break ;
+      case "Binary_3_1":         mPolybiusSquare = PolybiusSquare.Binary_3_1; break ;
+      case "Binary_2_1":         mPolybiusSquare = PolybiusSquare.Binary_2_1; break ;
+      case "Binary":
+      default:                   mPolybiusSquare = PolybiusSquare.Binary ; break ;
 
-    mMinCount = DContext.Session.Settings.GetOptionalInt(Name,"MinCount").GetValueOrDefault(20);
+    }
 
-    mFitnessMap = new FitnessMap(DContext.Session.Settings.Get(Name,"FitnessMap"));
-
-    mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name,"QuitThreshold").GetValueOrDefault(1);
+    mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
+    mMinCount      = Params.GetInt("MinCount");
+    mQuitThreshold = Params.GetInt("QuitThreshold");
   }
 
-  protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+  protected override Packet Process()
   {
-    DContext.WriteLine("Binarizing Tap Codes via Binary Polybius Squares");
-    DContext.Indent();
+    var lSymbols = LexicalInput.GetSymbols<TapCodeSymbol>();
 
-    var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
-    if ( mPipelineSelection.IsActive("Binary") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary, rOutput ) ;
-
-    if ( mPipelineSelection.IsActive("Binary_3_1_Guarded") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_3_1_Guarded, rOutput ) ;
-
-    if ( mPipelineSelection.IsActive("Binary_2_1_Guarded") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_2_1_Guarded, rOutput ) ;
-
-    if ( mPipelineSelection.IsActive("Binary_3_1") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_3_1, rOutput ) ;
-
-    if ( mPipelineSelection.IsActive("Binary_2_1") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.Binary_2_1, rOutput ) ;
-
-
-    DContext.Unindent();  
-  }
-
-  void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
-  {
     List<BitBagSymbol> lBags = new List<BitBagSymbol> ();
 
     List< List<string> > lRawBags = new List<List<string>> ();  
@@ -69,7 +53,7 @@ public class BinarizeFromTapCode : LexicalFilter
     List<string> lCurrRawBag = new List<string>();  
     lRawBags.Add(lCurrRawBag);
 
-    foreach( var lCode in aCodes )
+    foreach( var lCode in lCodes )
     {
       bool lIsSeparator = ( lCode.Row == 0 && lCode.Col == 0 ) || lCurrRawBag.Count >= 8 ;
       if ( lIsSeparator )
@@ -79,18 +63,18 @@ public class BinarizeFromTapCode : LexicalFilter
       }
       else
       {
-        lCurrRawBag.Add(aSquare.Decode(lCode));
+        lCurrRawBag.Add(mPolybiusSquare.Decode(lCode));
       }
     }
 
-    DContext.WriteLine($"RAW Bags count: {lRawBags.Count}" );
+    WriteLine($"RAW Bags count: {lRawBags.Count}" );
 
     foreach ( var lRawBag in lRawBags )
     {
       if ( lRawBag.Count == 0 ) 
        continue ;
 
-      DContext.WriteLine($"RAW Bag: { string.Join(",",lRawBag)}" );
+      WriteLine($"RAW Bag: { string.Join(",",lRawBag)}" );
 
       List<BitSymbol> lBits = new List<BitSymbol> ();
 
@@ -101,7 +85,7 @@ public class BinarizeFromTapCode : LexicalFilter
         if ( lRawBit != "?" )
         {
           bool lOne = lRawBit[0]=='1';
-          double lBitLikelihood = aSquare.HasExtendedBitSymbols ? ( lRawBit.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
+          double lBitLikelihood = mPolybiusSquare.HasExtendedBitSymbols ? ( lRawBit.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
           lStrength += lBitLikelihood ;
           lBits.Add( new BitSymbol(lBits.Count, lOne, lBitLikelihood)) ;
         }
@@ -112,8 +96,8 @@ public class BinarizeFromTapCode : LexicalFilter
       
       int lBagLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
 
-      DContext.WriteLine($"Known Bits SNR: {lSNR}");
-      DContext.WriteLine($"Bag Likelihood: {lBagLikelihood}");
+      WriteLine($"Known Bits SNR: {lSNR}");
+      WriteLine($"Bag Likelihood: {lBagLikelihood}");
 
       BitBagSymbol lBag = new BitBagSymbol(lBags.Count, lBits, lBagLikelihood);
 
@@ -122,16 +106,21 @@ public class BinarizeFromTapCode : LexicalFilter
 
     if ( lBags.Count > mMinCount)
     {
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lBags), aSquare.Name ) ) ;
+      return CreateOutput( new LexicalSignal(lBags), mPolybiusSquare.Name ) ;
+    }
+    else
+    {
+      return CreateQuitOutput();
+
     }
   }
 
   public override string Name => this.GetType().Name ;
 
-  int               mMinCount ;
-  PipelineSelection mPipelineSelection ;
-  FitnessMap        mFitnessMap ;
-  int               mQuitThreshold ;
+  int            mMinCount ;
+  PolybiusSquare mPolybiusSquare ;
+  FitnessMap     mFitnessMap ;
+  int            mQuitThreshold ;
 }
 
 }

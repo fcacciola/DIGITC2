@@ -29,54 +29,55 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Gating Above Noise Floor");
-      DContext.Indent();
+      WaveInput.Rep.Sanitize() ;
 
-      aInput.Rep.Sanitize() ;
+      var lEnvelopeParams = new Envelope.Args{AttackTime=Params.GetFloat("EnvelopeAttack"), ReleaseTime= Params.GetFloat("EmvelopeRelease") };
+      var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
 
-      ApplyEnvelopeThenGate(aInput, aInputPacket, new Envelope.Params{FollowerAttackTime=0.0005f, FollowerReleaseTime=0.001f}, rOutput );
-      ApplyEnvelopeThenGate(aInput, aInputPacket, new Envelope.Params{FollowerAttackTime=0.0010f, FollowerReleaseTime=0.002f}, rOutput );
-
-      DContext.Unindent();
-    }
-
-    void ApplyEnvelopeThenGate( WaveSignal aInput, Packet aInputPacket, Envelope.Params aEnvelopeParams, List<Packet> rOutput ) 
-    {
-      var lEnvelope = Envelope.Apply(aInput.Rep, aEnvelopeParams);
-
-      string lEnvelopeLabel = $"Envelope_{aEnvelopeParams}";
+      string lEnvelopeLabel = $"Envelope_{lEnvelopeParams}";
       
-      if ( DContext.Session.Settings.GetBool("Plot") )
-        lEnvelope.SaveTo( DContext.Session.OutputFile( $"{lEnvelopeLabel}.wav") ) ;
+      Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
-      var lBaseLine = EstimateBaseline(lEnvelope.Samples, new NoiseFloorEstimationParams() );
+      float lFloor = GetNoiseFloor(lEnvelope);
 
-      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine       , lEnvelopeLabel, rOutput );
-      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine * 0.5f, lEnvelopeLabel, rOutput );
-      ApplyGate(aInput, aInputPacket, lEnvelope, lBaseLine * 2.0f, lEnvelopeLabel, rOutput );
-    }
+      WriteLine($"Applying Noise Gate at: {lFloor}");
 
-    void ApplyGate( WaveSignal aInput, Packet aInputPacket, DiscreteSignal aSmoothed, float aFloor, string aEnvelopeLabel, List<Packet> rOutput ) 
-    {
-      DContext.WriteLine($"Applying Noise Gate at: {aFloor}");
-
-      var lNewSamples = RawApplyGate(aSmoothed.Samples, aFloor);
+      var lNewSamples = RawApplyGate(lEnvelope.Samples, lFloor);
 
       var lGated = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
 
       lGated.Sanitize();
 
-      string lLabel = $"NoiseGate_{aEnvelopeLabel}_{(int)(aFloor*100)}]";
+      string lLabel = $"NoiseGate_{lEnvelopeLabel}_{(int)(lFloor*100)}]";
 
-      if ( DContext.Session.Settings.GetBool("Plot") )
-        lGated.SaveTo( DContext.Session.OutputFile( $"{lLabel}.wav") ) ;
+      Save(lGated, $"{lLabel}.wav") ;
 
-      var lES = aInput.CopyWith(lGated);
+      var lES = WaveInput.CopyWith(lGated);
       lES.Name = lLabel;
 
-      rOutput.Add( new Packet(Name, aInputPacket, lES, lLabel) );
+      return CreateOutput(lES, lLabel);
+    }
+
+    float GetNoiseFloor( DiscreteSignal aEnvelope )
+    {
+      //
+      // Along the very first pipeline, a noise floor value is automatically estimated.
+      // Then branches are open with varations of that estimation
+      float rNF ;
+
+      float? rNF_ = Params.GetOptionalFloat("NoiseFloor");
+      if ( rNF_ is null )
+      {
+        rNF = EstimateBaseline(aEnvelope.Samples, new NoiseFloorEstimationParams() );
+
+        AddBranch("NoiseFloor",rNF * 0.5f) ;
+        AddBranch("NoiseFloor",rNF * 1.5f) ;
+      }
+      else rNF = rNF_.Value ;
+
+      return rNF ;
     }
 
     static float[] Trim( float[] aSamples, float aTrimRatio )

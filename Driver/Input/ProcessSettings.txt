@@ -4,7 +4,7 @@ FromAudio_ByTapCode_Binary=true
 
 InputAudioFile=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
 
-Plot=true
+OutputDetails=true
 
 # SaveReference=true 
 

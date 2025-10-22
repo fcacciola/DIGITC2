@@ -21,7 +21,7 @@ namespace DIGITC2_ENGINE
 
       rPipeline.Add( new Envelope() )
                .Add( new NoiseFloorGate() )  
-               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1) ) )
+               .Add( new Discretize() )
                .Add( new ExtractPulseSymbols() )
                .Add( new BinarizeFromDuration() ) ;
 
@@ -35,8 +35,7 @@ namespace DIGITC2_ENGINE
       rPipeline.Add( new SelectBand() )
                .Add( new NoiseFloorGate() )  
                .Add( new Envelope() )
-//               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7) ) )
-               .Add( new Discretize( new GateThresholds(9,7,5,4,3,1) ) )
+               .Add( new Discretize() )
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new BinarizeFromTapCode() ) ;
@@ -64,7 +63,7 @@ namespace DIGITC2_ENGINE
 
       rPipeline.Add( new Envelope() )
                .Add( new NoiseFloorGate() )  
-               .Add( new Discretize( new GateThresholds(9,8,7,6,5,4,3,2,1), new GateThresholds(7,5,3), new GateThresholds(7)) )
+               .Add( new Discretize()
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new TapCodeToBytes())

@@ -152,25 +152,21 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override Packet Process ( WaveSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    Options CreateOptions()
     {
-      Process( new Options(){ Label              = "A"
-                            , VeryShortThreshold = SIG.SamplingRate / 1000 * 15 
-                            , DullThreshold      = 5
-                            , SplitThreshold     = 5
-                            , SplitLevelDiff     = 5
-                            }
-             , aInput
-             , aInputPacket
-             , rOutput );
+      Options rOptions = new ();
+
+      rOptions.DullThreshold  = Params.GetInt("DullThreshold ");
+      rOptions.SplitThreshold = Params.GetInt("SplitThreshold");
+      rOptions.SplitLevelDiff = Params.GetInt("SplitLevelDiff");
+
+      return rOptions;
 
     }
 
-    void Process ( Options aOptions, WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ()
     {
-      mInput   = aInput ; 
-
-      mData = new Data(){ Options = aOptions } ;
+      mData = new Data(){ Options = CreateOptions() } ;
 
       CreatePulses();
       SelectValidPulses();
@@ -178,9 +174,9 @@ namespace DIGITC2_ENGINE
       MergeContiguousPulses();
       RemoveUnfitPulses();
 
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(mData.Pulses4), mData.Options.Label) ) ;
+      return CreateOutput( new LexicalSignal(mData.Pulses4), Name) ;
     }
-    
+   
     public override string Name => this.GetType().Name ;
 
     void CreatePulses()
@@ -190,8 +186,8 @@ namespace DIGITC2_ENGINE
       mData.PulseStart = 0 ;
       mData.Pos        = 0 ;
 
-      DContext.WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
-      DContext.Indent();  
+      WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
+      Indent();  
 
       for ( mData.Pos = 0 ; mData.Pos < mInput.Samples.Length ; ++ mData.Pos )
       {
@@ -215,9 +211,9 @@ namespace DIGITC2_ENGINE
 
       AddPulse();
 
-      PulseFilterHelper.PlotPulses(mData.Pulses0, $"{mData.Options.Label}_0");
+      PulseFilterHelper.PlotPulses(mData.Pulses0, $"{Name}_0");
 
-      DContext.Unindent();  
+      Unindent();  
     }
 
     void AddPulse()
@@ -242,8 +238,8 @@ namespace DIGITC2_ENGINE
           mData.Pulses1.Add(lPulse );
       }
 
-      PulseFilterHelper.PlotPulses(mData.Pulses1, $"{mData.Options.Label}_1");
-      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses1, $"{mData.Options.Label}_1");
+      PulseFilterHelper.PlotPulses(mData.Pulses1, $"{Name}_1");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses1, $"{Name}_1");
     }
 
     struct Run
@@ -380,8 +376,8 @@ namespace DIGITC2_ENGINE
 
     void SplitPulses()
     {
-      DContext.WriteLine("Splitting Pulses");
-      DContext.Indent();  
+      WriteLine("Splitting Pulses");
+      Indent();  
 
       foreach( var lPulse in mData.Pulses1 )
       {
@@ -399,9 +395,9 @@ namespace DIGITC2_ENGINE
         //DContext.Unindent();  
       }
 
-      PulseFilterHelper.PlotPulses(mData.Pulses2, $"{mData.Options.Label}_2");
-      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses2, $"{mData.Options.Label}_2");
-      DContext.Unindent();  
+      PulseFilterHelper.PlotPulses(mData.Pulses2, $"{Name}_2");
+      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses2, $"{Name}_2");
+      Unindent();  
     }
 
     double FindContiguousPulsesGapDuration()
@@ -433,8 +429,8 @@ namespace DIGITC2_ENGINE
       if ( mData.Pulses2.Count < 2 )
         return ;
 
-      DContext.WriteLine("Merging Contiguous Pulses");
-      DContext.Indent();  
+      WriteLine("Merging Contiguous Pulses");
+      Indent();  
 
       double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; //0.0070 ;
 
@@ -460,8 +456,8 @@ namespace DIGITC2_ENGINE
         }
       }
 
-      PulseFilterHelper.PlotPulses(mData.Pulses3, $"{mData.Options.Label}_3");
-      DContext.Unindent();  
+      PulseFilterHelper.PlotPulses(mData.Pulses3, $"{Name}_3");
+      Unindent();  
     }
 
     double FindVeryShortThreshold()
@@ -494,17 +490,15 @@ namespace DIGITC2_ENGINE
 
       mData.Pulses4.AddRange( mData.Pulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
 
-      PulseFilterHelper.PlotPulses(mData.Pulses4, $"{mData.Options.Label}_4");
+      PulseFilterHelper.PlotPulses(mData.Pulses4, $"{Name}_4");
     }
 
 
     class Options
     {
-      internal string Label ;
-      internal int    VeryShortThreshold ;
-      internal int    DullThreshold ;
-      internal int    SplitThreshold ;
-      internal int    SplitLevelDiff ;
+      internal int DullThreshold ;
+      internal int SplitThreshold ;
+      internal int SplitLevelDiff ;
     }
 
     class Data

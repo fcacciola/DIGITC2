@@ -48,10 +48,10 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    public override void Setup() 
+    protected override void OnSetup() 
     { 
-      mSeparatorCountThreshold = DContext.Session.Settings.GetOptionalInt(Name, "SeparatorCountThreshold").GetValueOrDefault(5);
-      mMinNumberOfTaps         = DContext.Session.Settings.GetOptionalInt(Name, "MinTapCount").GetValueOrDefault(16);
+      mSeparatorCountThreshold = Params.GetInt("SeparatorCountThreshold");
+      mMinNumberOfTaps         = Params.GetInt("MinTapCount");
     }
 
     double Interval( double aET, double aST )
@@ -111,23 +111,19 @@ namespace DIGITC2_ENGINE
       return rTaps ; 
     }
 
-    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Decoding Taps...");
-      DContext.Indent();
-
-      var lPulses = aInput.GetSymbols<PulseSymbol>() ;
+      var lPulses = LexicalInput.GetSymbols<PulseSymbol>() ;
 
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count < mMinNumberOfTaps )
       {
-        DContext.WriteLine("Not enough Taps. Quitting.");
-        rOutput.Add( Packet.Quit(Name, aInputPacket, "TapCodes") ) ;
-        return ;
+        WriteLine("Not enough Taps. Quitting.");
+        return CreateQuitOutput();
       }
 
-      DContext.WriteLine("Raw Taps:");
-      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      WriteLine("Raw Taps:");
+      lTaps.ForEach( t => WriteLine(t.ToString()));
 
       var lDurations = lTaps.ConvertAll( t => t.LagFromPrev ) ;
 
@@ -135,10 +131,10 @@ namespace DIGITC2_ENGINE
 
       lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
-      DContext.WriteLine("Classified Taps:");
+      WriteLine("Classified Taps:");
       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-      DContext.WriteLine("Building Tap Counts:");
+      WriteLine("Building Tap Counts:");
       List<TapCount> lRawCounts = new List<TapCount>();
 
       TapCount lCurrTC = new TapCount() ;
@@ -159,9 +155,8 @@ namespace DIGITC2_ENGINE
 
       if ( lRawCounts.Count <  2 * mMinNumberOfTaps )
       {
-        DContext.WriteLine("Not enough Taps. Quitting.") ;
-        rOutput.Add( Packet.Quit(Name, aInputPacket, "TapCodes") ) ;
-        return ;
+        WriteLine("Not enough Taps. Quitting.") ;
+        return CreateQuitOutput();
       }
       
       // A TapCount Bag contains a sequence of Tap Counts that should
@@ -196,7 +191,7 @@ namespace DIGITC2_ENGINE
 
       List<TapCode> lAllCodes = new List<TapCode>();
 
-      DContext.WriteLine($"Bags:{lBags.Count}");
+      WriteLine($"Bags:{lBags.Count}");
 
       foreach( var lBag in lBags ) 
       {  
@@ -224,7 +219,7 @@ namespace DIGITC2_ENGINE
 
         lCodes.Add( new TapCode(0,0) ) ;
 
-        DContext.WriteLine( $"Code: {string.Join(",", lCodes )}");
+        WriteLine( $"Code: {string.Join(",", lCodes )}");
 
         lAllCodes.AddRange( lCodes ) ;  
       }
@@ -232,9 +227,7 @@ namespace DIGITC2_ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lSymbols), "TapCodes") ) ;
-
-      DContext.Unindent();  
+      return CreateOutput( new LexicalSignal(lSymbols), "TapCodes") ;
     }
 
 
@@ -273,30 +266,30 @@ namespace DIGITC2_ENGINE
       var lPeak1 = lPeaks.Count > 0 ? lPeaks[0] : null ;
       var lPeak2 = lPeaks.Count > 1 ? lPeaks[1] : null ;
 
-      DContext.WriteLine($"Peaks: {lPeak1}, {lPeak2}");
+      WriteLine($"Peaks: {lPeak1}, {lPeak2}");
 
       double lInternalLag, lNonInternalLag ;
 
       if ( lPeak1 != null)
       {
         lInternalLag = lPeak1.Value.X.Value ;
-        DContext.WriteLine($"Internal Lag (from peak): {lInternalLag}");
+        WriteLine($"Internal Lag (from peak): {lInternalLag}");
       }
       else
       { 
         lInternalLag = aDurations.Minimum();
-        DContext.WriteLine($"Internal Lag (from minimum): {lInternalLag}");
+        WriteLine($"Internal Lag (from minimum): {lInternalLag}");
       }
 
       if ( lPeak2 != null)
       {
         lNonInternalLag = lPeak2.Value.X.Value ;
-        DContext.WriteLine($"NON Internal Lag (from peak): {lNonInternalLag}");
+        WriteLine($"NON Internal Lag (from peak): {lNonInternalLag}");
       }
       else
       { 
         lNonInternalLag = lInternalLag * 2.5;
-        DContext.WriteLine($"NON Internal Lag (from minimum): {lNonInternalLag}");
+        WriteLine($"NON Internal Lag (from minimum): {lNonInternalLag}");
       }
 
       var lInternalH = MathX.LERP(lInternalLag,lNonInternalLag,0.4);

@@ -4,9 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
+using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DIGITC2_ENGINE ;
 
@@ -30,9 +29,19 @@ public static class ConfigHelper
 
 public class Params
 {
-  Dictionary<string, string> mMap = new Dictionary<string, string>();
+  Dictionary<string, string> mMap = null ;
 
-  public Params() {}
+  public Params() { mMap = new Dictionary<string, string>() ; }
+
+  public Params Copy()
+  {
+    Dictionary<string, string> lNewMap = new();
+
+    foreach( var kv in mMap )
+      lNewMap.Add( kv.Key, kv.Value );
+
+    return new Params( lNewMap );
+  }
 
   public static Params FromFile( string file)
   {
@@ -78,13 +87,29 @@ public class Params
 
   public string GetPath( string aKey ) => ConfigHelper.ExpandRelativeFilePath(Get(aKey));
 
-
-  Params( IDictionary<string, string> aArgs )  
+  public List<T> GetNumberList<T>( string aKey ) where T : INumber<T>
   {
-    foreach( var lKV in aArgs )
+    List<T> rL = new List<T>(); 
+    string lLV = Get(aKey);
+    if ( ! IsNullOrEmpty(lLV) )
     {
-      Set(lKV.Key,lKV.Value);
+      foreach ( string lN in lLV.Split(',') )
+      {
+        T rV =;
+        if ( INumber<T>.TryParse(lN, null, rV) )
+        {
+          rL.Add( rV ); 
+        }
+      }
     }
+    return rL;  
+  }
+
+  public List<int> GetIntList( string aKey ) => GetNumberList<int>(aKey);
+
+  Params( Dictionary<string, string> aMap )  
+  {
+    mMap = aMap;
   }
 
 }
@@ -95,11 +120,29 @@ public class Settings : Params
 
 public class Config
 {
-  Dictionary<string, Params> mSections = new Dictionary<string, Params>();
+  Dictionary<string, Params> mSections = null ;
 
   public Params For ( string aSection ) => mSections[aSection]; 
 
-  public Config() {}
+  public Config() { mSections = new Dictionary<string, Params>(); }
+
+  public Config Copy()
+  {
+    Dictionary<string, Params> lNewSections = new();
+
+    foreach( var kv in mSections )
+      lNewSections.Add( kv.Key, kv.Value.Copy() );
+
+    return new Config( lNewSections );
+  }
+
+  static (string,string) SplitSectionKey(string aL) 
+  {
+    var lLoc = aL.IndexOf('_');
+    string lSection = aL.Substring(0, lLoc);  
+    string lKey = aL.Substring(lLoc + 1);
+    return (lSection, lKey);  
+  }
 
   public static Config FromFile( string file)
   {
@@ -115,7 +158,7 @@ public class Config
       foreach( var lKV in  lRead) 
       {
         var (lSection,lKey) = SplitSectionKey(lKV.Key);
-        rConfig.Set(lSection, lKey, lKV.Value);
+        rConfig.GetSection(lSection).Set(lKey, lKV.Value);
       }
     }
 
@@ -124,7 +167,12 @@ public class Config
 
   public Params GetSection( string aSection )
   {
-    return Sections[aSection];
+    if ( !mSections.ContainsKey( aSection ) )  
+      mSections.Add( aSection, new Params() );
+
+    return mSections[aSection];
   }
+
+  Config( Dictionary<string,Params> aSections ) { mSections= aSections; } 
 }
 

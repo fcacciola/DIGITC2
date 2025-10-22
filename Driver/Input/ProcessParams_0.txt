@@ -1,6 +1,21 @@
 
 # SplitBands_FrequencyCenters=7500,10000
 
+NoiseFloorGate_EnvelopeAttack=0.0005
+NoiseFloorGate_EnvelopeRelease=0.001
+
+Envelope_Attack=0.005;
+Envelope_Release=0.01;
+
+Discretize_GateThresholds=9,7,5,4,3,1
+
+ExtractPulseSymbols_DullThreshold=5
+ExtractPulseSymbols_SplitThreshold=5
+ExtractPulseSymbols_SplitLevelDiff=5
+
+ExtractTapCode_SeparatorCountThreshold=5;
+ExtractTapCode_MinTapCount=16;
+
 BinarizeFromTapCode_PSquare=Binary
 BinarizeFromTapCode_MinCount=2
 BinarizeFromTapCode_FitnessMap=50,80,90,97
