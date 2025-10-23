@@ -25,7 +25,7 @@ namespace DIGITC2_ENGINE
       public float AttackTime  = 0.005f;
       public float ReleaseTime = 0.01f;
 
-      public override string ToString() => $"A_{(int)(AttackTime*1000)}_R_{(int)(ReleaseTime*1000)}";
+      public override string ToString() => $"A_{(int)(AttackTime*100000)}_R_{(int)(ReleaseTime*100000)}";
     }
 
     public Envelope() 

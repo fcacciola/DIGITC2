@@ -79,10 +79,42 @@ public class Params
     else mMap[aKey] = aValue; 
   }
 
-  public int?    GetOptionalInt   ( string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToInt32  (v) ; else return null ; }
-  public float?  GetOptionalFloat ( string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToSingle (v) ; else return null ; }
-  public double? GetOptionalDouble( string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToDouble (v) ; else return null ; }
-  public bool?   GetOptionalBool  ( string aKey) { string v = Get(aKey); if ( v != null ) return Convert.ToBoolean(v) ; else return null ; }
+  static int? ToInt( string aS )
+  {
+    int rV ;
+    if ( int.TryParse(aS, null, out rV) )
+      return rV;
+    return null;
+  }
+
+  static float? ToFloat( string aS )
+  {
+    float rV ;
+    if ( float.TryParse(aS, null, out rV) )
+      return rV;
+    return null;
+  }
+
+  static double? ToDouble( string aS )
+  {
+    double rV ;
+    if ( double.TryParse(aS, null, out rV) )
+      return rV;
+    return null;
+  }
+
+  static bool? ToBool( string aS )
+  {
+    bool rV ;
+    if ( bool.TryParse(aS,  out rV) )
+      return rV;
+    return null;
+  }
+
+  public int?    GetOptionalInt   ( string aKey) { string v = Get(aKey); if ( v != null ) return ToInt   (v) ; else return null ; }
+  public float?  GetOptionalFloat ( string aKey) { string v = Get(aKey); if ( v != null ) return ToFloat (v) ; else return null ; }
+  public double? GetOptionalDouble( string aKey) { string v = Get(aKey); if ( v != null ) return ToDouble(v) ; else return null ; }
+  public bool?   GetOptionalBool  ( string aKey) { string v = Get(aKey); if ( v != null ) return ToBool  (v) ; else return null ; }
 
   public int    GetInt   ( string aKey) => GetOptionalInt   ( aKey) ?? 0 ;
   public float  GetFloat ( string aKey) => GetOptionalFloat ( aKey) ?? 0.0f;
@@ -156,10 +188,9 @@ public class Config
 
   public static Config FromFile( string file)
   {
-    Config rConfig = null ;
-
     if ( File.Exists(file) )
     {
+      Config rConfig = new Config() ;
       var lRead = File.ReadLines(file)
                       .Where(ConfigHelper.IsValidLine)
                       .Select(line => line.Split('='))
@@ -170,9 +201,10 @@ public class Config
         var (lSection,lKey) = SplitSectionKey(lKV.Key);
         rConfig.GetSection(lSection).Set(lKey, lKV.Value);
       }
-    }
 
-    return rConfig ;
+      return rConfig ;
+    }
+    return null;
   }
 
   public Params GetSection( string aSection )

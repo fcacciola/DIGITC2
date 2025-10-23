@@ -33,7 +33,7 @@ namespace DIGITC2_ENGINE
     {
       WaveInput.Rep.Sanitize() ;
 
-      var lEnvelopeParams = new Envelope.Args{AttackTime=Params.GetFloat("EnvelopeAttack"), ReleaseTime= Params.GetFloat("EmvelopeRelease") };
+      var lEnvelopeParams = new Envelope.Args{AttackTime=Params.GetFloat("EnvelopeAttack"), ReleaseTime= Params.GetFloat("EnvelopeRelease") };
       var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
 
       string lEnvelopeLabel = $"Envelope_{lEnvelopeParams}";
