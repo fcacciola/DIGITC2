@@ -73,7 +73,7 @@ namespace DIGITC2_ENGINE
     protected void Save( DiscreteSignal aDS, string aName )
     {
       if ( DoOutputDetails )
-        aDS.SaveTo( Session.OutputFile( aName ) ;
+        aDS.SaveTo( Session.OutputFile( aName ) ) ;
     }
 
     protected void Save( WaveSignal aWS, string aName ) => Save(aWS.Rep, aName);  

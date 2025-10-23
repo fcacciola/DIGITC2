@@ -26,28 +26,23 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Concatenating Words into a final piece of Text");
-      DContext.Indent();
-
       List<string> lWords = new List<string>();  
 
-      foreach( var lWS in aInput.GetSymbols<WordSymbol>() )
+      foreach( var lWS in LexicalInput.GetSymbols<WordSymbol>() )
       {
         lWords.Add( lWS.Word);
       }
 
       string lText = string.Join(" ",lWords);
 
-      DContext.WriteLine($"FINAl TEXT:{Environment.NewLine}{lText}");  
+      WriteLine($"FINAl TEXT:{Environment.NewLine}{lText}");  
 
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  
 
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ) ;
-
-      DContext.Unindent();
+      return CreateOutput( new LexicalSignal(lTextSymbols), "Text", null, false, new TextMessage(lText)) ;
     }
 
     public override string Name => this.GetType().Name ;

@@ -28,7 +28,7 @@ public sealed class FromAudio_ByTapCode_DirectLetters : DecodingTask
 
       var lPipeline = PipelineFactory.FromAudio_ByTapCode_ToDirectLetters() ;
 
-      var lResult = Processor.Process(lSession.Name, lPipeline, aConfigs, lSignal);
+      var lResult = Processor.Process( lSession, aSettings, lSession.Name, lPipeline, aConfigs, lSignal);
 
       lResult.Save(lSession.CurrentOutputFolder) ;
     }

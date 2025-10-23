@@ -15,19 +15,6 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public static MainPipeline FromAudioToBits_ByPulseDuration()
-    {
-      var rPipeline = new MainPipeline();
-
-      rPipeline.Add( new Envelope() )
-               .Add( new NoiseFloorGate() )  
-               .Add( new Discretize() )
-               .Add( new ExtractPulseSymbols() )
-               .Add( new BinarizeFromDuration() ) ;
-
-      return rPipeline ;
-    }
-
     public static MainPipeline FromAudioToBits_ByTapCode()
     {
       var rPipeline = new MainPipeline();
@@ -61,9 +48,10 @@ namespace DIGITC2_ENGINE
     {
       var rPipeline = new MainPipeline();
 
-      rPipeline.Add( new Envelope() )
+      rPipeline.Add( new SelectBand() )
                .Add( new NoiseFloorGate() )  
-               .Add( new Discretize()
+               .Add( new Envelope() )
+               .Add( new Discretize() )
                .Add( new ExtractPulseSymbols() )
                .Add( new ExtractTapCode() )  
                .Add( new TapCodeToBytes())

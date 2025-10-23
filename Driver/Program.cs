@@ -71,12 +71,12 @@ namespace Driver
       RegisterTask( new Generate_MockAudio_WithTapCode_FromSamples() ); 
     }
 
-    internal void Run( Params aMainParams, List<Config> aConfigs)
+    internal void Run( Settings aSettings, List<Config> aConfigs)
     {
       foreach( var lKV in mTasks )
       {
-        if ( aMainParams.GetBool(lKV.Key) )
-          lKV.Value.Run( aMainParams, aConfigs );
+        if ( aSettings.GetBool(lKV.Key) )
+          lKV.Value.Run( aSettings, aConfigs );
       }
     }
 
@@ -107,12 +107,12 @@ namespace Driver
     {
       if ( args.Length >= 2 )
       {
-        var lMainParams = Params.FromFile(args[0]); 
+        var lSettings = Settings.FromFile(args[0]); 
         var lConfigs = LoadConfigs(args);
 
         TaskTable lTasks = new TaskTable();
 
-        lTasks.Run(lMainParams, lConfigs);  
+        lTasks.Run(lSettings, lConfigs);  
 
       }
     }

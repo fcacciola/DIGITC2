@@ -15,7 +15,6 @@ namespace DIGITC2_ENGINE
   {
     public TextDigitValidator()
     {
-
     }
 
     public bool IsValid ( string aText )
@@ -37,33 +36,22 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Converting Tokens to Words");
-      DContext.Indent();
+      Options lOptions = new () { CharSet = "ascii"
+                                , Fallback = "!"
+                                , Validator = new TextDigitValidator() 
+                                } ;
 
-      Process( new Options() { Label = "ASCII CharSet with fallback:!"
-                             , CharSet = "ascii"
-                             , Fallback = "!"
-                             , Validator = new TextDigitValidator() 
-                             }
-
-             , aInput, aInputPacket, rOutput) ;
-
-      DContext.Unindent();
-    }
-
-    void Process( Options aOptions, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput)
-    {
-      Encoding lEncoding = Encoding.GetEncoding( aOptions.CharSet
+      Encoding lEncoding = Encoding.GetEncoding( lOptions.CharSet
                                                , new EncoderReplacementFallback("(unknown)")
-                                               , new DecoderReplacementFallback( aOptions.Fallback));
+                                               , new DecoderReplacementFallback( lOptions.Fallback));
 
       List<WordSymbol> lWords = new List<WordSymbol> ();
 
       StringBuilder lSB = new StringBuilder ();
 
-      foreach( var lToken in aInput.GetSymbols<ArraySymbol>() )
+      foreach( var lToken in LexicalInput.GetSymbols<ArraySymbol>() )
       {
         lSB.Clear();
 
@@ -74,8 +62,8 @@ namespace DIGITC2_ENGINE
           lBuffer[0] = lByteSymbol.Byte; 
           string lDigit = lEncoding.GetString(lBuffer);
 
-          if ( !  aOptions.Validator.IsValid( lDigit ) )
-            lDigit = aOptions.Fallback ;
+          if ( ! lOptions.Validator.IsValid( lDigit ) )
+            lDigit = lOptions.Fallback ;
 
           lSB.Append( lDigit );
 
@@ -86,22 +74,18 @@ namespace DIGITC2_ENGINE
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      DContext.WriteLine($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.Meaning) ) }" ) ;
+      WriteLine($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.Meaning) ) }" ) ;
 
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lWords), aOptions.Label) ) ;
+      return CreateOutput( new LexicalSignal(lWords), Name) ;
     }
-
 
     public override string Name => this.GetType().Name ;
 
     class Options
     {
-      internal string             Label ;
       internal string             CharSet ;
       internal string             Fallback ; 
       internal TextDigitValidator Validator ;
-
-      public override string ToString() => Label ;
     }
   }
 

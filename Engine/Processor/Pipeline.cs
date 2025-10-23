@@ -42,7 +42,7 @@ public class Pipeline
 
     if ( lRemainingFilters.Count == 0 )
          return null ;
-    else return new Pipeline( aConfig, aStartBucket, aStartPacket, mLevel + 1, lRemainingFilters ) ;
+    else return new Pipeline( Session, Settings, aConfig, aStartBucket, aStartPacket, mLevel + 1, lRemainingFilters ) ;
   }
 
   public PipelineResultBuilder Process( Processor aProcessor )
@@ -67,7 +67,7 @@ public class Pipeline
         DContext.Session.PushBucket(OutputBucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
 
         List<Config> lBranches ;
-        (lPacket,lBranches) = lFilter.Apply(Config, lPacket);
+        (lPacket,lBranches) = lFilter.Apply(lPacket);
 
         if ( lPacket is not null )
         {
@@ -100,7 +100,9 @@ public class Pipeline
     return rRB ;  
   }
 
-  public Config Config { get ; set ; }
+  public Session  Session  { get ; set ; }
+  public Settings Settings { get ; set ; }
+  public Config   Config   { get ; set ; }
 
   public string Name { get ; private set ; }
 
@@ -110,15 +112,19 @@ public class Pipeline
 
   public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
-  protected Pipeline( Config aConfig, string aName, OutputBucket aStartBucket )
+  protected Pipeline( Session aSession, Settings aSettings, Config aConfig, string aName, OutputBucket aStartBucket )
   { 
+    Session     = aSession ;
+    Settings    = aSettings ;
     Config      = aConfig ;
     Name        = aName;
     StartBucket = aStartBucket ;
   }
 
-  Pipeline( Config aConfig, OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( Session aSession, Settings aSettings, Config aConfig, OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
   { 
+    Session      = aSession ;
+    Settings     = aSettings ;
     Config       = aConfig ;
     Name         = aPacket.Name ;  
     StartBucket  = aStartBucket ;
@@ -140,7 +146,7 @@ public class Pipeline
 
 public class MainPipeline : Pipeline
 {
-  public MainPipeline() : base(null, "Main", null )
+  public MainPipeline() : base(null, null, null, "Main", null )
   { 
   }
 
@@ -157,15 +163,17 @@ public class MainPipeline : Pipeline
     return this ;
   } 
     
-  public void Start( Config aConfig, Signal aStartSignal, OutputBucket aStartBucket ) 
+  public void Start( Session aSession, Settings aSettings, Config aConfig, Signal aStartSignal, OutputBucket aStartBucket ) 
   {
-    Config = aConfig ;
+    Session  = aSession ;
+    Settings = aSettings ;  
+    Config   = aConfig ;
 
     mStartPacket = new Packet(null, null, null, aStartSignal, "") ;
 
     StartBucket = aStartBucket ;
 
-    mFilters.ForEach( filter => filter.Setup(Config) ) ;
+    mFilters.ForEach( filter => filter.Setup( Session, Settings, Config) ) ;
   }
 
   public void End()

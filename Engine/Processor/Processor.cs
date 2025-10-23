@@ -12,10 +12,10 @@ namespace DIGITC2_ENGINE
 
 public class Processor
 {
-  public static Result Process ( string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
+  public static Result Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lResultBuilder = lProcessor.Process( aStartSignal, aConfigs ) ;
+    var lResultBuilder = lProcessor.Process( aSession, aSettings, aStartSignal, aConfigs ) ;
     return lResultBuilder.BuildResult(aName);
   }
 
@@ -24,23 +24,23 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public ResultBuilder Process( Signal aStartSignal, List<Config> aConfigs )
+  public ResultBuilder Process( Session aSession, Settings aSettings, Signal aStartSignal, List<Config> aConfigs )
   {
     var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
     DContext.Session.PushBucket(lStartBucket);
     ResultBuilder rResult = new ResultBuilder();
-    aConfigs.ForEach( lConfig => Process(aStartSignal, lConfig, lStartBucket, rResult) ) ;
+    aConfigs.ForEach( lConfig => Process( aSession, aSettings, aStartSignal, lConfig, lStartBucket, rResult) ) ;
     DContext.Session.GotoBucket(lStartBucket) ;
     DContext.CloseLogger();
     return rResult ;
   }
 
-  public void Process( Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, ResultBuilder rResult )
+  public void Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, ResultBuilder rResult )
   {
 
     try
     {
-      mMainPipeline.Start(aConfig, aStartSignal, aStartBucket ) ;
+      mMainPipeline.Start( aSession, aSettings, aConfig, aStartSignal, aStartBucket ) ;
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
@@ -50,8 +50,8 @@ public class Processor
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
-        DContext.Session.GotoBucket(lPipeline.StartBucket);
-        DContext.Session.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
+        aSession.GotoBucket(lPipeline.StartBucket);
+        aSession.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
 
         var lPipelineResult = lPipeline.Process(this);
 

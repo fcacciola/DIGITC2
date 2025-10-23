@@ -43,10 +43,8 @@ public class Params
     return new Params( lNewMap );
   }
 
-  public static Params FromFile( string file)
+  public Params LoadFile( string file)
   {
-    Params rParams = null ;
-
     if ( File.Exists(file) )
     {
       var lRead = File.ReadLines(file)
@@ -56,11 +54,17 @@ public class Params
 
       foreach( var lKV in  lRead) 
       {
-        rParams.Set(lKV.Key, lKV.Value);
+        Set(lKV.Key, lKV.Value);
       }
     }
 
-    return rParams ;
+    return this;  
+  }
+
+  public static Params FromFile( string aFile)
+  {
+    Params rParams = new() ;
+    return rParams.LoadFile(aFile);
   }
 
   public string Get( string aKey)
@@ -95,8 +99,8 @@ public class Params
     {
       foreach ( string lN in lLV.Split(',') )
       {
-        T rV =;
-        if ( INumber<T>.TryParse(lN, null, rV) )
+        T rV = default(T);
+        if ( T.TryParse(lN, null, out rV) )
         {
           rL.Add( rV ); 
         }
@@ -116,6 +120,12 @@ public class Params
 
 public class Settings : Params
 {
+  public static Settings FromFile( string aFile)
+  {
+    Settings rSettings = new Settings() ;
+    rSettings.LoadFile( aFile ); 
+    return rSettings;
+  }
 }
 
 public class Config

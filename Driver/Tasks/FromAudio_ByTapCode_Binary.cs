@@ -11,7 +11,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
   {
     var lFile = aSettings.GetPath("InputAudioFile") ;
 
-    RunWithFile(aSettings, aConfigs, lFile)   
+    RunWithFile(aSettings, aConfigs, lFile);   
   }
 
   void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
@@ -28,7 +28,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 
       var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
 
-      var lResult = Processor.Process(lSession.Name, aConfigs, lPipeline, lSignal);
+      var lResult = Processor.Process( lSession, aSettings, lSession.Name, lPipeline, aConfigs, lSignal);
 
       lResult.Save( lSession.CurrentOutputFolder )  ;
     }

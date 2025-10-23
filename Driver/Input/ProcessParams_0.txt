@@ -25,11 +25,11 @@ BinaryToBytes_BitSize=8bits
 BinaryToBytes_FitnessMap=50,80,90,97
 BinaryToBytes_QuitThreshold=1
 
-TapCodeToBytes_Alphabet=LatinAlphabet_Extended
+TapCodeToBytes_PSquare=LatinAlphabet_Extended
 
-BytesAsLanguageDigits_FitnessMap=35,50,85,95
-BytesAsLanguageDigits_QuitThreshold=30
+ScoreBytesAsLanguageDigits_FitnessMap=35,50,85,95
+ScoreBytesAsLanguageDigits_QuitThreshold=30
 
-TokenLengthDistribution_FitnessMap=15,25,40,60
-TokenLengthDistribution_QuitThreshold=5
+ScoreTokenLengthDistribution_FitnessMap=15,25,40,60
+ScoreTokenLengthDistribution_QuitThreshold=5
 

@@ -21,8 +21,6 @@ namespace DIGITC2_ENGINE
   {
     public XCorrelation( DTable aReference ) { mReference = aReference ; }
 
-
-
     DTable mReference ;
   }
 
@@ -32,12 +30,12 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public override void Setup()
+    protected override void OnSetup()
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name, "_QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Settings.Get(Name, "FitnessMap"));
+      mQuitThreshold = Params.GetInt("QuitThreshold");
+      mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
     }
 
     //
@@ -70,14 +68,11 @@ namespace DIGITC2_ENGINE
 
     string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
 
-    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Scoring Bytes As Language Digits");
-      DContext.Indent();
-
       TokenSeparators lFilterSeparators = new TokenSeparators();
 
-      var lBytes = aInput.Symbols.Where( s => ! lFilterSeparators.IsSeparator(s) ).GetValues();
+      var lBytes = LexicalInput.Symbols.Where( s => ! lFilterSeparators.IsSeparator(s) ).GetValues();
 
       // Validate any byte that is used as a letter (wright 1 for all of these)
       double lCorrelation = mReference.ComputeCorrelation(lBytes, (dp,x) => 1.0 ) ;  
@@ -90,9 +85,7 @@ namespace DIGITC2_ENGINE
 
       Score lScore = new Score(Name, lLikelihood,lFitness) ;
 
-      rOutput.Add( new Packet(Name, aInputPacket, aInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold));
-
-      DContext.Unindent();
+      return CreateOutput( LexicalInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold);
 
     }
 

@@ -20,12 +20,12 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public override void Setup()
+    protected override void OnSetup()
     {
       FillReferenceDistribution();
 
-      mQuitThreshold = DContext.Session.Settings.GetOptionalInt(Name, "QuitThreshold").GetValueOrDefault(1);
-      mFitnessMap    = new FitnessMap(DContext.Session.Settings.Get(Name, "FitnessMap"));
+      mQuitThreshold = Params.GetInt("QuitThreshold");
+      mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
     }
 
     // According to Claude Sonnet 4:
@@ -69,16 +69,13 @@ namespace DIGITC2_ENGINE
       mReference = new DTable(lDPs);
     }
 
-    protected override Packet Process ( LexicalSignal aInput, Config aConfig, Packet aInputPacket, List<Config> rBranches )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Scoring Tokens Length Distribution As Language Words");
-      DContext.Indent();
-
-      var lTokenLengths = aInput.Symbols.GetValues();
+      var lTokenLengths = LexicalInput.Symbols.GetValues();
 
       double lCorrelation = mReference.ComputeCorrelation(lTokenLengths, (dp,x) => dp.Y ) ;  
 
-      DContext.WriteLine($"Correlation: {lCorrelation}");
+      WriteLine($"Correlation: {lCorrelation}");
 
       var lLikelihood = (int)Math.Round(lCorrelation * 100) ; 
 
@@ -86,9 +83,7 @@ namespace DIGITC2_ENGINE
 
       Score lScore = new Score(Name, lLikelihood,lFitness) ;
 
-      rOutput.Add( new Packet(Name, aInputPacket, aInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold));
-
-      DContext.Unindent();
+      return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold);
     }
 
     public override string Name => this.GetType().Name ;
@@ -97,30 +92,4 @@ namespace DIGITC2_ENGINE
     FitnessMap mFitnessMap ;
     DTable     mReference = null ;
   }
-
-
-  //public class ScoreWordLengthDistribution : LexicalFilter
-  //{
-  //  public ScoreWordLengthDistribution() : base() 
-  //  {
-  //  }
-
-  //  protected override Step Process ( LexicalSignal aInput, Step aStep )
-  //  {
-  //    var lDist = aInput.GetDistribution();
-
-  //    var lHistogram = new Histogram(lDist) ;
-
-  //    Score lScore = null ; //new StatisticalScore(aInput, aInput.GetSamples(), lHistogram, 0) ;
-
-  //    mStep = aStep.Next( "Word-length distribution score", this, lScore) ;
-
-  //    return mStep ;
-  //  }
-
-  //  protected override string Name => "ScoreWordLengthDistribution" ;
-
-  //}
-
-
 }

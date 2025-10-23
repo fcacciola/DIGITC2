@@ -16,29 +16,22 @@ public class TapCodeToBytes : LexicalFilter
   { 
   }
 
-  public override void Setup()
+  protected override void OnSetup()
   { 
-    mPipelineSelection = new PipelineSelection(DContext.Session.Settings.Get(Name, "Pipelines"));
+    switch ( Params.Get("PSquare") ) 
+    {
+      case "LatinAlphabet_Extended": mPSquare = PolybiusSquare.LatinAlphabet_Extended; break;
+      case "LatinAlphabet_Simple":
+      default: mPSquare = PolybiusSquare.LatinAlphabet_Simple; break ;
+    }
   }
 
-  protected override void Process (LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+  protected override Packet Process()
   {
-    DContext.WriteLine("Decoding Tap Codes as Bytes from Latin-alphabet Polybius Squares");
-    DContext.Indent();
-
-    var lSymbols = aInput.GetSymbols<TapCodeSymbol>();
+    var lSymbols = LexicalInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
-    if ( mPipelineSelection.IsActive("LatinAlphabet_Simple") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.LatinAlphabet_Simple, rOutput);
-
-    if ( mPipelineSelection.IsActive("LatinAlphabet_Extended") )
-      ProcessCodes(aInputPacket, lCodes, PolybiusSquare.LatinAlphabet_Extended, rOutput);
-  }
-
-  void ProcessCodes( Packet aInputPacket, List<TapCode> aCodes, PolybiusSquare aSquare, List<Packet> rOutput )
-  {
-    List<string> lRawLetters = aCodes.ConvertAll( code => { string rLetter = aSquare.Decode(code) ; DContext.WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
+    List<string> lRawLetters = lCodes.ConvertAll( code => { string rLetter = mPSquare.Decode(code) ; WriteLine($"{code} -> {rLetter}") ;  return rLetter ; } );
 
     List<ByteSymbol> lByteSymbols = new List<ByteSymbol>();
 
@@ -55,13 +48,14 @@ public class TapCodeToBytes : LexicalFilter
     }
 
     if ( lByteSymbols.Count > 0 )
-      rOutput.Add( new Packet(Name, aInputPacket, new LexicalSignal(lByteSymbols), aSquare.Name ) ) ;
-  }
+         return CreateOutput( new LexicalSignal(lByteSymbols), mPSquare.Name ) ;
+    else return CreateQuitOutput();
 
+  }
 
   public override string Name => this.GetType().Name ;
 
-  PipelineSelection mPipelineSelection ;
+  PolybiusSquare mPSquare ;
 }
 
 }
