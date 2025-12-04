@@ -55,7 +55,7 @@ namespace DIGITC2_ENGINE
 
     static public void PlotPulses( List<PulseSymbol> aPulses, string aLabel )
     {
-      if ( DContext.Session.Settings.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
       {
         List<float> lSamples = new List<float> ();
         aPulses.ForEach( s => s.DumpSamples(lSamples ) );
@@ -69,7 +69,7 @@ namespace DIGITC2_ENGINE
     {
       (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
-      if ( DContext.Session.Settings.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
       { 
         lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_Histogram.png"));
         lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_RankSize.png"));
@@ -181,17 +181,17 @@ namespace DIGITC2_ENGINE
 
     void CreatePulses()
     {
-      mData.InGap = mInput.Samples[0] == 0 ;
+      mData.InGap = WaveInput.Samples[0] == 0 ;
 
       mData.PulseStart = 0 ;
       mData.Pos        = 0 ;
 
-      WriteLine($"Creating pulses for WaveSignal of Length {mInput.Samples.Length}");
+      WriteLine($"Creating pulses for WaveSignal of Length {WaveInput.Samples.Length}");
       Indent();  
 
-      for ( mData.Pos = 0 ; mData.Pos < mInput.Samples.Length ; ++ mData.Pos )
+      for ( mData.Pos = 0 ; mData.Pos < WaveInput.Samples.Length ; ++ mData.Pos )
       {
-        float lV = mInput.Samples[mData.Pos] ;
+        float lV = WaveInput.Samples[mData.Pos] ;
 
         if ( lV > 0 )
         {
@@ -220,7 +220,7 @@ namespace DIGITC2_ENGINE
     {
       if ( ! mData.InGap )
       {
-        var lSteps = PulseStepBuilder.Build(mInput, mData.PulseStart, mData.Pos ) ;
+        var lSteps = PulseStepBuilder.Build(WaveInput, mData.PulseStart, mData.Pos ) ;
 
         //DContext.WriteLine($"Creatign new Pulse from {mData.PulseStart} to {mData.Pos} with {lSteps.Textualize()}");
 
@@ -514,8 +514,7 @@ namespace DIGITC2_ENGINE
       internal int               Pos ;
     }
 
-    WaveSignal mInput ;
-    Data       mData ;
+    Data mData ;
 
   }
 

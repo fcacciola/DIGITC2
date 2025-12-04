@@ -16,7 +16,7 @@ public sealed class FromAudio_ByTapCode_DirectLetters : DecodingTask
 
   void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
   {
-    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aSettings, BaseFolder)  ;
+    var lSession = new Session("FromAudio_" +  Path.GetFileNameWithoutExtension(aWaveFilename), aSettings)  ;
 
     DContext.Setup( lSession) ;
 

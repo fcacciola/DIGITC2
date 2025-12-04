@@ -16,7 +16,7 @@ public sealed class FromAudio_ByTapCode_Binary : DecodingTask
 
   void RunWithFile( Settings aSettings, List<Config> aConfigs, string aWaveFilename  )
   {
-    var lSession = new Session( this.GetType().Name, aSettings, BaseFolder);
+    var lSession = new Session( this.GetType().Name, aSettings);
 
     DContext.Setup( lSession ) ;
 

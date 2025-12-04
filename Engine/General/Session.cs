@@ -37,13 +37,12 @@ namespace DIGITC2_ENGINE
 
   public class Session
   {
-    public Session( string aName, Settings aSettings, string aBaseFolder )
+    public Session( string aName, Settings aSettings )
     {
       Name             = aName ;
       Settings         = aSettings;
-      BaseFolder       = aBaseFolder ;
-      InputFolder      = Path.Combine(BaseFolder,"Input") ; 
-      RootOutputFolder = Path.Combine(BaseFolder,"Output") ; 
+      InputFolder      = aSettings.GetPath("InputFolder");  
+      RootOutputFolder = aSettings.GetPath("OutputFolder");
     }  
 
     public void Setup()

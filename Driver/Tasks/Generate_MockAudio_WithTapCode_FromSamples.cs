@@ -17,7 +17,7 @@ public sealed class Generate_MockAudio_WithTapCode_FromSamples : GeneratorTask
 {
   public override void Run( Settings aSettings, List<Config> aConfigs )
   {
-    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_FromSamples", aSettings, BaseFolder) ) ;
+    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_FromSamples", aSettings) ) ;
 
     DContext.WriteLine("Generating MockAudio With TapCode From Samples");
 

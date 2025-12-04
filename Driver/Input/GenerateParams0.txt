@@ -25,7 +25,7 @@ Generate_MockAudio_WithTapCode_FromSamples=true
 
 // This specifies the "comma separated" list of input audio files to process
 
-Main_InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_500.wav
+Main_InputAudioFileList=@/Input/Samples/MockAudio_WithTapCode_C_300.wav
 
 // Comment this out to indicate that the input signal should NOT be split into frequency bands
 # SplitBands_FrequencyCenters=7500,10000

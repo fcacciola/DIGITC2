@@ -1,6 +1,6 @@
 
-NoiseFloorGate_EnvelopeAttack=0.0005
-NoiseFloorGate_EnvelopeRelease=0.001
+NoiseFloorGate_EnvelopeAttack=0.005
+NoiseFloorGate_EnvelopeRelease=0.01
 
 Envelope_Attack=0.005
 Envelope_Release=0.01

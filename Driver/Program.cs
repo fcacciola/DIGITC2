@@ -44,9 +44,6 @@ namespace DIGITC2
         DContext.Error($"Failed to save .WAV file to:[{aFilename}]\n{ex.ToString()}");
       }
     }
-
-    public static string BaseFolder  => Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"DIGITC2") ; 
-
   }
 
   public abstract class DecodingTask : Task

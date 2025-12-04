@@ -42,6 +42,11 @@ namespace DIGITC2_ENGINE
       return ( 1.0 - aF ) * aL + aF * aH;
     }
 
+    public static float LERP( float aL, float aH, float aF )  
+    {
+      return ( 1.0f - aF ) * aL + aF * aH;
+    }
+
     /// <summary>
     /// Randomized Linear Interpolation in [aL,aH] by randomly selected
     /// convex parameter (0-1). 

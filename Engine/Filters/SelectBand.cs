@@ -156,7 +156,7 @@ namespace DIGITC2_ENGINE
       //    var lES = aInput.CopyWith(lBand.Signal);
       //    lES.Name = $"Band_{lBand.Label}";
 
-      //    if ( DContext.Session.Settings.GetBool("Plot") )
+      //    if ( DoOutputDetails )
       //      lES.SaveTo( DContext.Session.OutputFile( $"{lES.Name}.wav") ) ;
 
       //    rOutput.Add(new Packet(Name, aInputPacket, lES, lES.Name) ) ;

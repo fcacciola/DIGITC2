@@ -252,7 +252,7 @@ namespace DIGITC2_ENGINE
 
       var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      if ( DContext.Session.Settings.GetBool("Plot") )
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
       { 
         lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile("Durations_Histogram.png"));
       }

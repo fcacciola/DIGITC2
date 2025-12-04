@@ -11,10 +11,15 @@ namespace DIGITC2_ENGINE
 {
   public class GateThresholds
   {
-    public GateThresholds( List<int> aThresholds ) 
+    public GateThresholds( float aThreshold ) 
+    {
+      Values.Add( aThreshold  );
+    }
+
+    public GateThresholds( List<float> aThresholds ) 
     { 
       foreach( int lThreshold in aThresholds ) 
-        Values.Add( lThreshold / 10.0f );
+        Values.Add( lThreshold  );
     }
 
     public List<float> Values = new List<float>();
@@ -22,6 +27,8 @@ namespace DIGITC2_ENGINE
     public override string ToString() =>  Values.Textualize();
   }
 
+
+    
   public class Discretize : WaveFilter
   {
     public Discretize( ) 
@@ -30,8 +37,7 @@ namespace DIGITC2_ENGINE
 
     protected override void OnSetup()
     {
-      var lGT = new GateThresholds(Params.GetIntList("GateThresholds"));
-      mGates.Add( new Gate($"{lGT.Values.Count}_steps",lGT) ) ;
+
     }
 
     public class Gate
@@ -46,7 +52,7 @@ namespace DIGITC2_ENGINE
       {
         for( int i = 0; i < Thresholds.Values.Count ; ++ i )
         {
-          float lThreshold = Thresholds.Values[i] ; //* Scale ; 
+          float lThreshold = Thresholds.Values[i] ;
 
           if ( aV >= lThreshold )
             return lThreshold; 
@@ -67,6 +73,12 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process ()
     {
+      float lGV = .1f ;
+
+      var lGT = new GateThresholds( lGV );
+
+      mGates.Add( new Gate($"DiscretizeAt_{lGV}",lGT) ) ;
+
       WaveSignal lSignal = WaveInput ;
       foreach ( var lGate in mGates )
       {

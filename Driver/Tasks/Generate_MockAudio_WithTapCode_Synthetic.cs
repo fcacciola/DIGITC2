@@ -17,7 +17,7 @@ public sealed class Generate_MockAudio_WithTapCode_Synthetic : GeneratorTask
 {
   public override void Run( Settings aSettings, List<Config> aConfigs )
   {
-    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_Synthetic", aSettings, BaseFolder) ) ;
+    DContext.Setup( new Session("Generate_MockAudio_WithTapCode_Synthetic", aSettings) ) ;
 
     DContext.WriteLine("Generating MockAudio With TapCode Syntethically");
 
