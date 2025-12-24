@@ -240,22 +240,22 @@ namespace DIGITC2_App
       DockPanel.SetDock(wavesPanel, Dock.Top);
       main.Children.Add(wavesPanel);
 
-      // Text area (horizontal)
-      var textsHost = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Height = 240 };
-      var textsPanel = new StackPanel { Orientation = Orientation.Horizontal };
+      // Text area (vertical)
+      var textsHost = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+      var textsPanel = new StackPanel { Orientation = Orientation.Vertical };
 
       foreach (var lText in texts)
       {
         var itemBorder = new Border { BorderBrush = System.Windows.Media.Brushes.Gray, BorderThickness = new Thickness(1), Margin = new Thickness(4) };
-        var itemGrid = new Grid { Width = 420 };
-        itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
-        itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var itemGrid = new Grid { Height = 200 };
+        itemGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(30) });
+        itemGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
         var paramsPanel = BuildParamsPanel(lText);
         if ( paramsPanel != null )
         {
           paramsPanel.Margin = new Thickness(4);
-          Grid.SetColumn(paramsPanel, 0);
+          Grid.SetRow(paramsPanel, 0);
           itemGrid.Children.Add(paramsPanel);
         }
 
@@ -268,7 +268,7 @@ namespace DIGITC2_App
         {
           textBox.Text = "Error reading text file: " + ex.Message;
         }
-        Grid.SetColumn(textBox, 1);
+        Grid.SetRow(textBox, 1);
         itemGrid.Children.Add(textBox);
 
         itemBorder.Child = itemGrid;
