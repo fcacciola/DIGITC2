@@ -63,9 +63,9 @@ namespace DIGITC2_ENGINE
     readonly public List<Packet> Packets = new List<Packet>();
   }
 
-  public class Result
+  public class SessionResult
   {
-    public Result( List<PipelineResult> aPRs,  string aName)
+    public SessionResult( List<PipelineResult> aPRs,  string aName)
     {
       PipelineResults = aPRs;
       Name            = aName;
@@ -148,7 +148,7 @@ namespace DIGITC2_ENGINE
       mPRBuilders.Add( aPRBuilder );
     }
 
-    public Result BuildResult( string aName )
+    public SessionResult BuildResult( string aName )
     {
       List<PipelineResult> lPResults = new List<PipelineResult>();  
 
@@ -160,7 +160,7 @@ namespace DIGITC2_ENGINE
       }
 
       if ( lPResults.Count > 0 ) 
-        return new Result(lPResults,aName);
+        return new SessionResult(lPResults,aName);
 
       return null ;
     }

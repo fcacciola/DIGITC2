@@ -45,7 +45,7 @@ public class Pipeline
     else return new Pipeline( Session, Settings, aConfig, aStartBucket, aStartPacket, mLevel + 1, lRemainingFilters ) ;
   }
 
-  public PipelineResultBuilder Process( Processor aProcessor )
+  public PipelineResult Process( Processor aProcessor )
   {
     PipelineResultBuilder rRB = new PipelineResultBuilder(Name) ;  
 
@@ -97,7 +97,7 @@ public class Pipeline
       mFilterIdx = mFilterIdx + 1  ;
     }
 
-    return rRB ;  
+    return rRB.BuildResult() ;  
   }
 
   public Session  Session  { get ; set ; }

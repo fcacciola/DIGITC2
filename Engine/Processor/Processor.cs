@@ -12,11 +12,12 @@ namespace DIGITC2_ENGINE
 
 public class Processor
 {
-  public static Result Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
+  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lResultBuilder = lProcessor.Process( aSession, aSettings, aStartSignal, aConfigs ) ;
-    return lResultBuilder.BuildResult(aName);
+    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal, aConfigs  ) ;
+
+    return new SessionResult(lPipelineResults,aName);
   }
 
   public Processor( MainPipeline aMainPipeline )
@@ -24,18 +25,18 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public ResultBuilder Process( Session aSession, Settings aSettings, Signal aStartSignal, List<Config> aConfigs )
+  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, List<Config> aConfigs )
   {
     var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
     DContext.Session.PushBucket(lStartBucket);
-    ResultBuilder rResult = new ResultBuilder();
-    aConfigs.ForEach( lConfig => Process( aSession, aSettings, aStartSignal, lConfig, lStartBucket, rResult) ) ;
+    var rPipelineResults = new List<PipelineResult>();
+    aConfigs.ForEach( lConfig => Process( aSession, aSettings, aStartSignal, lConfig, lStartBucket, rPipelineResults) ) ;
     DContext.Session.GotoBucket(lStartBucket) ;
     DContext.CloseLogger();
-    return rResult ;
+    return rPipelineResults ;
   }
 
-  public void Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, ResultBuilder rResult )
+  public void Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, List<PipelineResult> rPipelineResults )
   {
 
     try
@@ -55,7 +56,13 @@ public class Processor
 
         var lPipelineResult = lPipeline.Process(this);
 
-        rResult.Add(lPipelineResult) ; 
+        rPipelineResults.Add(lPipelineResult) ; 
+
+        if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
+        {
+          DContext.WriteLine($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Stopping further processing.") ;
+          break ;
+        }
 
         lPipelineIdx ++ ;
       }
