@@ -33,7 +33,7 @@
         </StatusBar>
 
     <!-- Results tab control: each tab corresponds to a subfolder in the output folder; shows result.txt content -->
-        <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer DockPanel.Dock="Bottom" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <TabControl x:Name="ResultsTabControl" Margin="4" />
         </ScrollViewer>
 

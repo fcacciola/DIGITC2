@@ -265,8 +265,10 @@ namespace DIGITC2_App
         wavesPanel.Children.Add(stagePanel);
       }
 
-      DockPanel.SetDock(wavesPanel, Dock.Top);
-      main.Children.Add(wavesPanel);
+      var scrollWaves = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+      scrollWaves.Content = wavesPanel;
+      DockPanel.SetDock(scrollWaves, Dock.Top);
+      main.Children.Add(scrollWaves);
 
       // Text area (vertical)
       var textsHost = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
@@ -306,6 +308,7 @@ namespace DIGITC2_App
       textsHost.Content = textsPanel;
       DockPanel.SetDock(textsHost, Dock.Bottom);
       main.Children.Add(textsHost);
+      main.LastChildFill = true;
 
       return main;
     }
