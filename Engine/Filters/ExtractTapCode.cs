@@ -115,10 +115,13 @@ namespace DIGITC2_ENGINE
     {
       var lPulses = LexicalInput.GetSymbols<PulseSymbol>() ;
 
+      WriteLine2GUI("Building Taps from Pulses...");
+      Indent();
+
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count < mMinNumberOfTaps )
       {
-        WriteLine("Not enough Taps. Quitting.");
+        WriteLine2GUI("Not enough Taps. Quitting.");
         return CreateQuitOutput();
       }
 
@@ -134,7 +137,7 @@ namespace DIGITC2_ENGINE
       WriteLine("Classified Taps:");
       lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
 
-      WriteLine("Building Tap Counts:");
+      WriteLine2GUI("Building Tap Counts:");
       List<TapCount> lRawCounts = new List<TapCount>();
 
       TapCount lCurrTC = new TapCount() ;
@@ -191,7 +194,7 @@ namespace DIGITC2_ENGINE
 
       List<TapCode> lAllCodes = new List<TapCode>();
 
-      WriteLine($"Bags:{lBags.Count}");
+      WriteLine2GUI($"Bags:{lBags.Count}");
 
       foreach( var lBag in lBags ) 
       {  
@@ -219,13 +222,15 @@ namespace DIGITC2_ENGINE
 
         lCodes.Add( new TapCode(0,0) ) ;
 
-        WriteLine( $"Code: {string.Join(",", lCodes )}");
+        WriteLine2GUI( $"Code: {string.Join(",", lCodes )}");
 
         lAllCodes.AddRange( lCodes ) ;  
       }
 
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
+
+      Unindent(); 
 
       return CreateOutput( new LexicalSignal(lSymbols), "TapCodes") ;
     }

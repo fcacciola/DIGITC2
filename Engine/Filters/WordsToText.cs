@@ -37,7 +37,7 @@ namespace DIGITC2_ENGINE
 
       string lText = string.Join(" ",lWords);
 
-      WriteLine($"FINAl TEXT:{Environment.NewLine}{lText}");  
+      WriteLine2GUI($"FINAl TEXT:{Environment.NewLine}{lText}");  
 
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  

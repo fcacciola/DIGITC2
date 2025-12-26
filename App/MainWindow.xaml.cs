@@ -10,20 +10,26 @@ using NAudio.Wave;
 using NWaves.Signals;
 using DIGITC2_App.Services;
 using DIGITC2_ENGINE;
+using System.Windows.Media;
+using System.Windows.Documents;
 
 namespace DIGITC2_App
 {
   public partial class MainWindow : Window
   {
     
-    Settings     mSettings = null ;
-    List<Config> mConfigs  = null ;
+    Settings      mSettings  = null ;
+    List<Config>  mConfigs   = null ;
+    string        mInputFile = null ; 
+    MainWindowGUI mMWGUI     = null; 
 
     private int _samplesLength = 0;
 
     public MainWindow()
     {
       InitializeComponent();
+
+      mMWGUI = new MainWindowGUI(this); 
 
       mSettings = Settings.FromFile($"{InputFolder}\\Settings.txt");
 
@@ -38,9 +44,11 @@ namespace DIGITC2_App
 
       ZoomSlider.ValueChanged += (s, e) => UpdateOffsetSliderMax();
       InputWaveView.SizeChanged += (s, e) => UpdateOffsetSliderMax();
+    }
 
-      // load existing results if any
-      RefreshResultsTabs();
+    private void ViewButton_Click(object sender, RoutedEventArgs e)
+    {
+      ShowSessions();
     }
 
     private void LoadButton_Click(object sender, RoutedEventArgs e)
@@ -52,6 +60,8 @@ namespace DIGITC2_App
         try
         {
           var signal = SignalLoader.LoadSignal(dlg.FileName);
+
+          mInputFile = dlg.FileName ;
 
           // assign to view
           InputWaveView.Signal = signal;
@@ -74,18 +84,18 @@ namespace DIGITC2_App
           UpdateOffsetSliderMax();
           OffsetSlider.Value = 0;
 
-          StatusText.Text = $"Loaded {Path.GetFileName(dlg.FileName)} ({_samplesLength} samples)";
+          AddGeneralMessage(  $"Loaded {Path.GetFileName(dlg.FileName)} ({_samplesLength} samples)" );
         }
         catch (Exception ex)
         {
           MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-          StatusText.Text = "Error loading file";
+          AddGeneralMessage( "Error loading file" );
         }
       }
     }
 
     static string InputFolder  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Input");
-    static string OutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output\\App");
+    static string OutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
 
     static List<Config> LoadConfigs()
     {
@@ -106,77 +116,92 @@ namespace DIGITC2_App
     {
       if ( InputWaveView.Signal == null)
       {
-        StatusText.Text = "You must load an AUDIO file first.";
+        AddGeneralMessage( "You must load an AUDIO file first." );
         return;
       }
 
-      var lSession = new Session( "App", mSettings);
+      ResultsTabControl.Items.Clear();
+
+      var lSessionName = Path.GetFileNameWithoutExtension(mInputFile);
+
+      var lSession = new Session( lSessionName, mSettings, mMWGUI );
 
       DContext.Setup( lSession ) ;
 
       try
       {
+        File.Copy( mInputFile, Path.Combine( lSession.CurrentOutputFolder, lSessionName + ".wav" ), true );
 
         var lSignal = new WaveSignal(InputWaveView.Signal) ;
 
         var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
 
-        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfigs, lSignal);
+        //InvokeAction ( () => {
 
-        lResult.Save( lSession.CurrentOutputFolder )  ;
+          var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfigs, lSignal);
 
-        StatusText.Text = "Processing started...";
+          lResult.Save( lSession.CurrentOutputFolder )  ;
+        //}) ;
 
-        StatusText.Text = "Processing finished";
-
-        RefreshResultsTabs();
+        ShowSessions();
       }
       catch (Exception ex)
       {
-        MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        StatusText.Text = "Processing error";
+        AddGeneralMessage( "Processing error" );
       }
 
       DContext.Shutdown(); 
 
     }
 
-    private void RefreshResultsTabs()
+    private void ShowSessions()
     {
       ResultsTabControl.Items.Clear();
 
       if (!Directory.Exists(OutputFolder))
         return;
 
-      var subdirs = Directory.GetDirectories(OutputFolder).OrderBy(d => d).Take(15);
-      foreach (var d in subdirs)
-      {
-        var tab = new TabItem { Header = Path.GetFileName(d) };
-        try
-        {
-          tab.Content = BuildSequenceView(d);
-        }
-        catch (Exception ex)
-        {
-          tab.Content = new TextBlock { Text = "Error building view: " + ex.Message };
-        }
-        ResultsTabControl.Items.Add(tab);
-      }
+      var lSessions = Directory.GetDirectories(OutputFolder).OrderBy(d => d);
 
-      if (ResultsTabControl.Items.Count == 0)
+      if ( lSessions.Count() == 0 )
+        return ;
+
+      var lFirstSession = lSessions.First(); 
+
+      var lRootTab = new TabItem { Header = Path.GetFileNameWithoutExtension(lFirstSession) };
+      try
       {
-        var tab = new TabItem { Header = "No Results" };
-        tab.Content = new TextBlock { Text = "No results found. Run Process to generate output.", Margin = new Thickness(8) };
-        ResultsTabControl.Items.Add(tab);
+        lRootTab.Content = BuildSequenceView(lFirstSession);
       }
+      catch (Exception ex)
+      {
+        lRootTab.Content = new TextBlock { Text = "Error building view: " + ex.Message };
+      }
+      ResultsTabControl.Items.Add(lRootTab);
+
+      //if (ResultsTabControl.Items.Count == 0)
+      //{
+      //  var tab2 = new TabItem { Header = "No Results" };
+      //  tab2.Content = new TextBlock { Text = "No results found. Run Process to generate output.", Margin = new Thickness(8) };
+      //  ResultsTabControl.Items.Add(tab2);
+      //}
+
+      ResultsTabControl.InvalidateVisual();
+      this.InvalidateVisual();
     }
 
     // Build the UI for a sequence starting at `rootDir` following single-child chains
-    private UIElement BuildSequenceView(string rootDir)
+    private UIElement BuildSequenceView(string aRootDir)
     {
+      mInputFile = Directory.GetFiles(aRootDir, "*.wav")[0];
+
+      DContext.Assert(mInputFile != null, "Input Wave file not found.");
+
+      InputWaveView.Signal = SignalLoader.LoadSignal(mInputFile);
+
       // collect sequence of folders following single-child chains
       var seq = new List<string>();
-      var cur = rootDir;
+      var cur = $"{aRootDir}\\Pipeline_0";
       while (true)
       {
         seq.Add(cur);
@@ -218,10 +243,13 @@ namespace DIGITC2_App
         }
 
         // waveform view on right - bind to global zoom and offset
-        var wfView = new Controls.WaveformView { Height = 140, Margin = new Thickness(4) };
+        var wfView = new Controls.WaveformView { Height = 120, Margin = new Thickness(4) };
         try
         {
           wfView.Signal = SignalLoader.LoadSignal(lWave);
+          wfView.BackgroundBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFF5F0E8"));
+          wfView.WaveformPenBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4169E1"));
+          wfView.GridLineBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B0C4DE"));
           // Bind to the global ZoomSlider and OffsetSlider
           wfView.SetBinding(Controls.WaveformView.ZoomProperty, new System.Windows.Data.Binding { Source = ZoomSlider, Path = new PropertyPath(Slider.ValueProperty), Mode = System.Windows.Data.BindingMode.TwoWay });
           wfView.SetBinding(Controls.WaveformView.OffsetProperty, new System.Windows.Data.Binding { Source = OffsetSlider, Path = new PropertyPath(Slider.ValueProperty), Mode = System.Windows.Data.BindingMode.TwoWay });
@@ -364,7 +392,7 @@ return null ;
           {
             var lines = controls.Select(c => c.Key + "=" + c.ValueBox.Text).ToArray();
             File.WriteAllLines(paramsFile, lines);
-            StatusText.Text = "Params saved: " + Path.GetFileName(paramsFile);
+            AddGeneralMessage( "Params saved: " + Path.GetFileName(paramsFile) ) ;
           }
           catch (Exception ex)
           {
@@ -407,5 +435,55 @@ return null ;
         OffsetSlider.Value = OffsetSlider.Maximum;
       }
     }
+
+
+    public void InvokeAction(Action aAction)
+    {
+       Application.Current?.Dispatcher.InvokeAsync(() => aAction(), System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void AddMessage(string aMessage, FontWeight aFW, Brush aColor, bool aNewLine )
+    {
+      InvokeAction( () 
+                    => 
+                    { 
+                      StatusText.Inlines.Add( new Run(aMessage + ( aNewLine ? Environment.NewLine : "" ) ) { FontSize = 12, FontWeight = aFW, Foreground = aColor }) ;
+                      StatusText.InvalidateVisual();
+                      (StatusText.Parent as FrameworkElement)?.InvalidateVisual();
+                      StatusTextScroll.ScrollToBottom();
+                      StatusTextScroll.InvalidateVisual();  
+                    }
+                    );
+      this.InvalidateVisual();
+   }
+
+    public void AddGeneralMessage( string aMsg, bool aNewLine = true )
+    {
+      AddMessage( aMsg, FontWeights.Regular, Brushes.Black, aNewLine ) ;
+    }
+
+    public void AddErrorMessage( string aMsg, bool aNewLine = true )
+    {
+      AddMessage("ERROR: " + aMsg, FontWeights.Bold, Brushes.Red, aNewLine ) ;
+    }
+
+    public void AddLogMessage( string aMsg, bool aNewLine = true )
+    {
+      AddMessage( aMsg, FontWeights.Regular, Brushes.Blue, aNewLine ) ;
+    }
   }
+
+  public class MainWindowGUI : GUI
+  {
+    public MainWindowGUI( MainWindow aMainWindow)
+    { 
+      mMainWindow = aMainWindow ; 
+    }
+
+    public override void AddMessage     ( string aMsg ) => mMainWindow.AddGeneralMessage(aMsg,true);
+    public override void AddErrorMessage( string aMsg ) => mMainWindow.AddErrorMessage  (aMsg,true);
+
+    MainWindow mMainWindow; 
+  }
+
 }

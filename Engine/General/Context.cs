@@ -11,6 +11,11 @@ namespace DIGITC2_ENGINE
 
   public class Logger : IDisposable
   {
+    public void SetGUI ( GUI aGUI ) 
+    {
+      mGUI = aGUI ;
+    }
+
     public void Open( string aFile )
     {
       mStream = new FileStream(aFile, FileMode.OpenOrCreate, FileAccess.Write );
@@ -30,7 +35,6 @@ namespace DIGITC2_ENGINE
     public void Write( string aS )
     {
       string lS = AddIndentation(aS);
-      Console.Write( lS );
       mWriter?.Write(lS);  
       mWriter?.Flush();
     }
@@ -38,7 +42,29 @@ namespace DIGITC2_ENGINE
     public void WriteLine( string aS )
     {
       string lS = AddIndentation(aS);
-      Console.WriteLine( lS );
+      mWriter?.WriteLine( lS );  
+      mWriter?.Flush();
+    }
+
+    public void WriteErrorLine( string aS )
+    {
+      string lS = AddIndentation( $"ERROR: {aS}");
+      mWriter?.WriteLine( lS );  
+      mWriter?.Flush();
+    }
+
+    public void WriteLine2GUI( string aS )
+    {
+      string lS = AddIndentation(aS);
+      mGUI?.AddMessage(lS);
+      mWriter?.WriteLine( lS );  
+      mWriter?.Flush();
+    }
+
+    public void WriteError2GUI( string aS )
+    {
+      string lS = AddIndentation(aS);
+      mGUI?.AddErrorMessage(lS);
       mWriter?.WriteLine( lS );  
       mWriter?.Flush();
     }
@@ -82,6 +108,7 @@ namespace DIGITC2_ENGINE
 
     int mIndentation = 0; 
 
+    GUI        mGUI    = null ; 
     FileStream mStream = null ;
     TextWriter mWriter = null ; 
   }
@@ -115,6 +142,8 @@ namespace DIGITC2_ENGINE
       try
       {
         mSession = aSession ; 
+
+        mLogger.SetGUI( mSession.GUI );
 
         mSession.Setup();
 
@@ -153,6 +182,21 @@ namespace DIGITC2_ENGINE
       mLogger.WriteLine( aS );
     }
 
+    void WriteErrorLine_( string aS )
+    {
+      mLogger.WriteErrorLine( aS );
+    }
+
+    void WriteLine2GUI_( string aS )
+    {
+      mLogger.WriteLine2GUI( aS );
+    }
+
+    void WriteError2GUI_( string aS )
+    {
+      mLogger.WriteError2GUI( aS );
+    }
+
     void Indent_()
     {
       mLogger.Indent();
@@ -165,12 +209,19 @@ namespace DIGITC2_ENGINE
 
     void Error_( string aText )
     {
-      WriteLine_( "ERROR: " + aText ); 
+      WriteErrorLine_( aText ); 
+      WriteError2GUI_( aText ); 
+    }
+
+    void Assert_( bool aCond, string aText )
+    {
+      if ( ! aCond )
+        Throw_( new Exception("ASSERTION FAILED: " + aText) );
     }
 
     void Throw_ ( Exception e )
     {
-      WriteLine_( "EXCEPTION: " + e.ToString() ); 
+      Error_( "EXCEPTION: " + e.ToString() ); 
       throw e ;
     }
 
@@ -178,17 +229,19 @@ namespace DIGITC2_ENGINE
 
     static public Session Session => Instance.mSession ;
 
-    static public void   Setup      ( Session aSession ) { Instance.Setup_(aSession) ; } 
-    static public void   OpenLogger ( string aLogFile )  { Instance.OpenLogger_(aLogFile) ; } 
-    static public void   CloseLogger()                   { Instance.CloseLogger_() ; } 
-    static public void   Shutdown   ()                   { Instance.Shutdown_() ; } 
-    static public void   Throw      ( Exception e )      { Instance.Throw_(e);}
-    static public void   Error      ( Exception e )      { Instance.Error_(e.ToString());}
-    static public void   Error      ( string aText )     { Instance.Error_(aText);}
-    static public void   Write      ( string aS )        { Instance.Write_(aS);}
-    static public void   WriteLine  ( string aS )        { Instance.WriteLine_(aS);}
-    static public void   Indent     ()                   { Instance.Indent_();}
-    static public void   Unindent  ()                   { Instance.Unindent_();}
+    static public void   Setup         ( Session aSession )         { Instance.Setup_(aSession) ; } 
+    static public void   OpenLogger    ( string aLogFile )          { Instance.OpenLogger_(aLogFile) ; } 
+    static public void   CloseLogger   ()                           { Instance.CloseLogger_() ; } 
+    static public void   Shutdown      ()                           { Instance.Shutdown_() ; } 
+    static public void   Throw         ( Exception e )              { Instance.Throw_(e);}
+    static public void   Error         ( Exception e )              { Instance.Error_(e.ToString());}
+    static public void   Error         ( string aText )             { Instance.Error_(aText);}
+    static public void   Assert        ( bool aCond, string aText ) { Instance.Assert_(aCond,aText);}
+    static public void   Write         ( string aS )                { Instance.Write_(aS);}
+    static public void   WriteLine     ( string aS )                { Instance.WriteLine_(aS);}
+    static public void   WriteLine2GUI ( string aS )                { Instance.WriteLine2GUI_(aS);}
+    static public void   Indent        ()                           { Instance.Indent_();}
+    static public void   Unindent      ()                           { Instance.Unindent_();}
 
   }
 }

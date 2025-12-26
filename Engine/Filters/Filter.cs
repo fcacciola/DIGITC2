@@ -29,7 +29,7 @@ namespace DIGITC2_ENGINE
     {
       InputPacket = aInput;
 
-      WriteLine($"Applying Filter: {Name}");
+      WriteLine2GUI($"Applying Filter: {Name}");
       Indent();
 
       Packet rPacket = null ;
@@ -80,9 +80,10 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => Name ;
 
-    protected void WriteLine( string aLine ) => DContext.WriteLine( aLine ) ;
-    protected void Indent                 () => DContext.Indent() ;  
-    protected void Unindent               () => DContext.Unindent() ;  
+    protected void WriteLine    ( string aLine ) => DContext.WriteLine( aLine ) ;
+    protected void WriteLine2GUI( string aLine ) => DContext.WriteLine2GUI( aLine ) ;
+    protected void Indent                     () => DContext.Indent() ;  
+    protected void Unindent                   () => DContext.Unindent() ;  
 
     protected Session      Session ;
     protected Settings     Settings ;

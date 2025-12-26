@@ -77,7 +77,7 @@ public class Pipeline
 
           if ( lPacket.ShouldQuit )
           {
-            DContext.WriteLine("Filter asked to Quit Processor.");
+            DContext.WriteLine2GUI("Filter asked to Quit Processor.");
             break ;
           }
 
@@ -85,7 +85,7 @@ public class Pipeline
         }
         else
         {
-          DContext.WriteLine("Filter returned NO result. Quitting.");
+          DContext.WriteLine2GUI("Filter returned NO result. Quitting.");
           break ;
         }
       }

@@ -82,7 +82,7 @@ namespace DIGITC2_ENGINE
       WaveSignal lSignal = WaveInput ;
       foreach ( var lGate in mGates )
       {
-        WriteLine($"Applying Discretization Gate: {lGate}");
+        WriteLine2GUI($"Applying Discretization Gate: {lGate}");
         lSignal = Apply( lSignal, lGate ) ;
 
       }

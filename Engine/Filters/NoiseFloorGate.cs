@@ -181,7 +181,7 @@ public static class ExactPercentile
       for ( int i = 0 ; i < cTries && lGates < cMinGates ; ++ i )
       {
         lFloor *= 1.05f ;
-        WriteLine($"Applying Noise Gate at: {lFloor}");
+        WriteLine2GUI($"Applying Noise Gate at: {lFloor}");
         lNewSamples = RawApplyGate(lEnvelope.Samples, lFloor);
         lGates = CountGates(lNewSamples);
       }

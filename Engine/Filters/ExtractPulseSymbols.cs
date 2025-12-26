@@ -186,7 +186,7 @@ namespace DIGITC2_ENGINE
       mData.PulseStart = 0 ;
       mData.Pos        = 0 ;
 
-      WriteLine($"Creating pulses for WaveSignal of Length {WaveInput.Samples.Length}");
+      WriteLine2GUI($"Creating pulses for WaveSignal of Length {WaveInput.Samples.Length}");
       Indent();  
 
       for ( mData.Pos = 0 ; mData.Pos < WaveInput.Samples.Length ; ++ mData.Pos )
@@ -376,7 +376,7 @@ namespace DIGITC2_ENGINE
 
     void SplitPulses()
     {
-      WriteLine("Splitting Pulses");
+      WriteLine2GUI("Splitting Pulses");
       Indent();  
 
       foreach( var lPulse in mData.Pulses1 )
@@ -429,7 +429,7 @@ namespace DIGITC2_ENGINE
       if ( mData.Pulses2.Count < 2 )
         return ;
 
-      WriteLine("Merging Contiguous Pulses");
+      WriteLine2GUI("Merging Contiguous Pulses");
       Indent();  
 
       double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; //0.0070 ;
@@ -444,13 +444,13 @@ namespace DIGITC2_ENGINE
 
         if ( lGap < lContiguousPulsesGapDuration ) 
         {
-          DContext.WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
+          WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
           var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
           lPulseA = lFilteredPulse;
         }
         else 
         {
-          DContext.WriteLine($"Adding pulse {lPulseA} to result.");
+          WriteLine($"Adding pulse {lPulseA} to result.");
           mData.Pulses3.Add(lPulseA);
           lPulseA = lPulseB;
         }
@@ -486,11 +486,15 @@ namespace DIGITC2_ENGINE
 
     void RemoveUnfitPulses()
     {
+      WriteLine2GUI("Removing Unfit Pulses");
+
       double lVeryShortPulses = FindVeryShortThreshold();
 
       mData.Pulses4.AddRange( mData.Pulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
 
       PulseFilterHelper.PlotPulses(mData.Pulses4, $"{Name}_4");
+
+      WriteLine2GUI($"Final pulses: {mData.Pulses4.Count}");
     }
 
 

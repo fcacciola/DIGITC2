@@ -81,7 +81,7 @@ namespace DIGITC2_ENGINE
 
     public List<Band> Split(DiscreteSignal aSignal)
     {
-      DContext.WriteLine($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
+      DContext.WriteLine2GUI($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
 
       List<Band> rBands = new List<Band>();
 
@@ -164,7 +164,7 @@ namespace DIGITC2_ENGINE
       //}
       //else
       {
-        DContext.WriteLine("Passing input signal AS-IS. No band splitting specified.");
+        DContext.WriteLine2GUI("Passing input signal AS-IS. No band splitting specified.");
 
         return CreateOutput(WaveInput.Copy(), $"{WaveInput.Name}_UNSPLIT") ;
       }

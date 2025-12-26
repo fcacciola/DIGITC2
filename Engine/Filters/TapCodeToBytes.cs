@@ -28,6 +28,8 @@ public class TapCodeToBytes : LexicalFilter
 
   protected override Packet Process()
   {
+    WriteLine2GUI($"Converting TapCodes to Bytes...");
+
     var lSymbols = LexicalInput.GetSymbols<TapCodeSymbol>();
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
 
@@ -43,7 +45,11 @@ public class TapCodeToBytes : LexicalFilter
         var lBytes = lEncoding.GetBytes(lRawLetter);
 
         if ( lBytes.Length > 0 ) 
-          lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lBytes[0])) ;
+        {
+          var lBS =  new ByteSymbol(lByteSymbols.Count, lBytes[0]);
+          WriteLine2GUI(lBS.ToString());
+          lByteSymbols.Add(lBS) ;
+        }
       }
     }
 

@@ -35,12 +35,19 @@ namespace DIGITC2_ENGINE
     string mFullOutputFolder = null ;
   }
 
+  public abstract class GUI
+  {
+    public abstract void AddMessage     ( string aMsg ) ;
+    public abstract void AddErrorMessage( string aMsg ) ;
+  }
+
   public class Session
   {
-    public Session( string aName, Settings aSettings )
+    public Session( string aName, Settings aSettings, GUI aGUI )
     {
       Name             = aName ;
       Settings         = aSettings;
+      GUI              = aGUI;  
       InputFolder      = aSettings.GetPath("InputFolder");  
       RootOutputFolder = aSettings.GetPath("OutputFolder");
     }  
@@ -143,11 +150,13 @@ namespace DIGITC2_ENGINE
 
     public string   Name ;
     public Settings Settings ;
+    public GUI      GUI ;
+
     public string   BaseFolder ;
     public string   InputFolder ;
     public string   RootOutputFolder ;
     public string   CurrentOutputFolder ;
-                    
+
     Stack<OutputBucket> mBuckets = new Stack<OutputBucket>();
   }
 }

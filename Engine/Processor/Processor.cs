@@ -60,7 +60,7 @@ public class Processor
 
         if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
         {
-          DContext.WriteLine($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Stopping further processing.") ;
+          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Stopping further processing.") ;
           break ;
         }
 
