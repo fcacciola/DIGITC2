@@ -12,9 +12,25 @@ using DIGITC2_App.Services;
 using DIGITC2_ENGINE;
 using System.Windows.Media;
 using System.Windows.Documents;
+using DIGITC2_App.Controls;
 
 namespace DIGITC2_App
 {
+  public class WaveViews
+  {
+    public WaveViews()
+    {
+    }
+
+    public void Clear() { mViews.Clear(); } 
+
+    public void Add( WaveformView aView) { mViews.Add( aView ); }
+
+    public void Invalidate() { mViews.ForEach(v => v.InvalidateVisual()); }
+
+    List<WaveformView> mViews = new List<WaveformView>();
+  }
+
   public partial class MainWindow : Window
   {
     
@@ -23,7 +39,7 @@ namespace DIGITC2_App
     string        mInputFile = null ; 
     MainWindowGUI mMWGUI     = null; 
 
-    private int _samplesLength = 0;
+    WaveViews     mWaveViews = new WaveViews();
 
     public MainWindow()
     {
@@ -37,18 +53,30 @@ namespace DIGITC2_App
       mSettings.Set("OutputFolder", OutputFolder);  
 
       mConfigs  = LoadConfigs();  
-
-      // Bind sliders to initial values
-      ZoomSlider.Value = 1.0;
-      OffsetSlider.Value = 0;
-
-      ZoomSlider.ValueChanged += (s, e) => UpdateOffsetSliderMax();
-      InputWaveView.SizeChanged += (s, e) => UpdateOffsetSliderMax();
     }
 
     private void ViewButton_Click(object sender, RoutedEventArgs e)
     {
       ShowSessions();
+    }
+
+    void SetupZoomPanController()
+    {
+      var availableWidth = Math.Max(1.0, InputWaveView.ActualWidth);
+
+      var lZPC = new ZoomPanController(){ MinSamplesPerPixel = 2.0
+                                        , MaxSamplesPerPixel = InputWaveView.Signal.Length / availableWidth
+                                        , Offset = 0 
+                                        , ZoomSlider   = this.ZoomSlider
+                                        , OffsetSlider = this.OffsetSlider  
+                                        , WaveViews    = mWaveViews  
+      };
+          
+      lZPC.SamplesPerPixel = lZPC.MaxSamplesPerPixel ; // Zoom out the entire signal
+
+      InputWaveView.ZoomPanController = lZPC; 
+
+      lZPC.UpdateSliders();
     }
 
     private void LoadButton_Click(object sender, RoutedEventArgs e)
@@ -65,26 +93,14 @@ namespace DIGITC2_App
 
           // assign to view
           InputWaveView.Signal = signal;
-          InputWaveView.Offset = 0;
-          
-          // calculate zoom to fit entire signal in available width
-          // We want: SamplesPerPixel = 1.0 (1 sample per pixel to fit the signal)
-          // SamplesPerPixel = ActualWidth / Zoom, so:
-          // 1.0 = ActualWidth / Zoom => Zoom = ActualWidth / 1.0 = ActualWidth
-          // But we have signalLength samples, so to fit them all:
-          // Zoom = signalLength (so SamplesPerPixel = ActualWidth / signalLength)
-          var availableWidth = Math.Max(1.0, InputWaveView.ActualWidth);
-          var fittingZoom = signal.Length / availableWidth;
-          InputWaveView.Zoom = fittingZoom;
-          
-          ZoomSlider.Value = fittingZoom;
+          SetupZoomPanController();
 
-          // store sample length and update OffsetSlider maximum
-          _samplesLength = signal.Length;
-          UpdateOffsetSliderMax();
-          OffsetSlider.Value = 0;
+          mWaveViews.Add( InputWaveView );  
 
-          AddGeneralMessage(  $"Loaded {Path.GetFileName(dlg.FileName)} ({_samplesLength} samples)" );
+          AddGeneralMessage(  $"Loaded {Path.GetFileName(dlg.FileName)} ({signal.Length} samples)" );
+
+          mWaveViews.Invalidate();
+
         }
         catch (Exception ex)
         {
@@ -157,9 +173,12 @@ namespace DIGITC2_App
     private void ShowSessions()
     {
       ResultsTabControl.Items.Clear();
+      mWaveViews.Clear();
 
       if (!Directory.Exists(OutputFolder))
         return;
+
+      AddGeneralMessage( "Loading results from: " + OutputFolder);
 
       var lSessions = Directory.GetDirectories(OutputFolder).OrderBy(d => d);
 
@@ -167,6 +186,14 @@ namespace DIGITC2_App
         return ;
 
       var lFirstSession = lSessions.First(); 
+
+      mInputFile = Directory.GetFiles(lFirstSession, "*.wav")[0];
+
+      DContext.Assert(mInputFile != null, "Input Wave file not found.");
+
+      InputWaveView.Signal = SignalLoader.LoadSignal(mInputFile);
+      SetupZoomPanController();
+      mWaveViews.Add( InputWaveView );  
 
       var lRootTab = new TabItem { Header = Path.GetFileNameWithoutExtension(lFirstSession) };
       try
@@ -179,6 +206,8 @@ namespace DIGITC2_App
       }
       ResultsTabControl.Items.Add(lRootTab);
 
+      AddGeneralMessage( "Finished loading results.");
+
       //if (ResultsTabControl.Items.Count == 0)
       //{
       //  var tab2 = new TabItem { Header = "No Results" };
@@ -187,18 +216,14 @@ namespace DIGITC2_App
       //}
 
       ResultsTabControl.InvalidateVisual();
+      mWaveViews.Invalidate();  
       this.InvalidateVisual();
     }
+
 
     // Build the UI for a sequence starting at `rootDir` following single-child chains
     private UIElement BuildSequenceView(string aRootDir)
     {
-      mInputFile = Directory.GetFiles(aRootDir, "*.wav")[0];
-
-      DContext.Assert(mInputFile != null, "Input Wave file not found.");
-
-      InputWaveView.Signal = SignalLoader.LoadSignal(mInputFile);
-
       // collect sequence of folders following single-child chains
       var seq = new List<string>();
       var cur = $"{aRootDir}\\Pipeline_0";
@@ -214,14 +239,14 @@ namespace DIGITC2_App
         break;
       }
 
-      var waves = new List<string>();
+      var lResultWaves = new List<string>();
       var texts = new List<string>();
 
       foreach (var s in seq)
       {
         var lWavResults = Directory.GetFiles(s, "*.wav");
         var lTxtResults = Directory.GetFiles(s, "*.txt");
-        waves.AddRange(lWavResults);
+        lResultWaves.AddRange(lWavResults);
         texts.AddRange(lTxtResults);
       }
 
@@ -230,29 +255,21 @@ namespace DIGITC2_App
 
       // Waveforms area
       var wavesPanel = new StackPanel { Orientation = Orientation.Vertical };
-      foreach (var lWave in waves)
+      foreach (var lResultWave in lResultWaves)
       {
         var stagePanel = new DockPanel { Margin = new Thickness(4), LastChildFill = true };
-        // params panel on the left
-        var paramsPanel = BuildParamsPanel(lWave);
-        if ( paramsPanel != null)
-        {
-          paramsPanel.Width = 220;
-          DockPanel.SetDock(paramsPanel, Dock.Left);
-          stagePanel.Children.Add(paramsPanel);
-        }
 
         // waveform view on right - bind to global zoom and offset
-        var wfView = new Controls.WaveformView { Height = 120, Margin = new Thickness(4) };
+        var lResultWaveView = new Controls.WaveformView { Height = 120, Margin = new Thickness(4), ZoomPanController =  this.InputWaveView.ZoomPanController };
         try
         {
-          wfView.Signal = SignalLoader.LoadSignal(lWave);
-          wfView.BackgroundBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFF5F0E8"));
-          wfView.WaveformPenBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4169E1"));
-          wfView.GridLineBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B0C4DE"));
-          // Bind to the global ZoomSlider and OffsetSlider
-          wfView.SetBinding(Controls.WaveformView.ZoomProperty, new System.Windows.Data.Binding { Source = ZoomSlider, Path = new PropertyPath(Slider.ValueProperty), Mode = System.Windows.Data.BindingMode.TwoWay });
-          wfView.SetBinding(Controls.WaveformView.OffsetProperty, new System.Windows.Data.Binding { Source = OffsetSlider, Path = new PropertyPath(Slider.ValueProperty), Mode = System.Windows.Data.BindingMode.TwoWay });
+          lResultWaveView.Signal = SignalLoader.LoadSignal(lResultWave);
+
+          lResultWaveView.BackgroundBrush   = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFF5F0E8"));
+          lResultWaveView.WaveformPenBrush  = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4169E1"));
+          lResultWaveView.GridLineBrush     = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B0C4DE"));
+
+          mWaveViews.Add( lResultWaveView );  
         }
         catch (Exception ex)
         {
@@ -261,14 +278,25 @@ namespace DIGITC2_App
           stagePanel.Children.Add(err);
         }
 
-        stagePanel.Children.Add(wfView);
+        stagePanel.Children.Add(lResultWaveView);
+
+        var paramsPanel = BuildParamsPanel(lResultWave);
+        if ( paramsPanel != null)
+        {
+          paramsPanel.Width = 220;
+          DockPanel.SetDock(paramsPanel, Dock.Right);
+          stagePanel.Children.Add(paramsPanel);
+        }
+
         wavesPanel.Children.Add(stagePanel);
       }
 
-      var scrollWaves = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-      scrollWaves.Content = wavesPanel;
-      DockPanel.SetDock(scrollWaves, Dock.Top);
-      main.Children.Add(scrollWaves);
+      //var scrollWaves = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+      //scrollWaves.Content = wavesPanel;
+      //DockPanel.SetDock(scrollWaves, Dock.Top);
+      //main.Children.Add(scrollWaves);
+      DockPanel.SetDock(wavesPanel, Dock.Top);
+      main.Children.Add(wavesPanel);
 
       // Text area (vertical)
       var textsHost = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
@@ -306,9 +334,10 @@ namespace DIGITC2_App
       }
 
       textsHost.Content = textsPanel;
-      DockPanel.SetDock(textsHost, Dock.Bottom);
+      DockPanel.SetDock(textsHost, Dock.Top);
       main.Children.Add(textsHost);
-      main.LastChildFill = true;
+
+      //main.LastChildFill = true;
 
       return main;
     }
@@ -413,32 +442,6 @@ return null ;
 
       return panel;
     }
-
-    private void UpdateOffsetSliderMax()
-    {
-      if (_samplesLength <= 0)
-      {
-        OffsetSlider.Maximum = 0;
-        OffsetSlider.IsEnabled = false;
-        return;
-      }
-
-      OffsetSlider.IsEnabled = true;
-
-      // compute visible samples: ceil(width * samplesPerPixel) where samplesPerPixel = 1/Zoom
-      var zoom = Math.Max(0.0001, InputWaveView.Zoom);
-      var width = Math.Max(1.0, InputWaveView.ActualWidth);
-      var visibleSamples = (int)Math.Ceiling(width / zoom);
-
-      var max = Math.Max(0, _samplesLength - visibleSamples);
-      // set maximum while preserving current value
-      OffsetSlider.Maximum = max;
-      if (OffsetSlider.Value > OffsetSlider.Maximum)
-      {
-        OffsetSlider.Value = OffsetSlider.Maximum;
-      }
-    }
-
 
     public void InvokeAction(Action aAction)
     {

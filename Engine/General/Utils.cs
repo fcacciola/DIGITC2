@@ -71,7 +71,8 @@ namespace DIGITC2_ENGINE
 
     public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * SIG.SamplingRate) ;
 
-    public static int Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
+    public static int    Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
+    public static double Clamp ( double n, double l, double h ) => n < l ? l : n > h ? h : n ;  
   }
 
   //public class Textualizer
