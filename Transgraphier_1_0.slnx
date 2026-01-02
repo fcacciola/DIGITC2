@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Engine/DIGITC2_Engine.csproj" />
+  <Project Path="Transgraphier_1_0_App/Transgraphier_1_0_App.csproj" />
+</Solution>
