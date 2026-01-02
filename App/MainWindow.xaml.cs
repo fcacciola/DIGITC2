@@ -26,7 +26,9 @@ namespace DIGITC2_App
 
     public void Add( WaveformView aView) { mViews.Add( aView ); }
 
-    public void Invalidate() { mViews.ForEach(v => v.InvalidateVisual()); }
+    public void Invalidate() { mViews.ForEach(v => v.InvalidateRender()); }
+
+    public int Count => mViews.Count;
 
     List<WaveformView> mViews = new List<WaveformView>();
   }
@@ -60,23 +62,18 @@ namespace DIGITC2_App
       ShowSessions();
     }
 
-    void SetupZoomPanController()
+    void SetupZoomPanController( DiscreteSignal aSignal)
     {
       var availableWidth = Math.Max(1.0, InputWaveView.ActualWidth);
 
       var lZPC = new ZoomPanController(){ MinSamplesPerPixel = 2.0
-                                        , MaxSamplesPerPixel = InputWaveView.Signal.Length / availableWidth
-                                        , Offset = 0 
-                                        , ZoomSlider   = this.ZoomSlider
-                                        , OffsetSlider = this.OffsetSlider  
-                                        , WaveViews    = mWaveViews  
+                                        , MaxSamplesPerPixel = aSignal.Length / availableWidth
+                                        , WaveViews = mWaveViews  
       };
           
-      lZPC.SamplesPerPixel = lZPC.MaxSamplesPerPixel ; // Zoom out the entire signal
+      lZPC.Update(lZPC.MaxSamplesPerPixel,0 ) ; // Zoom out the entire signal
 
       InputWaveView.ZoomPanController = lZPC; 
-
-      lZPC.UpdateSliders();
     }
 
     private void LoadButton_Click(object sender, RoutedEventArgs e)
@@ -92,8 +89,8 @@ namespace DIGITC2_App
           mInputFile = dlg.FileName ;
 
           // assign to view
+          SetupZoomPanController(signal);
           InputWaveView.Signal = signal;
-          SetupZoomPanController();
 
           mWaveViews.Add( InputWaveView );  
 
@@ -191,8 +188,9 @@ namespace DIGITC2_App
 
       DContext.Assert(mInputFile != null, "Input Wave file not found.");
 
-      InputWaveView.Signal = SignalLoader.LoadSignal(mInputFile);
-      SetupZoomPanController();
+      var lSignal = SignalLoader.LoadSignal(mInputFile);
+      SetupZoomPanController(lSignal);
+      InputWaveView.Signal = lSignal;
       mWaveViews.Add( InputWaveView );  
 
       var lRootTab = new TabItem { Header = Path.GetFileNameWithoutExtension(lFirstSession) };
@@ -247,7 +245,7 @@ namespace DIGITC2_App
         var lWavResults = Directory.GetFiles(s, "*.wav");
         var lTxtResults = Directory.GetFiles(s, "*.txt");
         lResultWaves.AddRange(lWavResults);
-        texts.AddRange(lTxtResults);
+        //texts.AddRange(lTxtResults);
       }
 
       // main container: vertical stack: waveforms area on top, text area below
@@ -265,11 +263,10 @@ namespace DIGITC2_App
         {
           lResultWaveView.Signal = SignalLoader.LoadSignal(lResultWave);
 
-          lResultWaveView.BackgroundBrush   = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFF5F0E8"));
-          lResultWaveView.WaveformPenBrush  = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4169E1"));
-          lResultWaveView.GridLineBrush     = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B0C4DE"));
-
           mWaveViews.Add( lResultWaveView );  
+
+          if ( mWaveViews.Count == 3 )
+            break ;
         }
         catch (Exception ex)
         {

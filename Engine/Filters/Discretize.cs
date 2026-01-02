@@ -11,20 +11,16 @@ namespace DIGITC2_ENGINE
 {
   public class GateThresholds
   {
-    public GateThresholds( float aThreshold ) 
+    public GateThresholds( float aCut, float aOutLevel ) 
     {
-      Values.Add( aThreshold  );
+      Cuts     .Add( aCut  );
+      OutLevels.Add(aOutLevel);
     }
 
-    public GateThresholds( List<float> aThresholds ) 
-    { 
-      foreach( int lThreshold in aThresholds ) 
-        Values.Add( lThreshold  );
-    }
+    public List<float> Cuts      = new List<float>();
+    public List<float> OutLevels = new List<float>();
 
-    public List<float> Values = new List<float>();
-
-    public override string ToString() =>  Values.Textualize();
+    public override string ToString() =>  Cuts.Textualize();
   }
 
 
@@ -50,12 +46,13 @@ namespace DIGITC2_ENGINE
 
       public float Apply( float aV )
       {
-        for( int i = 0; i < Thresholds.Values.Count ; ++ i )
+        for( int i = 0; i < Thresholds.Cuts.Count ; ++ i )
         {
-          float lThreshold = Thresholds.Values[i] ;
+          float lCut      = Thresholds.Cuts     [i] ;
+          float lOutLevel = Thresholds.OutLevels[i] ;
 
-          if ( aV >= lThreshold )
-            return lThreshold; 
+          if ( aV >= lCut )
+            return lOutLevel; 
         }
 
         return 0f; 
@@ -73,11 +70,9 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process ()
     {
-      float lGV = .1f ;
+      var lGT = new GateThresholds( 0.1f, 0.85f );
 
-      var lGT = new GateThresholds( lGV );
-
-      mGates.Add( new Gate($"DiscretizeAt_{lGV}",lGT) ) ;
+      mGates.Add( new Gate($"DiscretizeAt_{lGT.Cuts[0]}",lGT) ) ;
 
       WaveSignal lSignal = WaveInput ;
       foreach ( var lGate in mGates )

@@ -8,6 +8,7 @@ using System.Windows.Controls;
 
 using NWaves.Signals;
 using DIGITC2_ENGINE;
+using System.Windows.Shapes;
 
 namespace DIGITC2_App.Controls
 {
@@ -16,23 +17,35 @@ namespace DIGITC2_App.Controls
   {
     public double    MinSamplesPerPixel { get ; set ; }  
     public double    MaxSamplesPerPixel { get ; set ; }
-    public double    SamplesPerPixel    { get ; set ; }
-    public double    Offset             { get ; set ; }
-    public Slider    ZoomSlider         { get ; set ; }
-    public Slider    OffsetSlider       { get ; set ; }
-    public WaveViews WaveViews          { get ; set ;  } 
+    public WaveViews WaveViews          { get ; set ; }
+    
+    public double    SamplesPerPixel    { get ; private set ; }
+    public double    StartSample        { get ; private set ; }
 
-    public void UpdateSliders()
+    public void UpdateSPP( double aSamplePerPixel )
     {
-      ZoomSlider  .Value = SamplesPerPixel / ZoomSlider  .Maximum ;
-      OffsetSlider.Value = Offset          / OffsetSlider.Maximum ;
+      SamplesPerPixel = aSamplePerPixel ;
+      Invalidate();
     }
 
-    public void UpdateFromSliders()
+    public void UpdateSS( double aStartSample)
     {
-      SamplesPerPixel = MaxSamplesPerPixel * (ZoomSlider.Maximum - ZoomSlider.Value) / ZoomSlider.Maximum ;
-      Offset          = OffsetSlider.Maximum * (OffsetSlider.Maximum - OffsetSlider.Value) / OffsetSlider.Maximum ;
+      StartSample = aStartSample ;
+      Invalidate();
     }
+
+    public void Update( double aSamplePerPixel, double aStartSample)
+    {
+      SamplesPerPixel = aSamplePerPixel ;
+      StartSample     = aStartSample ;
+      Invalidate();
+    }
+
+    public void Invalidate()
+    {
+      WaveViews.Invalidate();
+    }
+
   }
 
   // A lightweight waveform renderer with pan & zoom. Set `Signal` to your DiscreteSignal data.
@@ -41,8 +54,11 @@ namespace DIGITC2_App.Controls
   //  - Mouse wheel to zoom centered at cursor (use Ctrl to zoom faster)
   public class WaveformView : FrameworkElement
   {
-    public DiscreteSignal    Signal            { get ; set ; }
     public ZoomPanController ZoomPanController { get ; set ; }
+
+    DiscreteSignal mSignal = null ;
+
+    public DiscreteSignal Signal { get { return mSignal ; } set { mSignal = value ; InvalidateRender(); } }
 
     private bool _isPanning;
     private Point _lastPanPoint;
@@ -56,6 +72,7 @@ namespace DIGITC2_App.Controls
       MouseUp += WaveformView_MouseUp;
       MouseWheel += WaveformView_MouseWheel;
 //      SizeChanged += (s, e) => CoerceValue(Offset);
+
     }
 
     private void WaveformView_MouseDown(object sender, MouseButtonEventArgs e)
@@ -77,10 +94,11 @@ namespace DIGITC2_App.Controls
         var dx = p.X - _lastPanPoint.X;
         // translate dx pixels into sample offset change
         var sampleDelta = -dx * ZoomPanController.SamplesPerPixel;
-        ZoomPanController.Offset = ZoomPanController.Offset + sampleDelta;
+
+        ZoomPanController.UpdateSS( MathX.Clamp(  ZoomPanController.StartSample + sampleDelta, 0, Signal.Length) ) ;
+
         _lastPanPoint = p;
         e.Handled = true;
-        ZoomPanController.WaveViews.Invalidate();
       }
     }
 
@@ -100,22 +118,97 @@ namespace DIGITC2_App.Controls
 
       var zoomFactor = Math.Pow(1.0015, e.Delta * (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) ? 2.5 : 1.0));
 
-      ZoomPanController.SamplesPerPixel = MathX.Clamp(lOldSPP / zoomFactor, ZoomPanController.MinSamplesPerPixel,  ZoomPanController.MaxSamplesPerPixel ) ;
+      double lNewSamplesPerPixel = MathX.Clamp(lOldSPP / zoomFactor, ZoomPanController.MinSamplesPerPixel,  ZoomPanController.MaxSamplesPerPixel ) ;
 
       // keep sample under mouse fixed when zooming
       var pos = e.GetPosition(this);
-      var sampleUnderMouse = ZoomPanController.Offset + pos.X * ZoomPanController.SamplesPerPixel;
 
-      var newOffset = MathX.Clamp(  sampleUnderMouse - pos.X * ZoomPanController.SamplesPerPixel, 0, ZoomPanController.OffsetSlider.Maximum);
-      ZoomPanController.Offset = newOffset;
+      var lInitialSampleUnderCursor = ZoomPanController.StartSample + ( pos.X * lOldSPP ) - ( lOldSPP / 2.0 );
 
-      ZoomPanController.UpdateSliders();
+      var lNewSampleUnderCursor = ( pos.X * ZoomPanController.SamplesPerPixel ) - ( ZoomPanController.SamplesPerPixel / 2.0 );
+
+      var lNewStartSample = MathX.Clamp( lInitialSampleUnderCursor - lNewSampleUnderCursor, 0, Signal.Length) ;
+
+      ZoomPanController.Update( lNewSamplesPerPixel, lNewStartSample ); 
 
       e.Handled = true;
-
-      ZoomPanController.WaveViews.Invalidate();
     }
 
+    StreamGeometry Poly = null ;
+
+    public void InvalidateRender()
+    {
+      Poly = null ;
+      InvalidateVisual(); 
+    }
+
+    void CacheRender()
+    {
+      var signal = Signal;
+      if (signal == null || signal.Length == 0)
+        return;
+
+      var samplesPerPixel = ZoomPanController.SamplesPerPixel;
+      var startSample = (int)Math.Floor(ZoomPanController.StartSample);
+      var visibleSamples = (int)Math.Ceiling(ActualWidth * samplesPerPixel);
+      var endSample = Math.Min(signal.Length - 1, startSample + visibleSamples);
+
+      // For each horizontal pixel compute min and max sample in that pixel column
+
+      var center = ActualHeight / 2.0;
+      var halfH  = ActualHeight / 2.0;
+
+      var lPoints = new List<Point>();
+
+      // Aggregate min/max per pixel
+      for (int px = 0; px < ActualWidth; px++)
+      {
+        var sampleStart = startSample + (int)Math.Floor(px * samplesPerPixel);
+        var sampleEnd = startSample + (int)Math.Ceiling((px + 1) * samplesPerPixel) - 1;
+        if (sampleStart > endSample)
+          break;
+        sampleEnd = Math.Min(sampleEnd, endSample);
+        if (sampleEnd < sampleStart)
+          sampleEnd = sampleStart;
+
+        float lMin = signal[sampleStart] ;
+        float lMax = signal[sampleStart] ;
+
+        for (int s = sampleStart + 1 ; s <= sampleEnd; s++)
+        {
+          float v = signal[s];
+          if ( v < lMin)
+            lMin = v;
+          
+          if ( v > lMax)
+            lMax = v;
+        }
+
+        lPoints.Add( new Point( px + 0.5, center - lMin * halfH ) ) ;
+        lPoints.Add( new Point( px + 0.5, center - lMax * halfH ) ) ;
+      }
+
+      Point lHead = lPoints[0];
+      lPoints.RemoveAt(0);
+
+      Poly = new StreamGeometry();
+
+      using (StreamGeometryContext ctx = Poly.Open())
+      {
+        ctx.BeginFigure(lHead, false, false);
+        ctx.PolyLineTo(lPoints, true, false);
+      }
+
+      // 3. Freeze the geometry for performance (optional but recommended)
+      Poly.Freeze();
+    }
+
+    StreamGeometry GetPoly()
+    {
+      if ( Poly == null )
+        CacheRender();
+      return Poly ;
+    }
 
     protected override void OnRender(DrawingContext dc)
     {
@@ -133,53 +226,18 @@ namespace DIGITC2_App.Controls
       var center = ActualHeight / 2.0;
       dc.DrawLine(new Pen(GridLineBrush, 1.0), new Point(0, center), new Point(ActualWidth, center));
 
-      var signal = Signal;
-      if (signal == null || signal.Length == 0)
-        return;
+      var lPoly = GetPoly();
+      if ( lPoly != null )
+        dc.DrawGeometry(WaveformPolyBrush, Pen, lPoly);
 
-      var samplesPerPixel = ZoomPanController.SamplesPerPixel;
-      var startSample = (int)Math.Floor(ZoomPanController.Offset);
-      var visibleSamples = (int)Math.Ceiling(w * samplesPerPixel);
-      var endSample = Math.Min(signal.Length - 1, startSample + visibleSamples);
-
-      // For each horizontal pixel compute min and max sample in that pixel column
-      var pen = new Pen(WaveformPenBrush, 1.0);
-      pen.Freeze();
-
-      var halfH = ActualHeight / 2.0;
-
-      // Aggregate min/max per pixel
-      for (int px = 0; px < w; px++)
-      {
-        var sampleStart = startSample + (int)Math.Floor(px * samplesPerPixel);
-        var sampleEnd = startSample + (int)Math.Ceiling((px + 1) * samplesPerPixel) - 1;
-        if (sampleStart > endSample)
-          break;
-        sampleEnd = Math.Min(sampleEnd, endSample);
-        if (sampleEnd < sampleStart)
-          sampleEnd = sampleStart;
-
-        float min = float.MaxValue;
-        float max = float.MinValue;
-        for (int s = sampleStart; s <= sampleEnd; s++)
-        {
-          var v = signal[s];
-          if (v < min)
-            min = v;
-          if (v > max)
-            max = v;
-        }
-
-        var y1 = center - min * halfH;
-        var y2 = center - max * halfH;
-        dc.DrawLine(pen, new Point(px + 0.5, y1), new Point(px + 0.5, y2));
-      }
     }
 
     // Customizable brushes
-    public Brush BackgroundBrush { get; set; } = Brushes.Black;
-    public Brush WaveformPenBrush { get; set; } = Brushes.Lime;
-    public Brush GridLineBrush { get; set; } = Brushes.DarkGray;
+    public static Brush BackgroundBrush { get; set; } = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFF5F0E8"));
+    public static Brush WaveformPolyBrush { get; set; } = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4169E1"));
+    public static Brush GridLineBrush { get; set; } = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B0C4DE"));
+
+    public static Pen   Pen { get ; set ; } = new Pen(WaveformPolyBrush, 1.0); 
 
     //protected override Size MeasureOverride(Size availableSize)
     //{

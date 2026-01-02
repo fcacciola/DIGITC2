@@ -8,12 +8,6 @@
             <Button x:Name="LoadButton" Width="80" Margin="2" Click="LoadButton_Click">LOAD</Button>
             <Button x:Name="ProcessButton" Width="80" Margin="2" Click="ProcessButton_Click">PROCESS</Button>
             <Button x:Name="ViewButton" Width="80" Margin="2" Click="ViewButton_Click">VIEW</Button>
-            <StackPanel Orientation="Horizontal" Margin="8,0,0,0" VerticalAlignment="Center">
-                <TextBlock Text="Zoom:" VerticalAlignment="Center" Margin="4,0"/>
-                <Slider x:Name="ZoomSlider" Minimum="1" Maximum="10000" Width="150" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="False"/>
-                <TextBlock Text="Offset:" VerticalAlignment="Center" Margin="12,0,4,0"/>
-                <Slider x:Name="OffsetSlider" Minimum="0" Maximum="10000" Width="200" />
-            </StackPanel>
         </StackPanel>
 
     <StatusBar DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="1,1,1,1" Height="200">
@@ -26,7 +20,7 @@
 
     <DockPanel DockPanel.Dock="Top">
             <Border BorderBrush="Gray" BorderThickness="1" Margin="16" DockPanel.Dock="Top">
-        <controls:WaveformView x:Name="InputWaveView" Height="120" BackgroundBrush="#FFF5F0E8" WaveformPenBrush="#4169E1" GridLineBrush="#B0C4DE"  />
+        <controls:WaveformView x:Name="InputWaveView" Height="120"  />
             </Border>
         </DockPanel>
 
