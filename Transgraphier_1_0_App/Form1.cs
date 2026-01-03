@@ -133,6 +133,14 @@ namespace Transgraphier_1_0_App
       return rR;  
     }
 
+    Dictionary<string,string> GetParameters( string aFilter )
+    {
+      var rMap = new Dictionary<string,string>();  
+      rMap.Add("key1","value1");
+      rMap.Add("key2","value2");
+      rMap.Add("key3","value3");
+      return rMap;  
+    }
 
     void ShowSession( string aSession )
     {
@@ -151,10 +159,24 @@ namespace Transgraphier_1_0_App
       var lInputSignal = SignalLoader.LoadSignal(mInputFile);
       SetupZoomPanController(lInputSignal);
       mInputWave.Signal = lInputSignal;
-      mInputWave.InfoText = "Input Signal" ;
+      mInputWave.InfoBoxData = GetParameters("Input");
+      mInputWave.Title = "Input Signal";  
       mWaveViews.Add( mInputWave );
 
+      // Create a scrollable container for the tab content
       var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSession) };
+      
+      Panel scrollPanel = new Panel();
+      scrollPanel.Dock = DockStyle.Fill;
+      scrollPanel.AutoScroll = true;
+      
+      Panel contentPanel = new Panel();
+      contentPanel.AutoSize = true;
+      contentPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+      
+      scrollPanel.Controls.Add(contentPanel);
+      lRootTab.Controls.Add(scrollPanel);
+      
       mSessionsTabControl.TabPages.Add(lRootTab);
 
       var lResultFolderSequence = new List<string>();
@@ -188,22 +210,54 @@ namespace Transgraphier_1_0_App
         string lWaveResult = lWaveResults[i];
         string fileName = Path.GetFileNameWithoutExtension(lWaveResult);
 
+        string lFilterName = fileName ;
+
         // Create WaveFormView for this file
         WaveView lWaveView = new WaveView();
         lWaveView.Size = new Size(1920, 150);
         lWaveView.Dock = DockStyle.Top;
-        lWaveView.Title = fileName;
-        lWaveView.InfoText = "Data here" ; //GetWaveFileInfo(lWaveResult);
+        lWaveView.Title = lFilterName;
+        lWaveView.InfoBoxData = GetParameters(lFilterName);
+
         var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
 
         lWaveView.ZoomPanController = mInputWave.ZoomPanController ; 
 
         lWaveView.Signal = lResultSignal;
 
-        // Add waveform view to tab page
-        lRootTab.Controls.Add(lWaveView);
+        // Add waveform view to content panel
+        contentPanel.Controls.Add(lWaveView);
 
         mWaveViews.Add(lWaveView);
+      }
+
+      // Create a tab for each .txt file in reverse order (so they display in correct order when docked to top)
+      for (int i = lTextResults.Count - 1; i >= 0; i--)
+      {
+        string lTextResult = lTextResults[i];
+        string fileName = Path.GetFileNameWithoutExtension(lTextResult);
+
+        string lFilterName = fileName ;
+
+        // Create LexicalView for this file
+        LexicalView lLexicalView = new LexicalView();
+        lLexicalView.Size = new Size(1920, 300);
+        lLexicalView.Dock = DockStyle.Top;
+        lLexicalView.Title = lFilterName;
+        lLexicalView.InfoBoxData = GetParameters(lFilterName);
+
+        try
+        {
+          string textContent = File.ReadAllText(lTextResult);
+          lLexicalView.TextContent = textContent;
+        }
+        catch (Exception ex)
+        {
+          AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
+        }
+
+        // Add lexical view to content panel
+        contentPanel.Controls.Add(lLexicalView);
       }
 
       mWaveViews.Invalidate();

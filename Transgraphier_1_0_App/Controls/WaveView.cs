@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
@@ -12,9 +13,10 @@ namespace Transgraphier_1_0_App
   public class WaveView : UserControl
   {
     private Panel mContainerPanel;
-    private TextBox mDataTextBox;
+    private ConfigurationTableView mInfoBox;
     private WavePanel mWavePanel;
-    private Label mTitle;
+        private Panel innerContainer;
+        private Label mTitle;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
@@ -30,15 +32,15 @@ namespace Transgraphier_1_0_App
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public string InfoText
+    public Dictionary<string, string> InfoBoxData
     {
       get
       {
-        return mDataTextBox.Text;
+        return mInfoBox.Data;
       }
       set
       {
-        mDataTextBox.Text = value;
+        mInfoBox.Data = value;
       }
     }
 
@@ -59,53 +61,79 @@ namespace Transgraphier_1_0_App
       mWavePanel.InvalidateRender();
     }
 
-    private void InitializeComponent()
-    {
-      // Main container panel with black border
-      mContainerPanel = new Panel();
-      mContainerPanel.BackColor = Color.Black;
-      mContainerPanel.Dock = DockStyle.Fill;
-      mContainerPanel.Padding = new Padding(2);
-
-      // mTitle label
-      mTitle = new Label();
-      mTitle.Text = "mTitle";
-      mTitle.Dock = DockStyle.Top;
-      mTitle.Height = 25;
-      mTitle.BackColor = Color.LightGray;
-      mTitle.ForeColor = Color.Black;
-      mTitle.TextAlign = ContentAlignment.MiddleLeft;
-      mTitle.Padding = new Padding(5, 0, 0, 0);
-
-      // Inner container (white background for content)
-      Panel innerContainer = new Panel();
-      innerContainer.BackColor = Color.White;
-      innerContainer.Dock = DockStyle.Fill;
-
-      // Left info text box (100 width)
-      mDataTextBox = new TextBox();
-      mDataTextBox.Dock = DockStyle.Left;
-      mDataTextBox.Width = 100;
-      mDataTextBox.ReadOnly = true;
-      mDataTextBox.Multiline = true;
-      mDataTextBox.ScrollBars = ScrollBars.None;
-      mDataTextBox.BorderStyle = BorderStyle.Fixed3D;
-
-      // Right waveform panel
-      mWavePanel = new WavePanel();
-      mWavePanel.Dock = DockStyle.Fill;
-
-      // Add controls
-      innerContainer.Controls.Add(mWavePanel);
-      innerContainer.Controls.Add(mDataTextBox);
-
-      mContainerPanel.Controls.Add(innerContainer);
-      mContainerPanel.Controls.Add(mTitle);
-
-      this.Controls.Add(mContainerPanel);
-      this.Height = 100;
+        private void InitializeComponent()
+        {
+            mContainerPanel = new Panel();
+            innerContainer = new Panel();
+            mWavePanel = new WavePanel();
+            mInfoBox = new ConfigurationTableView();
+            mTitle = new Label();
+            mContainerPanel.SuspendLayout();
+            innerContainer.SuspendLayout();
+            SuspendLayout();
+            // 
+            // mContainerPanel
+            // 
+            mContainerPanel.BackColor = Color.Black;
+            mContainerPanel.Controls.Add(innerContainer);
+            mContainerPanel.Controls.Add(mTitle);
+            mContainerPanel.Dock = DockStyle.Fill;
+            mContainerPanel.Location = new Point(0, 0);
+            mContainerPanel.Name = "mContainerPanel";
+            mContainerPanel.Padding = new Padding(2);
+            mContainerPanel.Size = new Size(150, 100);
+            mContainerPanel.TabIndex = 0;
+            // 
+            // innerContainer
+            // 
+            innerContainer.BackColor = Color.White;
+            innerContainer.Controls.Add(mWavePanel);
+            innerContainer.Controls.Add(mInfoBox);
+            innerContainer.Dock = DockStyle.Fill;
+            innerContainer.Location = new Point(2, 27);
+            innerContainer.Name = "innerContainer";
+            innerContainer.Size = new Size(146, 71);
+            innerContainer.TabIndex = 0;
+            // 
+            // mWavePanel
+            // 
+            mWavePanel.Dock = DockStyle.Fill;
+            mWavePanel.Location = new Point(300, 0);
+            mWavePanel.Name = "mWavePanel";
+            mWavePanel.Size = new Size(0, 71);
+            mWavePanel.TabIndex = 0;
+            // 
+            // mInfoBox
+            // 
+            mInfoBox.Dock = DockStyle.Left;
+            mInfoBox.Location = new Point(0, 0);
+            mInfoBox.Name = "mInfoBox";
+            mInfoBox.Size = new Size(300, 71);
+            mInfoBox.TabIndex = 1;
+            // 
+            // mTitle
+            // 
+            mTitle.BackColor = Color.LightGray;
+            mTitle.Dock = DockStyle.Top;
+            mTitle.ForeColor = Color.Black;
+            mTitle.Location = new Point(2, 2);
+            mTitle.Name = "mTitle";
+            mTitle.Padding = new Padding(5, 0, 0, 0);
+            mTitle.Size = new Size(146, 25);
+            mTitle.TabIndex = 1;
+            mTitle.Text = "mTitle";
+            mTitle.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // WaveView
+            // 
+            Controls.Add(mContainerPanel);
+            Name = "WaveView";
+            Size = new Size(150, 100);
+            mContainerPanel.ResumeLayout(false);
+            innerContainer.ResumeLayout(false);
+            ResumeLayout(false);
+        }
     }
-  }
 
   public class WavePanel : Control
   {
