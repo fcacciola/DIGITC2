@@ -34,9 +34,9 @@
             showButton = new Button();
             statusTextBox = new TextBox();
             statusPanel = new Panel();
-            resultsTextBox = new TextBox();
+            resultsTextBox = new RichTextBox();
             resultsPanel = new Panel();
-            inputWave = new WaveFormView();
+            mInputWave = new WaveView();
             buttonPanel.SuspendLayout();
             SuspendLayout();
             // 
@@ -74,6 +74,7 @@
             showButton.Size = new Size(100, 30);
             showButton.TabIndex = 2;
             showButton.Text = "SHOW";
+            showButton.Click += ShowButton_Click;
             // 
             // resultsPanel
             // 
@@ -90,21 +91,21 @@
             // 
             resultsTextBox.Dock = DockStyle.Fill;
             resultsTextBox.Location = new Point(2, 2);
-            resultsTextBox.Multiline = true;
             resultsTextBox.Name = "resultsTextBox";
             resultsTextBox.ReadOnly = true;
-            resultsTextBox.ScrollBars = ScrollBars.Vertical;
+            resultsTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
             resultsTextBox.Size = new Size(1916, 296);
             resultsTextBox.TabIndex = 1;
+            resultsTextBox.Text = "";
             // 
             // inputWave
             // 
-            inputWave.Dock = DockStyle.Top;
-            inputWave.Location = new Point(0, 350);
-            inputWave.Name = "inputWave";
-            inputWave.Size = new Size(1920, 100);
-            inputWave.TabIndex = 4;
-            inputWave.Title = "Input Wave";
+            mInputWave.Dock = DockStyle.Top;
+            mInputWave.Location = new Point(8, 350);
+            mInputWave.Name = "inputWave";
+            mInputWave.Size = new Size(1920, 150);
+            mInputWave.TabIndex = 4;
+            mInputWave.Title = "Input Wave";
             // 
             // statusPanel
             // 
@@ -134,7 +135,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1920, 1080);
             Controls.Add(statusPanel);
-            Controls.Add(inputWave);
+            Controls.Add(mInputWave);
             Controls.Add(resultsPanel);
             Controls.Add(buttonPanel);
             Name = "Form1";
@@ -154,7 +155,7 @@
         private Panel statusPanel;
         private TextBox statusTextBox;
         private Panel resultsPanel;
-        private TextBox resultsTextBox;
-        private WaveFormView inputWave;
+        private RichTextBox resultsTextBox;
+        private WaveView mInputWave;
     }
 }
