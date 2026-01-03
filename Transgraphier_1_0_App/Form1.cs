@@ -195,10 +195,14 @@ namespace Transgraphier_1_0_App
 
         // Add waveform view to tab page
         lRootTab.Controls.Add(lWaveView);
+
+        mWaveViews.Add(lWaveView);
       }
 
+      mWaveViews.Invalidate();
       AddGeneralMessage("Session Results loaded");
 
+      this.Refresh();
     }
 
     void ShowSessions()
