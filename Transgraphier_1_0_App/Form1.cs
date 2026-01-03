@@ -171,8 +171,8 @@ namespace Transgraphier_1_0_App
       scrollPanel.AutoScroll = true;
       
       Panel contentPanel = new Panel();
-      contentPanel.AutoSize = true;
-      contentPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+      contentPanel.Dock = DockStyle.Top;
+      contentPanel.Width = scrollPanel.Width;
       
       scrollPanel.Controls.Add(contentPanel);
       lRootTab.Controls.Add(scrollPanel);
@@ -204,8 +204,10 @@ namespace Transgraphier_1_0_App
         lTextResults.AddRange(lLocalTextResults);
       }
 
-      // Create a tab for each .wav file in reverse order (so they display in correct order when docked to top)
-      for (int i = lWaveResults.Count - 1; i >= 0; i--)
+      int currentY = 0;
+
+      // Create a tab for each .wav file in order (not reversed, since we'll position them manually)
+      for (int i = 0; i < lWaveResults.Count; i++)
       {
         string lWaveResult = lWaveResults[i];
         string fileName = Path.GetFileNameWithoutExtension(lWaveResult);
@@ -214,8 +216,8 @@ namespace Transgraphier_1_0_App
 
         // Create WaveFormView for this file
         WaveView lWaveView = new WaveView();
+        lWaveView.Location = new Point(0, currentY);
         lWaveView.Size = new Size(1920, 150);
-        lWaveView.Dock = DockStyle.Top;
         lWaveView.Title = lFilterName;
         lWaveView.InfoBoxData = GetParameters(lFilterName);
 
@@ -227,12 +229,13 @@ namespace Transgraphier_1_0_App
 
         // Add waveform view to content panel
         contentPanel.Controls.Add(lWaveView);
+        currentY += 150;
 
         mWaveViews.Add(lWaveView);
       }
 
-      // Create a tab for each .txt file in reverse order (so they display in correct order when docked to top)
-      for (int i = lTextResults.Count - 1; i >= 0; i--)
+      // Create a tab for each .txt file in order
+      for (int i = 0; i < lTextResults.Count; i++)
       {
         string lTextResult = lTextResults[i];
         string fileName = Path.GetFileNameWithoutExtension(lTextResult);
@@ -241,8 +244,8 @@ namespace Transgraphier_1_0_App
 
         // Create LexicalView for this file
         LexicalView lLexicalView = new LexicalView();
+        lLexicalView.Location = new Point(0, currentY);
         lLexicalView.Size = new Size(1920, 300);
-        lLexicalView.Dock = DockStyle.Top;
         lLexicalView.Title = lFilterName;
         lLexicalView.InfoBoxData = GetParameters(lFilterName);
 
@@ -258,7 +261,11 @@ namespace Transgraphier_1_0_App
 
         // Add lexical view to content panel
         contentPanel.Controls.Add(lLexicalView);
+        currentY += 300;
       }
+
+      // Set the content panel height to accommodate all controls
+      contentPanel.Height = currentY;
 
       mWaveViews.Invalidate();
       AddGeneralMessage("Session Results loaded");
