@@ -148,10 +148,11 @@ namespace Transgraphier_1_0_App
         return;
       }
 
-      var lSignal = SignalLoader.LoadSignal(mInputFile);
-      SetupZoomPanController(lSignal);
-      mInputWave.Signal = lSignal;
-      mWaveViews.Add( mInputWave );  
+      var lInputSignal = SignalLoader.LoadSignal(mInputFile);
+      SetupZoomPanController(lInputSignal);
+      mInputWave.Signal = lInputSignal;
+      mInputWave.InfoText = "Input Signal" ;
+      mWaveViews.Add( mInputWave );
 
       var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSession) };
       mSessionsTabControl.TabPages.Add(lRootTab);
@@ -192,6 +193,11 @@ namespace Transgraphier_1_0_App
         lWaveView.Dock = DockStyle.Top;
         lWaveView.Title = fileName;
         lWaveView.InfoText = "Data here" ; //GetWaveFileInfo(lWaveResult);
+        var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
+
+        lWaveView.ZoomPanController = mInputWave.ZoomPanController ; 
+
+        lWaveView.Signal = lResultSignal;
 
         // Add waveform view to tab page
         lRootTab.Controls.Add(lWaveView);

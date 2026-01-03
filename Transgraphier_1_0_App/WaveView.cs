@@ -3,6 +3,8 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 
+using DIGITC2_ENGINE ;
+
 using NWaves.Signals ;
 
 namespace Transgraphier_1_0_App
@@ -180,7 +182,7 @@ namespace Transgraphier_1_0_App
       base.OnPaint(e);
 
       // background
-      e.Graphics.FillRectangle( Brushes.Coral, new Rectangle(0, 0, Width, Height));
+      e.Graphics.FillRectangle( Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
 
       // center line
       var center = Height / 2;
@@ -194,6 +196,54 @@ namespace Transgraphier_1_0_App
     protected override void OnPaintBackground(PaintEventArgs e)
     {
       e.Graphics.Clear(Color.White);
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+      base.OnMouseDown(e);
+      // Handle mouse down event
+      // Position is relative to WavePanel
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+      base.OnMouseUp(e);
+      // Handle mouse up event
+      // Position is relative to WavePanel
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+      base.OnMouseMove(e);
+      // Handle mouse move event
+      // Position is relative to WavePanel
+    }
+
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+      base.OnMouseWheel(e);
+
+      if (ZoomPanController == null || mSignal == null)
+        return;
+
+      var lOldSPP = ZoomPanController.SamplesPerPixel;
+
+      var zoomFactor = Math.Pow(1.0015, e.Delta * ((ModifierKeys & Keys.Control) != 0 ? 2.5 : 1.0));
+
+      double lNewSamplesPerPixel = MathX.Clamp(lOldSPP / zoomFactor, ZoomPanController.MinSamplesPerPixel, ZoomPanController.MaxSamplesPerPixel);
+
+      // keep sample under mouse fixed when zooming
+      var pos = e.Location;
+
+      var lInitialSampleUnderCursor = ZoomPanController.StartSample + (pos.X * lOldSPP) - (lOldSPP / 2.0);
+
+      var lNewSampleUnderCursor = (pos.X * lNewSamplesPerPixel) - (lNewSamplesPerPixel / 2.0);
+
+      var lNewStartSample = MathX.Clamp(lInitialSampleUnderCursor - lNewSampleUnderCursor, 0, mSignal.Length);
+
+      ZoomPanController.Update(lNewSamplesPerPixel, lNewStartSample);
+
+      //e.Handled = true;
     }
 
     DiscreteSignal mSignal = null ;
