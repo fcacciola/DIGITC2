@@ -182,9 +182,10 @@ namespace Transgraphier_1_0_App
         lTextResults.AddRange(lLocalTextResults);
       }
 
-      // Create a tab for each .wav file
-      foreach (string lWaveResult in lWaveResults)
+      // Create a tab for each .wav file in reverse order (so they display in correct order when docked to top)
+      for (int i = lWaveResults.Count - 1; i >= 0; i--)
       {
+        string lWaveResult = lWaveResults[i];
         string fileName = Path.GetFileNameWithoutExtension(lWaveResult);
 
         // Create WaveFormView for this file

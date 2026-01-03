@@ -198,25 +198,51 @@ namespace Transgraphier_1_0_App
       e.Graphics.Clear(Color.White);
     }
 
+    Point mLastMousePos;
+    bool  mIsPanning = false ;
+
     protected override void OnMouseDown(MouseEventArgs e)
     {
       base.OnMouseDown(e);
-      // Handle mouse down event
-      // Position is relative to WavePanel
+
+      if ( e.Button == MouseButtons.Left )
+      {
+        mLastMousePos = e.Location; 
+        mIsPanning = true ;
+
+        this.Capture = true;
+      }
     }
 
     protected override void OnMouseUp(MouseEventArgs e)
     {
       base.OnMouseUp(e);
-      // Handle mouse up event
-      // Position is relative to WavePanel
+
+      if ( e.Button == MouseButtons.Left && mIsPanning )
+      {
+        mIsPanning = false ;
+
+        this.Capture = false;
+      }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
       base.OnMouseMove(e);
-      // Handle mouse move event
-      // Position is relative to WavePanel
+
+      if ( e.Button == MouseButtons.Left && mIsPanning )
+      {
+        var p = e.Location;
+
+        var dx = p.X - mLastMousePos.X;
+
+        // translate dx pixels into sample offset change
+        var sampleDelta = -dx * ZoomPanController.SamplesPerPixel;
+
+        ZoomPanController.UpdateSS( MathX.Clamp(  ZoomPanController.StartSample + sampleDelta, 0, Signal.Length) ) ;
+
+        mLastMousePos = p;
+      }
     }
 
     protected override void OnMouseWheel(MouseEventArgs e)
@@ -243,7 +269,6 @@ namespace Transgraphier_1_0_App
 
       ZoomPanController.Update(lNewSamplesPerPixel, lNewStartSample);
 
-      //e.Handled = true;
     }
 
     DiscreteSignal mSignal = null ;
