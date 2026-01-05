@@ -29,15 +29,15 @@ public static class ConfigHelper
 
 public class Params
 {
-  Dictionary<string, string> mMap = null ;
+  public Dictionary<string, string> Map = null ;
 
-  public Params() { mMap = new Dictionary<string, string>() ; }
+  public Params() { Map = new Dictionary<string, string>() ; }
 
   public Params Copy()
   {
     Dictionary<string, string> lNewMap = new();
 
-    foreach( var kv in mMap )
+    foreach( var kv in Map )
       lNewMap.Add( kv.Key, kv.Value );
 
     return new Params( lNewMap );
@@ -69,14 +69,14 @@ public class Params
 
   public string Get( string aKey)
   {
-    return mMap.ContainsKey(aKey) ? mMap[aKey] : null; 
+    return Map.ContainsKey(aKey) ? Map[aKey] : null; 
   }
 
   public void Set( string aKey, string aValue )
   {
-    if ( !mMap.ContainsKey(aKey) )
-          mMap.Add(aKey, aValue);
-    else mMap[aKey] = aValue; 
+    if ( !Map.ContainsKey(aKey) )
+          Map.Add(aKey, aValue);
+    else Map[aKey] = aValue; 
   }
 
   static int? ToInt( string aS )
@@ -145,7 +145,7 @@ public class Params
 
   Params( Dictionary<string, string> aMap )  
   {
-    mMap = aMap;
+    Map = aMap;
   }
 
 }

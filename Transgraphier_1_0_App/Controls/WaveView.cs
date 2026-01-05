@@ -4,19 +4,17 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 
-using DIGITC2_ENGINE ;
+using DIGITC2_ENGINE;
 
-using NWaves.Signals ;
+using NWaves.Signals;
 
 namespace Transgraphier_1_0_App
 {
   public class WaveView : UserControl
   {
-    private Panel mContainerPanel;
-    private ConfigurationTableView mInfoBox;
+    private Label mTitle;
     private WavePanel mWavePanel;
-        private Panel innerContainer;
-        private Label mTitle;
+    private ConfigurationTableView mParameters ;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
@@ -32,23 +30,29 @@ namespace Transgraphier_1_0_App
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public Dictionary<string, string> InfoBoxData
+    public Dictionary<string, string> Parameters
     {
       get
       {
-        return mInfoBox.Data;
+        return mParameters.Data;
       }
       set
       {
-        mInfoBox.Data = value;
+        mParameters.Data = value;
       }
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public ZoomPanController ZoomPanController { get => mWavePanel.ZoomPanController; set => mWavePanel.ZoomPanController = value; }
+    public ZoomPanController ZoomPanController
+    {
+      get => mWavePanel.ZoomPanController; set => mWavePanel.ZoomPanController = value;
+    }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public DiscreteSignal Signal { get => mWavePanel.Signal; set => mWavePanel.Signal = value; }
+    public DiscreteSignal Signal
+    {
+      get => mWavePanel.Signal; set => mWavePanel.Signal = value;
+    }
 
     public WaveView()
     {
@@ -61,102 +65,90 @@ namespace Transgraphier_1_0_App
       mWavePanel.InvalidateRender();
     }
 
-        private void InitializeComponent()
-        {
-            mContainerPanel = new Panel();
-            innerContainer = new Panel();
-            mWavePanel = new WavePanel();
-            mInfoBox = new ConfigurationTableView();
-            mTitle = new Label();
-            mContainerPanel.SuspendLayout();
-            innerContainer.SuspendLayout();
-            SuspendLayout();
-            // 
-            // mContainerPanel
-            // 
-            mContainerPanel.BackColor = Color.Black;
-            mContainerPanel.Controls.Add(innerContainer);
-            mContainerPanel.Controls.Add(mTitle);
-            mContainerPanel.Dock = DockStyle.Fill;
-            mContainerPanel.Location = new Point(0, 0);
-            mContainerPanel.Name = "mContainerPanel";
-            mContainerPanel.Padding = new Padding(2);
-            mContainerPanel.Size = new Size(150, 100);
-            mContainerPanel.TabIndex = 0;
-            // 
-            // innerContainer
-            // 
-            innerContainer.BackColor = Color.White;
-            innerContainer.Controls.Add(mWavePanel);
-            innerContainer.Controls.Add(mInfoBox);
-            innerContainer.Dock = DockStyle.Fill;
-            innerContainer.Location = new Point(2, 27);
-            innerContainer.Name = "innerContainer";
-            innerContainer.Size = new Size(146, 71);
-            innerContainer.TabIndex = 0;
-            // 
-            // mWavePanel
-            // 
-            mWavePanel.Dock = DockStyle.Fill;
-            mWavePanel.Location = new Point(300, 0);
-            mWavePanel.Name = "mWavePanel";
-            mWavePanel.Size = new Size(0, 71);
-            mWavePanel.TabIndex = 0;
-            // 
-            // mInfoBox
-            // 
-            mInfoBox.Dock = DockStyle.Left;
-            mInfoBox.Location = new Point(0, 0);
-            mInfoBox.Name = "mInfoBox";
-            mInfoBox.Size = new Size(300, 71);
-            mInfoBox.TabIndex = 1;
-            // 
-            // mTitle
-            // 
-            mTitle.BackColor = Color.LightGray;
-            mTitle.Dock = DockStyle.Top;
-            mTitle.ForeColor = Color.Black;
-            mTitle.Location = new Point(2, 2);
-            mTitle.Name = "mTitle";
-            mTitle.Padding = new Padding(5, 0, 0, 0);
-            mTitle.Size = new Size(146, 25);
-            mTitle.TabIndex = 1;
-            mTitle.Text = "mTitle";
-            mTitle.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // WaveView
-            // 
-            Controls.Add(mContainerPanel);
-            Name = "WaveView";
-            Size = new Size(150, 100);
-            mContainerPanel.ResumeLayout(false);
-            innerContainer.ResumeLayout(false);
-            ResumeLayout(false);
-        }
+    private void InitializeComponent()
+    {
+      mTitle = new Label();
+      mWavePanel = new WavePanel();
+      mParameters = new ConfigurationTableView();
+
+      SuspendLayout();
+
+      Height = 250;
+
+      mTitle.BackColor = Color.LightGray;
+      mTitle.Dock = DockStyle.Top;
+      mTitle.ForeColor = Color.Black;
+      mTitle.Location = new Point(4, 2);
+      mTitle.Name = "mTitle";
+      mTitle.Padding = new Padding(5, 0, 0, 0);
+      mTitle.Height = 30 ;
+      mTitle.TabIndex = 1;
+      mTitle.Text = "mTitle";
+      mTitle.TextAlign = ContentAlignment.MiddleLeft;
+
+      Controls.Add(mTitle);
+
+      mWavePanel.Dock = DockStyle.Fill;
+      mWavePanel.Name = "mWavePanel";
+      mWavePanel.TabIndex = 0;
+      mWavePanel.Height = 200 ;
+      Controls.Add(mWavePanel);
+
+      Name = "WaveView";
+
+      ResumeLayout(false);
     }
+  }
 
   public class WavePanel : Control
   {
-    public ZoomPanController ZoomPanController = null ;
+    public WavePanel()
+    {
+      InitializeComponent();
+    }
+
+    private void InitializeComponent()
+    {
+      SuspendLayout();
+      Height = 165 ;
+      ResumeLayout(false);
+    }
+
+    public ZoomPanController ZoomPanController = null;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public DiscreteSignal Signal { get => mSignal; set { mSignal = value; InvalidateRender();  } }
+    public DiscreteSignal Signal
+    {
+      get => mSignal; set
+      {
+        mSignal = value;
+        InvalidateRender();
+      }
+    }
 
 
-    List<Point> Poly = null ;
-     
+    List<Point> Poly = null;
+
     public void InvalidateRender()
     {
-      Poly = null ;
-      Invalidate(); 
+      Poly = null;
+      Invalidate();
     }
 
     List<Point> GetPoly()
     {
-      if ( Poly == null )
+      if (Poly == null)
         CacheRender();
-      return Poly ;
+      return Poly;
     }
+
+    int LabelBase = 30 ;
+    int Margin     = 2 ;
+
+    int Bottom    => Height - Margin ;
+    int WaveH     => Height - LabelBase - ( Margin * 2 ) ;
+    int WaveHalfH => WaveH / 2 ;
+    int CenterY   => Bottom - WaveHalfH;
 
     void CacheRender()
     {
@@ -171,9 +163,6 @@ namespace Transgraphier_1_0_App
 
       // For each horizontal pixel compute min and max sample in that pixel column
 
-      int center = Height / 2;
-      int halfH  = Height / 2;
-
       Poly = new List<Point>();
 
       // Aggregate min/max per pixel
@@ -187,21 +176,21 @@ namespace Transgraphier_1_0_App
         if (sampleEnd < sampleStart)
           sampleEnd = sampleStart;
 
-        float lMin = signal[sampleStart] ;
-        float lMax = signal[sampleStart] ;
+        float lMin = signal[sampleStart];
+        float lMax = signal[sampleStart];
 
-        for (int s = sampleStart + 1 ; s <= sampleEnd; s++)
+        for (int s = sampleStart + 1; s <= sampleEnd; s++)
         {
           float v = signal[s];
-          if ( v < lMin)
+          if (v < lMin)
             lMin = v;
-          
-          if ( v > lMax)
+
+          if (v > lMax)
             lMax = v;
         }
 
-        Poly.Add( new Point( px, center - (int)Math.Ceiling(lMin * halfH) ) ) ;
-        Poly.Add( new Point( px, center - (int)Math.Ceiling(lMax * halfH) ) ) ;
+        Poly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
+        Poly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
       }
     }
 
@@ -210,14 +199,13 @@ namespace Transgraphier_1_0_App
       base.OnPaint(e);
 
       // background
-      e.Graphics.FillRectangle( Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
+      e.Graphics.FillRectangle(Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
 
       // center line
-      var center = Height / 2;
-      e.Graphics.DrawLine( Pens.Black, new Point(0, center), new Point(Width, center));
+      e.Graphics.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
 
       var lPoly = GetPoly();
-      if ( lPoly != null )
+      if (lPoly != null)
         e.Graphics.DrawLines(Pens.Blue, lPoly.ToArray());
     }
 
@@ -227,16 +215,16 @@ namespace Transgraphier_1_0_App
     }
 
     Point mLastMousePos;
-    bool  mIsPanning = false ;
+    bool mIsPanning = false;
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
       base.OnMouseDown(e);
 
-      if ( e.Button == MouseButtons.Left )
+      if (e.Button == MouseButtons.Left)
       {
-        mLastMousePos = e.Location; 
-        mIsPanning = true ;
+        mLastMousePos = e.Location;
+        mIsPanning = true;
 
         this.Capture = true;
       }
@@ -246,9 +234,9 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseUp(e);
 
-      if ( e.Button == MouseButtons.Left && mIsPanning )
+      if (e.Button == MouseButtons.Left && mIsPanning)
       {
-        mIsPanning = false ;
+        mIsPanning = false;
 
         this.Capture = false;
       }
@@ -258,7 +246,7 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseMove(e);
 
-      if ( e.Button == MouseButtons.Left && mIsPanning )
+      if (e.Button == MouseButtons.Left && mIsPanning)
       {
         var p = e.Location;
 
@@ -267,7 +255,7 @@ namespace Transgraphier_1_0_App
         // translate dx pixels into sample offset change
         var sampleDelta = -dx * ZoomPanController.SamplesPerPixel;
 
-        ZoomPanController.UpdateSS( MathX.Clamp(  ZoomPanController.StartSample + sampleDelta, 0, Signal.Length) ) ;
+        ZoomPanController.UpdateSS(MathX.Clamp(ZoomPanController.StartSample + sampleDelta, 0, Signal.Length));
 
         mLastMousePos = p;
       }
@@ -299,6 +287,6 @@ namespace Transgraphier_1_0_App
 
     }
 
-    DiscreteSignal mSignal = null ;
+    DiscreteSignal mSignal = null;
   }
 }
