@@ -12,6 +12,7 @@ namespace DIGITC2_ENGINE
 {
   public class PipelineResult
   {
+    public string      Folder         { get; set; }
     public string      Name           { get; set; }
     public TextMessage Text           { get; set; }
     public Fitness     OverallFitness { get; set; }
@@ -24,7 +25,7 @@ namespace DIGITC2_ENGINE
 
   public class PipelineResultBuilder  
   {
-    public PipelineResultBuilder( string aName ) { Name = aName; }
+    public PipelineResultBuilder( string aName, string aOutputFolder ) { Name = aName; OutputFolder = aOutputFolder ; }
 
     public void Add( Packet aPacket )
     {
@@ -60,6 +61,7 @@ namespace DIGITC2_ENGINE
     }
 
     readonly public string       Name ;
+    readonly public string       OutputFolder ;
     readonly public List<Packet> Packets = new List<Packet>();
   }
 
@@ -71,18 +73,17 @@ namespace DIGITC2_ENGINE
       Name            = aName;
     }
 
-    public void Save( string aFolder )
+    public void Save()
     {
       if (  PipelineResults.Count > 0 ) 
       {
-        string lResultsFolder = Path.Combine(aFolder, "Result");
-        Utils.SetupFolder( lResultsFolder ); 
-
         int lIdx = 0 ;
 
         foreach ( PipelineResult lPR in PipelineResults ) 
         {   
-          string lReportName = $"Result {lIdx} ({lPR.OverallFitness}).txt" ;
+          string lResultsFolder = lPR.Folder ;
+
+          string lReportName = $"Result.txt" ;
 
           string lReportPath = Path.Combine( lResultsFolder, lReportName ) ; 
 
@@ -100,7 +101,7 @@ namespace DIGITC2_ENGINE
           lPR.Scores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
           lReport.Add( "" ) ;
 
-          string lCollatedLogsName = $"Result {lIdx} - COMBINED LOG FILE.txt" ;
+          string lCollatedLogsName = $"COMBINED LOG FILE.txt" ;
           string lCollatedLogsPath = Path.Combine( lResultsFolder, lCollatedLogsName ) ; 
 
           lReport.Add( "Processing Sequence:" ) ;

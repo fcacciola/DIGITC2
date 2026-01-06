@@ -51,7 +51,7 @@ namespace Transgraphier_1_0_App
       mDataGridView.Columns.AddRange(new DataGridViewColumn[] { keyColumn, valueColumn });
       mDataGridView.Dock = DockStyle.Fill;
       mDataGridView.Location = new Point(0, 0);
-      mDataGridView.Name = "mDataGridView";
+      mDataGridView.Name = "ConfigurationTableView";
       mDataGridView.RowHeadersVisible = false;
       mDataGridView.Size = new Size(300, 150);
       mDataGridView.TabIndex = 0;

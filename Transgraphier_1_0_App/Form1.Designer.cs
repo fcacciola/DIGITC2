@@ -35,6 +35,7 @@
             statusTextBox = new TextBox();
             statusPanel = new Panel();
             resultsTextBox = new RichTextBox();
+            logTextBox = new RichTextBox();
             resultsPanel = new Panel();
             mInputWave = new WaveView();
             buttonPanel.SuspendLayout();
@@ -58,6 +59,7 @@
             loadButton.Size = new Size(100, 30);
             loadButton.TabIndex = 0;
             loadButton.Text = "LOAD";
+            loadButton.Click += LoadButton_Click;
             // 
             // processButton
             // 
@@ -66,6 +68,7 @@
             processButton.Size = new Size(100, 30);
             processButton.TabIndex = 1;
             processButton.Text = "PROCESS";
+            processButton.Click += ProcessButton_Click;
             // 
             // showButton
             // 
@@ -80,6 +83,7 @@
             // 
             resultsPanel.BackColor = Color.Black;
             resultsPanel.Controls.Add(resultsTextBox);
+            resultsPanel.Controls.Add(logTextBox);
             resultsPanel.Dock = DockStyle.Top;
             resultsPanel.Location = new Point(0, 50);
             resultsPanel.Name = "resultsPanel";
@@ -87,14 +91,24 @@
             resultsPanel.Size = new Size(1920, 300);
             resultsPanel.TabIndex = 3;
             // 
+            // logTextBox
+            // 
+            logTextBox.Dock = DockStyle.Left;
+            logTextBox.Name = "logTextBox";
+            logTextBox.ReadOnly = true;
+            logTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
+            logTextBox.Size = new Size(2000, 300);
+            logTextBox.TabIndex = 1;
+            logTextBox.Text = "";
+            // 
             // resultsTextBox
             // 
             resultsTextBox.Dock = DockStyle.Fill;
-            resultsTextBox.Location = new Point(2, 2);
             resultsTextBox.Name = "resultsTextBox";
             resultsTextBox.ReadOnly = true;
             resultsTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
-            resultsTextBox.Size = new Size(1916, 296);
+//            resultsTextBox.Size = new Size(500, 300);
+            resultsTextBox.Height = 300;
             resultsTextBox.TabIndex = 1;
             resultsTextBox.Text = "";
             // 
@@ -156,6 +170,7 @@
         private TextBox statusTextBox;
         private Panel resultsPanel;
         private RichTextBox resultsTextBox;
+        private RichTextBox logTextBox;
         private WaveView mInputWave;
     }
 }

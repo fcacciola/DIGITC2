@@ -61,11 +61,11 @@ public class Params
     return this;  
   }
 
-  public static Params FromFile( string aFile)
-  {
-    Params rParams = new() ;
-    return rParams.LoadFile(aFile);
-  }
+  //public static Params FromFile( string aFile)
+  //{
+  //  Params rParams = new() ;
+  //  return rParams.LoadFile(aFile);
+  //}
 
   public string Get( string aKey)
   {
@@ -152,11 +152,18 @@ public class Params
 
 public class Settings : Params
 {
+  public Settings() : base() {} 
+
   public static Settings FromFile( string aFile)
   {
     Settings rSettings = new Settings() ;
     rSettings.LoadFile( aFile ); 
     return rSettings;
+  }
+
+  public void Save( string aPath )
+  {
+
   }
 }
 

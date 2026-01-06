@@ -94,10 +94,15 @@ namespace Transgraphier_1_0_App
     public Form1()
     {
       InitializeComponent();
+    }
+
+    protected override void OnLoad(EventArgs e)
+    {
+      base.OnLoad(e);
 
       mMWGUI = new MainWindowGUI(this); 
 
-      mSettings = Settings.FromFile($"{InputFolder}\\Settings.txt");
+      mSettings = Settings.FromFile(SettingsFile);
 
       mSettings.Set("InputFolder" , InputFolder);  
       mSettings.Set("OutputFolder", OutputFolder);  
@@ -105,11 +110,21 @@ namespace Transgraphier_1_0_App
       if ( ! Directory.Exists( OutputFolder ))
         Directory.CreateDirectory( OutputFolder );  
 
-      mConfigs  = LoadConfigs();  
+      mConfigs = LoadConfigs();  
+
+      AddGeneralMessage("Transgraphier 1.0 started.");
+      AddGeneralMessage($"Input Folder: {InputFolder}.");
+      AddGeneralMessage($"Output Folder: {OutputFolder}.");
+      AddGeneralMessage($"Input WAV Samples Folder: {mSettings.GetPath("SamplesFolder") ?? InputFolder}.");
+      AddNewLine();
+      AddGeneralMessage($"Load an input WAV file, then click on PROCESS.");
+      AddGeneralMessage($"OR click SHOW to review results from an existing SESSION.");
+
     }
 
     static string InputFolder  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Input");
     static string OutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
+    static string SettingsFile = $"{InputFolder}\\Settings.txt";
 
     void SetupZoomPanController( DiscreteSignal aSignal)
     {
@@ -144,17 +159,100 @@ namespace Transgraphier_1_0_App
       return mConfigs[0].GetSection(aFilter).Map;
     }
 
-    void ShowSession( string aSession )
+
+    void LoadInput()
     {
-      mSessionsTabControl.Name = Path.GetFileNameWithoutExtension(aSession);
+      string lSamplesFolder = mSettings.GetPath("SamplesFolder") ?? InputFolder ;
 
-      AddGeneralMessage( $"Loading Session: [{aSession}]");
+      OpenFileDialog openFileDialog = new OpenFileDialog();
+      openFileDialog.InitialDirectory = lSamplesFolder;
+      openFileDialog.Filter = "Wave Files (*.wav)|*.wav";
+      openFileDialog.Title = "Select a Wave File";
+      openFileDialog.CheckFileExists = true;
 
-      mInputFile = Directory.GetFiles(aSession, "*.wav")[0];
+      if (openFileDialog.ShowDialog() == DialogResult.OK)
+      {
+        mInputFile = openFileDialog.FileName;
+
+        string lFolder = Path.GetDirectoryName(mInputFile);
+        if ( lFolder != lSamplesFolder )
+        {
+          mSettings.Set("SamplesFolder", lFolder );  
+          mSettings.Save(SettingsFile);
+        }
+
+        try
+        {
+
+          var lInputSignal = SignalLoader.LoadSignal(mInputFile);
+
+          SetupZoomPanController(lInputSignal);
+          mInputWave.Signal = lInputSignal;
+          mInputWave.Parameters = GetParameters("Input");
+          mInputWave.Title = "Input Signal";  
+          mInputWave.Height = 300;
+          mWaveViews.Clear();
+          mWaveViews.Add( mInputWave );
+
+          AddGeneralMessage($"Input Signal loaded: {mInputFile}");
+        }
+        catch (Exception ex)
+        {
+          AddErrorMessage($"Failed to load Input Signal: {mInputFile}");
+        }
+      }
+    }
+
+    void Process()
+    {
+      if ( mInputWave.Signal == null)
+      {
+        AddErrorMessage( "You must load an AUDIO file first.");
+        return;
+      }
+
+      var lSession = new Session(mInputFile, mSettings, mMWGUI);
+
+      DContext.Setup( lSession ) ;
+
+      try
+      {
+
+        AddGeneralMessage("Processing started...");
+
+        var lSignal = new WaveSignal(mInputWave.Signal) ;
+
+        var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
+
+        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfigs, lSignal);
+
+        File.Copy( mInputFile, $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav", true );
+
+        lResult.Save()  ;
+
+        AddGeneralMessage("Processing finished.");
+
+        ShowSessions();
+      }
+      catch (Exception ex)
+      {
+        AddErrorMessage($"Processing FAILED!!!: {ex}");
+      }
+
+      DContext.Shutdown(); 
+    }
+
+    void ShowSession( string aSessionFolder )
+    {
+      mSessionsTabControl.Name = Path.GetFileNameWithoutExtension(aSessionFolder);
+
+      AddGeneralMessage( $"Loading Session: [{aSessionFolder}]");
+
+      mInputFile = Directory.GetFiles(aSessionFolder, "*.wav").FirstOrDefault();
 
       if ( mInputFile == null )
       {
-        AddErrorMessage($"Input file not found in session: [{aSession}]");
+        AddErrorMessage($"Input file not found in session: [{aSessionFolder}]");
         return;
       }
 
@@ -164,10 +262,11 @@ namespace Transgraphier_1_0_App
       mInputWave.Parameters = GetParameters("Input");
       mInputWave.Title = "Input Signal";  
       mInputWave.Height = 300;
+      mWaveViews.Clear();
       mWaveViews.Add( mInputWave );
 
       // Create a scrollable container for the tab content
-      var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSession) };
+      var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSessionFolder) };
       
       Panel scrollPanel = new Panel();
       scrollPanel.Dock = DockStyle.Fill;
@@ -183,7 +282,33 @@ namespace Transgraphier_1_0_App
       mSessionsTabControl.TabPages.Add(lRootTab);
 
       var lResultFolderSequence = new List<string>();
-      var lCurrFolder = $"{aSession}\\Pipeline_0";
+      var lCurrFolder = $"{aSessionFolder}\\Pipeline_0";
+
+      string lMessageFile = $"{lCurrFolder}\\Message.txt";
+      string lResultFile = $"{lCurrFolder}\\Result.txt"; 
+
+      if ( File.Exists(lMessageFile))
+      {
+        var lMessage = File.ReadAllText(lMessageFile);  
+
+        AddDecodedMessage(lMessage);
+      }
+      else
+      {
+        AddEmptyDecodedMessage();
+      }
+
+      if ( File.Exists(lResultFile))
+      {
+        var lMainResultText = File.ReadAllLines(lResultFile);
+        foreach( var lRLine in lMainResultText )
+          AddGeneralMessage(lRLine);
+      }
+      else
+      {
+        AddErrorMessage($"Main result file not found: {lResultFile}");
+      }
+
       while (true)
       {
         lResultFolderSequence.Add(lCurrFolder);
@@ -301,6 +426,17 @@ namespace Transgraphier_1_0_App
 
       AddGeneralMessage( $"Loading results from: [{OutputFolder}]");
 
+      try
+      {
+        //string textContent = File.ReadAllText(lTextResult);
+        //resultsTextBox.Text = textContent;
+      }
+      catch (Exception ex)
+      {
+        //AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
+      }
+
+
       var lSessions = Directory.GetDirectories(OutputFolder).OrderBy(d => d);
 
       if ( lSessions.Count() == 0 )
@@ -317,41 +453,71 @@ namespace Transgraphier_1_0_App
        this.BeginInvoke( aAction );
     }
 
-    private void AddMessage(string aMessage, Color color, FontStyle style = FontStyle.Regular, bool aNewLine = true )
+    private void AddMessage(string aMessage, Color color, FontStyle style, bool aNewLine,  RichTextBox aTextBox )
     {
       AsyncInvokeAction( () 
                     => 
                     { 
-                        resultsTextBox.SelectionStart = resultsTextBox.TextLength;
-                        resultsTextBox.SelectionLength = 0;
-                        resultsTextBox.SelectionColor = color;
-                        resultsTextBox.SelectionFont = new Font(resultsTextBox.Font, style);
-                        resultsTextBox.AppendText(aMessage + (aNewLine ? Environment.NewLine : ""));
-                        resultsTextBox.ScrollToCaret(); // This scrolls to bottom
-                        resultsTextBox.Invalidate();
+                        aTextBox.SelectionStart = aTextBox.TextLength;
+                        aTextBox.SelectionLength = 0;
+                        aTextBox.SelectionColor = color;
+                        aTextBox.SelectionFont = new Font(aTextBox.Font, style);
+                        aTextBox.AppendText(aMessage + (aNewLine ? Environment.NewLine : ""));
+                        aTextBox.ScrollToCaret(); // This scrolls to bottom
+                        aTextBox.Invalidate();
+                        aTextBox.Refresh(); 
                     });
-      this.Invalidate();
+      //this.Invalidate();
+      //this.Refresh(); 1
    }
 
     public void AddGeneralMessage( string aMsg, bool aNewLine = true )
     {
-      AddMessage( aMsg, Color.Black, FontStyle.Regular, aNewLine ) ;
+      AddMessage( aMsg, Color.Black, FontStyle.Regular, aNewLine, logTextBox ) ;
     }
 
     public void AddErrorMessage( string aMsg, bool aNewLine = true )
     {
-      AddMessage("ERROR: " + aMsg, Color.Red, FontStyle.Bold, aNewLine ) ;
+      AddMessage("ERROR: " + aMsg, Color.Red, FontStyle.Bold, aNewLine, logTextBox ) ;
     }
 
     public void AddLogMessage( string aMsg, bool aNewLine = true )
     {
-      AddMessage( aMsg, Color.Blue, FontStyle.Regular, aNewLine ) ;
+      AddMessage( aMsg, Color.Blue, FontStyle.Regular, aNewLine, logTextBox ) ;
+    }
+
+    public void AddDecodedMessage( string aMsg, bool aNewLine = true )
+    {
+      AddMessage( "DECODED TEXT:" + Environment.NewLine, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
+
+      AddMessage( aMsg, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
+    }
+
+    public void AddEmptyDecodedMessage()
+    {
+      AddMessage( ">>> NO MESSAGE COULD BE DECODED <<<", Color.DarkOliveGreen, FontStyle.Italic, true, this.resultsTextBox ) ;
+    }
+
+    public void AddNewLine()
+    {
+      AddMessage( "", Color.Black, FontStyle.Regular, true, logTextBox ) ;
+    }
+
+    private void LoadButton_Click(object sender, EventArgs e)
+    {
+      LoadInput();
+    }
+
+    private void ProcessButton_Click(object sender, EventArgs e)
+    {
+      Process();
     }
 
     private void ShowButton_Click(object sender, EventArgs e)
     {
       ShowSessions();
     }
+
 
   }
 }

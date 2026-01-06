@@ -142,13 +142,13 @@ namespace Transgraphier_1_0_App
       return Poly;
     }
 
-    int LabelBase = 30 ;
-    int Margin     = 2 ;
+    const int LabelH  = 30 ;
+    const int MarginS = 2 ;
 
-    int Bottom    => Height - Margin ;
-    int WaveH     => Height - LabelBase - ( Margin * 2 ) ;
+    int BottomY   => Height - MarginS ;
+    int WaveH     => Height - LabelH - ( MarginS * 2 ) ;
     int WaveHalfH => WaveH / 2 ;
-    int CenterY   => Bottom - WaveHalfH;
+    int CenterY   => BottomY - WaveHalfH;
 
     void CacheRender()
     {

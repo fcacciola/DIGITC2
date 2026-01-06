@@ -53,9 +53,10 @@ public class Processor
 
         aSession.GotoBucket(lPipeline.StartBucket);
         aSession.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
-
+        string lPipelineFolder = aSession.CurrentBucket().FullOutputFolder; 
+        aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
-
+        lPipelineResult.Folder = lPipelineFolder; 
         rPipelineResults.Add(lPipelineResult) ; 
 
         if ( lPipelineResult.OverallFitness == Fitness.PERFECT )

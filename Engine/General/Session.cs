@@ -43,9 +43,10 @@ namespace DIGITC2_ENGINE
 
   public class Session
   {
-    public Session( string aName, Settings aSettings, GUI aGUI )
+    public Session( string aInputFile, Settings aSettings, GUI aGUI )
     {
-      Name             = aName ;
+      InputFile        = aInputFile ;
+      Name             = Path.GetFileNameWithoutExtension(InputFile) ;
       Settings         = aSettings;
       GUI              = aGUI;  
       InputFolder      = aSettings.GetPath("InputFolder");  
@@ -148,6 +149,7 @@ namespace DIGITC2_ENGINE
 
     public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
 
+    public string   InputFile ;
     public string   Name ;
     public Settings Settings ;
     public GUI      GUI ;
@@ -155,6 +157,7 @@ namespace DIGITC2_ENGINE
     public string   BaseFolder ;
     public string   InputFolder ;
     public string   RootOutputFolder ;
+    public string   CurrentPipelineFolder;
     public string   CurrentOutputFolder ;
 
     Stack<OutputBucket> mBuckets = new Stack<OutputBucket>();

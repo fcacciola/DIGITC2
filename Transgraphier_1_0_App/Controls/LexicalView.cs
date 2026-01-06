@@ -85,7 +85,7 @@ namespace Transgraphier_1_0_App
       Controls.Add(mTitle);
 
       mParameters.Dock = DockStyle.Right;
-      mParameters.Name  = "mInfoBox";
+      mParameters.Name  = "mParameters";
       mParameters.Width = 300;
       mParameters.TabIndex = 1;
       Controls.Add(mParameters);

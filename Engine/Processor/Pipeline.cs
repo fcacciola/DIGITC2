@@ -47,7 +47,7 @@ public class Pipeline
 
   public PipelineResult Process( Processor aProcessor )
   {
-    PipelineResultBuilder rRB = new PipelineResultBuilder(Name) ;  
+    PipelineResultBuilder rRB = new PipelineResultBuilder(Name, DContext.Session.CurrentOutputFolder) ;  
 
     mFilterIdx = 0  ;
 
