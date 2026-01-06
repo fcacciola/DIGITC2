@@ -90,6 +90,7 @@ namespace Transgraphier_1_0_App
     string        mInputFile = null ; 
     MainWindowGUI mMWGUI     = null; 
     WaveViews     mWaveViews = new WaveViews();
+    private RichTextBox mTextPanel;
 
     public Form1()
     {
@@ -360,7 +361,7 @@ namespace Transgraphier_1_0_App
           lLexicalView.Invalidate();
           lLexicalView.Refresh();
         }
-        catch (Exception ex)
+        catch (Exception ex) 
         {
           AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
         }

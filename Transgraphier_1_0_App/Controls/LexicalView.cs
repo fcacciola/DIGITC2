@@ -11,119 +11,99 @@ namespace Transgraphier_1_0_App
   public class LexicalView : UserControl
   {
     private Label mTitle;
-    private TextBox mTextPanel;
+    private RichTextBox mTextPanel;
     private ConfigurationTableView mParameters;
+    private TableLayoutPanel mTableLayout;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
     {
-      get
-      {
-        return mTitle.Text;
-      }
-      set
-      {
-        mTitle.Text = value;
-      }
+        get => mTitle.Text;
+        set => mTitle.Text = value;
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Dictionary<string, string> Parameters
     {
-      get
-      {
-        return mParameters.Data;
-      }
-      set
-      {
-        mParameters.Data = value;
-      }
+        get => mParameters.Data;
+        set => mParameters.Data = value;
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string TextContent
     {
-      get
-      {
-        return mTextPanel.Text;
-      }
-      set
-      {
-        mTextPanel.Text = value;
-
-        // Move cursor to the end
-        if (value.Length > 0)
+        get => mTextPanel.Text;
+        set
         {
-          mTextPanel.SelectionStart = value.Length;
-          mTextPanel.SelectionLength = 0;
-          mTextPanel.ScrollToCaret();
+            mTextPanel.Text = value;
+            if (value.Length > 0)
+            {
+                mTextPanel.SelectionStart = value.Length;
+                mTextPanel.SelectionLength = 0;
+                mTextPanel.ScrollToCaret();
+            }
+            mTextPanel.Invalidate();
+            mTextPanel.Update();
         }
-        // Force the text box to update and scroll to the end
-        mTextPanel.Invalidate();
-        mTextPanel.Update();
-      }
     }
 
     public LexicalView()
     {
-      InitializeComponent();
+        InitializeComponent();
     }
 
     private void InitializeComponent()
     {
-      mTitle = new Label();
-      mTextPanel = new TextBox();
-      mParameters = new ConfigurationTableView();
+           mTitle = new Label();
+        mTextPanel = new RichTextBox();
+        mParameters = new ConfigurationTableView();
+        mTableLayout = new TableLayoutPanel();
 
-      SuspendLayout();
+        SuspendLayout();
 
-      Height = 300;
-      BackColor = Color.White;
+        Height = 300;
+        BackColor = Color.White;
 
-      // 
-      // mTitle
-      // 
-      mTitle.BackColor = Color.LightGray;
-      mTitle.Dock = DockStyle.Top;
-      mTitle.ForeColor = Color.Black;
-      mTitle.Name = "mTitle";
-      mTitle.Padding = new Padding(5, 0, 0, 0);
-      mTitle.Height = 30;
-      mTitle.TabIndex = 0;
-      mTitle.Text = "mTitle";
-      mTitle.TextAlign = ContentAlignment.MiddleLeft;
-      Controls.Add(mTitle);
+        // TableLayoutPanel setup
+        mTableLayout.ColumnCount = 2;
+        mTableLayout.RowCount = 2;
+        mTableLayout.Dock = DockStyle.Fill;
+        mTableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30F)); // Title row
+        mTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Main content row
+        mTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // TextPanel column
+        mTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 360F)); // Parameters column
 
-      // 
-      // mParameters (right side, fixed width)
-      // 
-      mParameters.Dock = DockStyle.Right;
-      mParameters.Name = "mParameters";
-      mParameters.Width = 360;
-      mParameters.Height = 300;
-      mParameters.TabIndex = 1;
-      Controls.Add(mParameters);
+        // mTitle
+        mTitle.Text = "mTitle";
+        mTitle.Dock = DockStyle.Fill;
+        mTitle.BackColor = Color.LightGray;
+        mTitle.ForeColor = Color.Black;
+        mTitle.TextAlign = ContentAlignment.MiddleLeft;
+        mTitle.Padding = new Padding(5, 0, 0, 0);
+        mTitle.Height = 30;
 
-      // 
-      // mTextPanel (fills remaining space)
-      // 
-      mTextPanel.Dock = DockStyle.Left;
-      mTextPanel.Name = "mTextPanel";
-      mTextPanel.ReadOnly = true;
-      mTextPanel.Multiline = true;
-      mTextPanel.ScrollBars = ScrollBars.Both;
-      mTextPanel.BorderStyle = BorderStyle.Fixed3D;
-      mTextPanel.TabIndex = 2;
-      mTextPanel.WordWrap = false;
-      mTextPanel.AcceptsTab = false;
-      mTextPanel.HideSelection = false;
-      mTextPanel.Width = 1000 ; //this.Width - mParameters.Width - 50 ;
-      mTextPanel.Height = 300;
-      Controls.Add(mTextPanel);
+        // mTextPanel
+        mTextPanel.Multiline = true;
+        mTextPanel.ReadOnly = true;
+        mTextPanel.ScrollBars = RichTextBoxScrollBars.Vertical;
+        mTextPanel.BorderStyle = BorderStyle.Fixed3D;
+        mTextPanel.WordWrap = false;
+        mTextPanel.Dock = DockStyle.Fill;
 
-      Name = "LexicalView";
-      ResumeLayout(false);
-      PerformLayout();
+        // mParameters
+        mParameters.Dock = DockStyle.Fill;
+
+        // Add controls to TableLayoutPanel
+        mTableLayout.Controls.Add(mTitle, 0, 0);
+        mTableLayout.SetColumnSpan(mTitle, 2);
+        mTableLayout.Controls.Add(mTextPanel, 0, 1);
+        mTableLayout.Controls.Add(mParameters, 1, 1);
+
+        Controls.Add(mTableLayout);
+
+        Name = "LexicalView";
+        ResumeLayout(false);
+        PerformLayout();
     }
   }
 }
