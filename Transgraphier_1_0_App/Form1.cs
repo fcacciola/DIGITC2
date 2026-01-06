@@ -268,18 +268,17 @@ namespace Transgraphier_1_0_App
       // Create a scrollable container for the tab content
       var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSessionFolder) };
       
+      mSessionsTabControl.TabPages.Add(lRootTab);
+
       Panel scrollPanel = new Panel();
       scrollPanel.Dock = DockStyle.Fill;
       scrollPanel.AutoScroll = true;
+      lRootTab.Controls.Add(scrollPanel);
       
       Panel contentPanel = new Panel();
       contentPanel.Dock = DockStyle.Top;
       contentPanel.Width = scrollPanel.Width;
-      
       scrollPanel.Controls.Add(contentPanel);
-      lRootTab.Controls.Add(scrollPanel);
-      
-      mSessionsTabControl.TabPages.Add(lRootTab);
 
       var lResultFolderSequence = new List<string>();
       var lCurrFolder = $"{aSessionFolder}\\Pipeline_0";
@@ -350,6 +349,7 @@ namespace Transgraphier_1_0_App
         LexicalView lLexicalView = new LexicalView();
         lLexicalView.Location = new Point(0, currentY);
         lLexicalView.Width = scrollPanel.Width;
+        lLexicalView.Height = 300;
         lLexicalView.Title = lSessionResult.FilterName;
         lLexicalView.Parameters = GetParameters(lSessionResult.FilterName);
 
@@ -357,6 +357,8 @@ namespace Transgraphier_1_0_App
         {
           string textContent = File.ReadAllText(lTextResult);
           lLexicalView.TextContent = textContent;
+          lLexicalView.Invalidate();
+          lLexicalView.Refresh();
         }
         catch (Exception ex)
         {
@@ -375,6 +377,7 @@ namespace Transgraphier_1_0_App
           WaveView lWaveView = new WaveView();
           lWaveView.Location = new Point(0, currentY);
           lWaveView.Width = scrollPanel.Width;
+          lWaveView.Height = 150;
           lWaveView.Title = lWaveFilename;
           lWaveView.Parameters = GetParameters(lSessionResult.FilterName);
 
@@ -448,27 +451,18 @@ namespace Transgraphier_1_0_App
       ShowSession( lSessions.First() ); 
     }
 
-    public void AsyncInvokeAction(Action aAction)
-    {
-       this.BeginInvoke( aAction );
-    }
-
     private void AddMessage(string aMessage, Color color, FontStyle style, bool aNewLine,  RichTextBox aTextBox )
     {
-      AsyncInvokeAction( () 
-                    => 
-                    { 
-                        aTextBox.SelectionStart = aTextBox.TextLength;
-                        aTextBox.SelectionLength = 0;
-                        aTextBox.SelectionColor = color;
-                        aTextBox.SelectionFont = new Font(aTextBox.Font, style);
-                        aTextBox.AppendText(aMessage + (aNewLine ? Environment.NewLine : ""));
-                        aTextBox.ScrollToCaret(); // This scrolls to bottom
-                        aTextBox.Invalidate();
-                        aTextBox.Refresh(); 
-                    });
-      //this.Invalidate();
-      //this.Refresh(); 1
+      aTextBox.SelectionStart = aTextBox.TextLength;
+      aTextBox.SelectionLength = 0;
+      aTextBox.SelectionColor = color;
+      aTextBox.SelectionFont = new Font(aTextBox.Font, style);
+      aTextBox.AppendText(aMessage + (aNewLine ? Environment.NewLine : ""));
+      aTextBox.ScrollToCaret(); // This scrolls to bottom
+      aTextBox.Invalidate();
+      aTextBox.Refresh(); 
+      resultsPanel.Invalidate();
+      resultsPanel.Refresh ();
    }
 
     public void AddGeneralMessage( string aMsg, bool aNewLine = true )
@@ -488,7 +482,7 @@ namespace Transgraphier_1_0_App
 
     public void AddDecodedMessage( string aMsg, bool aNewLine = true )
     {
-      AddMessage( "DECODED TEXT:" + Environment.NewLine, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
+      AddMessage( "DECODED TEXT:" + Environment.NewLine, Color.Black, FontStyle.Regular, aNewLine, this.resultsTextBox ) ;
 
       AddMessage( aMsg, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
     }

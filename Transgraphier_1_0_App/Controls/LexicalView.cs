@@ -50,6 +50,17 @@ namespace Transgraphier_1_0_App
       set
       {
         mTextPanel.Text = value;
+
+        // Move cursor to the end
+        if (value.Length > 0)
+        {
+          mTextPanel.SelectionStart = value.Length;
+          mTextPanel.SelectionLength = 0;
+          mTextPanel.ScrollToCaret();
+        }
+        // Force the text box to update and scroll to the end
+        mTextPanel.Invalidate();
+        mTextPanel.Update();
       }
     }
 
@@ -66,7 +77,8 @@ namespace Transgraphier_1_0_App
 
       SuspendLayout();
 
-      Height = 400;
+      Height = 300;
+      BackColor = Color.White;
 
       // 
       // mTitle
@@ -74,32 +86,44 @@ namespace Transgraphier_1_0_App
       mTitle.BackColor = Color.LightGray;
       mTitle.Dock = DockStyle.Top;
       mTitle.ForeColor = Color.Black;
-      mTitle.Location = new Point(4, 2);
       mTitle.Name = "mTitle";
       mTitle.Padding = new Padding(5, 0, 0, 0);
-      mTitle.Height = 30 ;
-      mTitle.TabIndex = 1;
+      mTitle.Height = 30;
+      mTitle.TabIndex = 0;
       mTitle.Text = "mTitle";
       mTitle.TextAlign = ContentAlignment.MiddleLeft;
-
       Controls.Add(mTitle);
 
+      // 
+      // mParameters (right side, fixed width)
+      // 
       mParameters.Dock = DockStyle.Right;
-      mParameters.Name  = "mParameters";
-      mParameters.Width = 300;
+      mParameters.Name = "mParameters";
+      mParameters.Width = 360;
+      mParameters.Height = 300;
       mParameters.TabIndex = 1;
       Controls.Add(mParameters);
 
-      mTextPanel.Dock = DockStyle.Fill;
+      // 
+      // mTextPanel (fills remaining space)
+      // 
+      mTextPanel.Dock = DockStyle.Left;
       mTextPanel.Name = "mTextPanel";
       mTextPanel.ReadOnly = true;
       mTextPanel.Multiline = true;
-      mTextPanel.ScrollBars = ScrollBars.Vertical;
-      mTextPanel.TabIndex = 0;
+      mTextPanel.ScrollBars = ScrollBars.Both;
+      mTextPanel.BorderStyle = BorderStyle.Fixed3D;
+      mTextPanel.TabIndex = 2;
+      mTextPanel.WordWrap = false;
+      mTextPanel.AcceptsTab = false;
+      mTextPanel.HideSelection = false;
+      mTextPanel.Width = 1000 ; //this.Width - mParameters.Width - 50 ;
+      mTextPanel.Height = 300;
       Controls.Add(mTextPanel);
 
       Name = "LexicalView";
       ResumeLayout(false);
+      PerformLayout();
     }
   }
 }

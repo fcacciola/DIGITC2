@@ -127,7 +127,7 @@ namespace Transgraphier_1_0_App
     }
 
 
-    List<Point> Poly = null;
+    Point[] Poly = null;
 
     public void InvalidateRender()
     {
@@ -135,7 +135,7 @@ namespace Transgraphier_1_0_App
       Invalidate();
     }
 
-    List<Point> GetPoly()
+    Point[] GetPoly()
     {
       if (Poly == null)
         CacheRender();
@@ -163,7 +163,7 @@ namespace Transgraphier_1_0_App
 
       // For each horizontal pixel compute min and max sample in that pixel column
 
-      Poly = new List<Point>();
+      var lPoly = new List<Point>();
 
       // Aggregate min/max per pixel
       for (int px = 0; px < Width; px++)
@@ -189,9 +189,11 @@ namespace Transgraphier_1_0_App
             lMax = v;
         }
 
-        Poly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
-        Poly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
+        lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
+        lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
       }
+
+      Poly = lPoly.ToArray();
     }
 
     protected override void OnPaint(PaintEventArgs e)
