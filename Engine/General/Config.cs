@@ -148,6 +148,8 @@ public class Params
     Map = aMap;
   }
 
+
+
 }
 
 public class Settings : Params
@@ -161,9 +163,15 @@ public class Settings : Params
     return rSettings;
   }
 
-  public void Save( string aPath )
+  public void Save( string aFilename )
   {
+    var lLines = new List<string>();
+    foreach( var lEntryKV in Map )
+    {
+      lLines.Add( $"{lEntryKV.Key}={lEntryKV.Value}" );
+    }
 
+    File.WriteAllLines( aFilename, lLines );
   }
 }
 
@@ -220,6 +228,20 @@ public class Config
       mSections.Add( aSection, new Params() );
 
     return mSections[aSection];
+  }
+
+  public void Save( string aFilename )
+  {
+    var lLines = new List<string>();
+    foreach( var lSectionKV in mSections )
+    {
+      foreach( var lEntryKV in lSectionKV.Value.Map )
+      {
+        lLines.Add( $"{lSectionKV.Key}_{lEntryKV.Key}={lEntryKV.Value}" );
+      }
+    }
+
+    File.WriteAllLines( aFilename, lLines );
   }
 
   Config( Dictionary<string,Params> aSections ) { mSections= aSections; } 

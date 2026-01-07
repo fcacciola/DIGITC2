@@ -43,10 +43,10 @@ namespace DIGITC2_ENGINE
 
   public class Session
   {
-    public Session( string aInputFile, Settings aSettings, GUI aGUI )
+    public Session( string aInputFile, string aName, Settings aSettings, GUI aGUI )
     {
       InputFile        = aInputFile ;
-      Name             = Path.GetFileNameWithoutExtension(InputFile) ;
+      Name             = aName;
       Settings         = aSettings;
       GUI              = aGUI;  
       InputFolder      = aSettings.GetPath("InputFolder");  

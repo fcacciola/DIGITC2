@@ -18,7 +18,7 @@ namespace Transgraphier_1_0_App
 
     public override void AddMessage     ( string aMsg ) => mMainWindow.AddGeneralMessage(aMsg,true);
     public override void AddErrorMessage( string aMsg ) => mMainWindow.AddErrorMessage  (aMsg,true);
-
+   
     Form1 mMainWindow; 
   }
 
@@ -86,11 +86,12 @@ namespace Transgraphier_1_0_App
   {
     TabControl    mSessionsTabControl;
     Settings      mSettings  = null ;
-    List<Config>  mConfigs   = null ;
+    Config        mConfig    = null ;
+    string        mConfigFile = null ;
     string        mInputFile = null ; 
+    string        mSessionName = null ;
     MainWindowGUI mMWGUI     = null; 
     WaveViews     mWaveViews = new WaveViews();
-    private RichTextBox mTextPanel;
 
     public Form1()
     {
@@ -111,7 +112,7 @@ namespace Transgraphier_1_0_App
       if ( ! Directory.Exists( OutputFolder ))
         Directory.CreateDirectory( OutputFolder );  
 
-      mConfigs = LoadConfigs();  
+      mConfig = LoadConfig();  
 
       AddGeneralMessage("Transgraphier 1.0 started.");
       AddGeneralMessage($"Input Folder: {InputFolder}.");
@@ -141,27 +142,50 @@ namespace Transgraphier_1_0_App
       mInputWave.ZoomPanController = lZPC; 
     }
 
-    static List<Config> LoadConfigs()
+    Config LoadConfig()
     {
-      List<Config> rR = new List<Config>();  
-      string[] lFiles = Directory.GetFiles(InputFolder, "Config_*.txt");
+      mConfigFile = Directory.GetFiles(InputFolder, "Config_*.txt").FirstOrDefault();
 
-      foreach( var lFile in lFiles)
-      {
-        var lConfig = Config.FromFile(lFile); 
-        if ( lConfig != null )  
-          rR.Add(lConfig);  
-      }
-      return rR;  
+      var rConfig = Config.FromFile(mConfigFile); 
+
+      return rConfig;  
     }
 
     Dictionary<string,string> GetParameters( string aFilter )
     {
-      return mConfigs[0].GetSection(aFilter).Map;
+      return mConfig.GetSection(aFilter).Map;
     }
 
 
-    void LoadInput()
+    void LoadInputFile()
+    {
+      try
+      {
+        var lInputSignal = SignalLoader.LoadSignal(mInputFile);
+
+        SetupZoomPanController(lInputSignal);
+        mInputWave.Signal = lInputSignal;
+        mInputWave.Parameters = GetParameters("Input");
+        mInputWave.Title = "Input Signal";  
+        mInputWave.Height = 300;
+        mWaveViews.Clear();
+        mWaveViews.Add( mInputWave );
+
+        AddGeneralMessage($"Input Signal loaded: {mInputFile}");
+
+        mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
+        this.sessionName.Text = mSessionName;
+        this.sessionName.Enabled = true;
+        this.processButton .Enabled = true; 
+      }
+      catch (Exception ex)
+      {
+        AddErrorMessage($"Failed to load Input Signal: {mInputFile}");
+      }
+
+    }
+
+    void LoadEVP()
     {
       string lSamplesFolder = mSettings.GetPath("SamplesFolder") ?? InputFolder ;
 
@@ -182,25 +206,24 @@ namespace Transgraphier_1_0_App
           mSettings.Save(SettingsFile);
         }
 
-        try
+        LoadInputFile();
+
+        string lSessionName = Path.GetFileNameWithoutExtension(mInputFile);
+
+        this.sessionName.Text = lSessionName; 
+
+        mSessionName = lSessionName ;
+
+        string lSessionFolder = $"{OutputFolder}\\{mSessionName}";  
+
+        bool lSessionExists =  Directory.Exists( lSessionFolder );
+
+        if ( lSessionExists )
         {
-
-          var lInputSignal = SignalLoader.LoadSignal(mInputFile);
-
-          SetupZoomPanController(lInputSignal);
-          mInputWave.Signal = lInputSignal;
-          mInputWave.Parameters = GetParameters("Input");
-          mInputWave.Title = "Input Signal";  
-          mInputWave.Height = 300;
-          mWaveViews.Clear();
-          mWaveViews.Add( mInputWave );
-
-          AddGeneralMessage($"Input Signal loaded: {mInputFile}");
+          AddGeneralMessage($"Session folder already exists: [{lSessionFolder}]");
+          processButton.Text = "Re-Process";
         }
-        catch (Exception ex)
-        {
-          AddErrorMessage($"Failed to load Input Signal: {mInputFile}");
-        }
+
       }
     }
 
@@ -212,7 +235,7 @@ namespace Transgraphier_1_0_App
         return;
       }
 
-      var lSession = new Session(mInputFile, mSettings, mMWGUI);
+      var lSession = new Session(mInputFile, mSessionName, mSettings, mMWGUI);
 
       DContext.Setup( lSession ) ;
 
@@ -234,6 +257,11 @@ namespace Transgraphier_1_0_App
         AddGeneralMessage("Processing finished.");
 
         ShowSessions();
+
+        File.WriteAllText( $"{OutputFolder}\\LastSession.txt", mSessionName );
+
+        this.ExportButton.Enabled = true;
+        this.LoadLastSessionButton.Enabled = true;
       }
       catch (Exception ex)
       {
@@ -257,14 +285,7 @@ namespace Transgraphier_1_0_App
         return;
       }
 
-      var lInputSignal = SignalLoader.LoadSignal(mInputFile);
-      SetupZoomPanController(lInputSignal);
-      mInputWave.Signal = lInputSignal;
-      mInputWave.Parameters = GetParameters("Input");
-      mInputWave.Title = "Input Signal";  
-      mInputWave.Height = 300;
-      mWaveViews.Clear();
-      mWaveViews.Add( mInputWave );
+      LoadInputFile();
 
       // Create a scrollable container for the tab content
       var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSessionFolder) };
@@ -347,7 +368,7 @@ namespace Transgraphier_1_0_App
        string lTextResult = lSessionResult.TextResultFileName;
 
         // Create LexicalView for this file
-        LexicalView lLexicalView = new LexicalView();
+        LexicalView lLexicalView = new LexicalView(this);
         lLexicalView.Location = new Point(0, currentY);
         lLexicalView.Width = scrollPanel.Width;
         lLexicalView.Height = 300;
@@ -430,17 +451,6 @@ namespace Transgraphier_1_0_App
 
       AddGeneralMessage( $"Loading results from: [{OutputFolder}]");
 
-      try
-      {
-        //string textContent = File.ReadAllText(lTextResult);
-        //resultsTextBox.Text = textContent;
-      }
-      catch (Exception ex)
-      {
-        //AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
-      }
-
-
       var lSessions = Directory.GetDirectories(OutputFolder).OrderBy(d => d);
 
       if ( lSessions.Count() == 0 )
@@ -498,21 +508,53 @@ namespace Transgraphier_1_0_App
       AddMessage( "", Color.Black, FontStyle.Regular, true, logTextBox ) ;
     }
 
-    private void LoadButton_Click(object sender, EventArgs e)
+
+    public void ParametersChanged()
     {
-      LoadInput();
+      this.SaveNewParamsButton.Enabled     = true;
+      this.RestoreOldParamsButton.Enabled  = true;
     }
 
-    private void ProcessButton_Click(object sender, EventArgs e)
+    private void LoadEVP_Click(object sender, EventArgs e)
+    {
+      LoadEVP();
+    }
+
+    private void Process_Click(object sender, EventArgs e)
     {
       Process();
     }
 
-    private void ShowButton_Click(object sender, EventArgs e)
+    private void LoadLastSession_Click(object sender, EventArgs e)
     {
       ShowSessions();
     }
 
+    private void Import_Click(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Export_Click(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void LoadSession_Click(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RestoreOldParameters_Click(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void SaveNewParameters_Click(object sender, EventArgs e)
+    {
+      mConfig.Save(mConfigFile);
+    }
 
   }
+
 }

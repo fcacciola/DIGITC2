@@ -8,6 +8,7 @@ namespace Transgraphier_1_0_App
 {
   public class ConfigurationTableView : UserControl
   {
+    private Form1 mMainWindow;
     private DataGridView mDataGridView;
     private DataGridViewTextBoxColumn keyColumn;
     private DataGridViewTextBoxColumn valueColumn;
@@ -27,8 +28,10 @@ namespace Transgraphier_1_0_App
       }
     }
 
-    public ConfigurationTableView()
+    public ConfigurationTableView( Form1 aMainWindow )
     {
+      mMainWindow = aMainWindow;
+
       InitializeComponent();
     }
 
@@ -60,7 +63,10 @@ namespace Transgraphier_1_0_App
       // keyColumn
       // 
       keyColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-      dataGridViewCellStyle1.BackColor = Color.LightGray;
+      dataGridViewCellStyle1.BackColor = Color.White;
+      dataGridViewCellStyle1.ForeColor = Color.Black;
+      dataGridViewCellStyle1.SelectionBackColor = Color.White;
+      dataGridViewCellStyle1.SelectionForeColor = Color.Black;
       keyColumn.DefaultCellStyle = dataGridViewCellStyle1;
       keyColumn.HeaderText = "Parameter";
       keyColumn.MinimumWidth = 8;
@@ -106,6 +112,7 @@ namespace Transgraphier_1_0_App
         if (!string.IsNullOrEmpty(key) && mData != null && mData.ContainsKey(key))
         {
           mData[key] = newValue;
+          mMainWindow.ParametersChanged();
         }
       }
     }
