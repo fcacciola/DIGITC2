@@ -75,13 +75,6 @@ namespace Transgraphier_1_0_App
     List<WaveView> mViews = new List<WaveView>();
   }
 
-  public class SessionResult
-  {
-    public string       FilterName          { get ; set ; } 
-    public string       TextResultFileName  { get ; set ; }
-    public List<string> WaveResultFileNames { get ; set ; } = new List<string>();
-  }
-
   public partial class Form1 : Form
   {
     TabControl    mSessionsTabControl;
@@ -269,7 +262,57 @@ namespace Transgraphier_1_0_App
       DContext.Shutdown(); 
     }
 
-    void ShowSession( string aSessionFolder )
+    public class PipelineOutcome 
+    {
+      public PipelineOutcome( string aRoot, string aName ) 
+      { 
+        Root = aRoot ;
+        Name = aName ;
+
+        CurrFolder = $"{aRoot}\\{aName}";
+        mList.Add(CurrFolder) ; 
+      }
+
+      public void Add( string aFolder ) 
+      { 
+        CurrFolder = $"{CurrFolder}\\{aFolder}";
+        mList.Add(CurrFolder) ; 
+      }
+
+      public PipelineOutcome Copy() => new PipelineOutcome(Root, Name, mList);
+
+      PipelineOutcome( string aRoot, string aName, List<string> aList )
+      {
+        Root = aRoot ;
+        Name = aName ;
+        mList.AddRange(aList); 
+      }
+
+      public string Root { get ; private set ; }
+      public string Name { get ; private set ; }
+
+      public IEnumerable<string> Folders => mList ;
+
+      public string CurrFolder { get ; private set ; }
+
+      List<string> mList = new List<string>();
+    }
+
+    public class FilterOutcome
+    {
+      public string       FilterName          { get ; set ; } 
+      public string       TextResultFileName  { get ; set ; }
+      public List<string> WaveResultFileNames { get ; set ; } = new List<string>();
+      public List<string> Summary             { get ; set ; } = new List<string>();
+      public string       Message             { get ; set ; }
+
+      public bool IsEmpty => string.IsNullOrEmpty(TextResultFileName) && WaveResultFileNames.Count == 0 && Summary.Count == 0 && string.IsNullOrEmpty(Message);  
+    }
+
+    List<PipelineOutcome>  mPipelineOutcomeList = new List<PipelineOutcome>();
+    Stack<PipelineOutcome> mPipelineOutcomeStack = new Stack<PipelineOutcome>();
+
+    void LoadSession( string aSessionFolder )
     {
       if ( ! Directory.Exists( aSessionFolder ) ) 
       {
@@ -294,8 +337,55 @@ namespace Transgraphier_1_0_App
 
       LoadInputFile();
 
+      mPipelineOutcomeList .Clear();
+      mPipelineOutcomeStack.Clear();
+
+      var lHeadPipelineOutcome = new PipelineOutcome(aSessionFolder,"Pipeline_0");
+
+      mPipelineOutcomeList .Add (lHeadPipelineOutcome);
+      mPipelineOutcomeStack.Push(lHeadPipelineOutcome);
+
+      while ( mPipelineOutcomeStack.Count > 0 ) 
+      {
+        var lCurrPipelineOutcome = mPipelineOutcomeStack.Pop(); 
+
+        var lCurrFolder = lCurrPipelineOutcome.CurrFolder;
+
+        while (true)
+        {
+          var children = Directory.GetDirectories(lCurrFolder).OrderBy(x => x).ToArray();
+          if (children.Length == 1)
+          {
+            var lCurrSubFolder = Path.GetFileNameWithoutExtension(children[0]);
+
+            if ( lCurrSubFolder.StartsWith("Pipeline_") )
+            {
+              var lNewPipelineOutcome = lCurrPipelineOutcome.Copy();
+              mPipelineOutcomeList .Add(lNewPipelineOutcome) ;
+              mPipelineOutcomeStack.Push (lNewPipelineOutcome);
+            }
+            else
+            {
+              lCurrPipelineOutcome.Add(lCurrSubFolder);
+            }
+
+            lCurrFolder = lCurrPipelineOutcome.CurrFolder ;
+          }
+          else break;
+        }
+      }
+
+      foreach( var lPipelineFolder in mPipelineOutcomeList )
+      {
+        LoadPipeline( lPipelineFolder );
+      }
+    }
+
+
+    void LoadPipeline( PipelineOutcome aPipelineOutcome )
+    {
       // Create a scrollable container for the tab content
-      var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aSessionFolder) };
+      var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aPipelineOutcome.Name) };
       
       mSessionsTabControl.TabPages.Add(lRootTab);
 
@@ -309,78 +399,57 @@ namespace Transgraphier_1_0_App
       contentPanel.Width = scrollPanel.Width;
       scrollPanel.Controls.Add(contentPanel);
 
-      var lResultFolderSequence = new List<string>();
-      var lCurrFolder = $"{aSessionFolder}\\Pipeline_0";
+      List<FilterOutcome> lFilterOutcomes = new List<FilterOutcome>();
 
-      string lMessageFile = $"{lCurrFolder}\\Message.txt";
-      string lResultFile = $"{lCurrFolder}\\Result.txt"; 
+      foreach (var lFolder in aPipelineOutcome.Folders )
+      {
+        string lMessageFile = $"{lFolder}\\Message.txt";
+        string lResultFile = $"{lFolder}\\Result.txt"; 
 
-      if ( File.Exists(lMessageFile))
-      {
-        var lMessage = File.ReadAllText(lMessageFile);  
+        var lFilterOutcome = new FilterOutcome();
 
-        AddDecodedMessage(lMessage);
-      }
-      else
-      {
-        AddEmptyDecodedMessage();
-      }
+        if ( File.Exists(lMessageFile))
+          lFilterOutcome.Message = File.ReadAllText(lMessageFile);  
 
-      if ( File.Exists(lResultFile))
-      {
-        var lMainResultText = File.ReadAllLines(lResultFile);
-        foreach( var lRLine in lMainResultText )
-          AddGeneralMessage(lRLine);
-      }
-      else
-      {
-        AddErrorMessage($"Main result file not found: {lResultFile}");
-      }
-
-      while (true)
-      {
-        lResultFolderSequence.Add(lCurrFolder);
-        var children = Directory.GetDirectories(lCurrFolder).OrderBy(x => x).ToArray();
-        if (children.Length == 1)
+        if ( File.Exists(lResultFile))
         {
-          lCurrFolder = children[0];
-          continue;
+          var lMainResultText = File.ReadAllLines(lResultFile);
+          foreach( var lRLine in lMainResultText )
+            lFilterOutcome.Summary.Add(lRLine);
         }
-        break;
-      }
 
-      List<SessionResult> lSessionResults = new List<SessionResult>();  
-
-      foreach (var lResultFolder in lResultFolderSequence)
-      {
-        var lLocalTextResult  = Directory.GetFiles(lResultFolder, "*.txt").FirstOrDefault();
+        var lLocalTextResult  = Directory.GetFiles(lFolder, "*.txt").FirstOrDefault();
         if ( lLocalTextResult != null) 
         {  
-          var lLocalWaveResults = Directory.GetFiles(lResultFolder, "*.wav");
-
-          var lSessionResult = new SessionResult(){
-            FilterName         = Path.GetFileNameWithoutExtension(lLocalTextResult),
-            TextResultFileName = lLocalTextResult,
-            WaveResultFileNames= lLocalWaveResults.ToList()
-          };
-
-          lSessionResults.Add( lSessionResult ); 
+          lFilterOutcome.FilterName = Path.GetFileNameWithoutExtension(lLocalTextResult);
+          lFilterOutcome.TextResultFileName = lLocalTextResult;
         }
+
+        lFilterOutcome.WaveResultFileNames.AddRange( Directory.GetFiles(lFolder, "*.wav") ) ;
+
+        if ( ! lFilterOutcome.IsEmpty )
+          lFilterOutcomes.Add( lFilterOutcome ); 
+
       }
 
       int currentY = 0;
 
-      foreach( var lSessionResult in lSessionResults )
+      foreach( var lFilterOutcome in lFilterOutcomes )
       {
-       string lTextResult = lSessionResult.TextResultFileName;
+        if ( ! string.IsNullOrEmpty(lFilterOutcome.Message) )
+          AddDecodedMessage( aPipelineOutcome.Name, lFilterOutcome.Message );
+
+        lFilterOutcome.Summary.ForEach( s => AddGeneralMessage(s) ) ;
+
+        string lTextResult = lFilterOutcome.TextResultFileName;
 
         // Create LexicalView for this file
         LexicalView lLexicalView = new LexicalView(this);
         lLexicalView.Location = new Point(0, currentY);
         lLexicalView.Width = scrollPanel.Width;
         lLexicalView.Height = 300;
-        lLexicalView.Title = lSessionResult.FilterName;
-        lLexicalView.Parameters = GetParameters(lSessionResult.FilterName);
+        lLexicalView.Title = lFilterOutcome.FilterName;
+        lLexicalView.Parameters = GetParameters(lFilterOutcome.FilterName);
 
         try
         {
@@ -398,7 +467,7 @@ namespace Transgraphier_1_0_App
         contentPanel.Controls.Add(lLexicalView);
         currentY += lLexicalView.Height;
 
-        foreach( var lWaveResult in lSessionResult.WaveResultFileNames)
+        foreach( var lWaveResult in lFilterOutcome.WaveResultFileNames)
         {
           string lWaveFilename = Path.GetFileNameWithoutExtension(lWaveResult);
 
@@ -433,6 +502,7 @@ namespace Transgraphier_1_0_App
       this.ExportButton.Enabled = true ;
 
       this.Refresh();
+
     }
 
     string GetLastSessionFolder()
@@ -460,7 +530,7 @@ namespace Transgraphier_1_0_App
 
     void LoadLastSession()
     {
-      ShowSession(GetLastSessionFolder()); 
+      LoadSession(GetLastSessionFolder()); 
     }
 
     private void AddMessage(string aMessage, Color color, FontStyle style, bool aNewLine,  RichTextBox aTextBox )
@@ -492,9 +562,9 @@ namespace Transgraphier_1_0_App
       AddMessage( aMsg, Color.Blue, FontStyle.Regular, aNewLine, logTextBox ) ;
     }
 
-    public void AddDecodedMessage( string aMsg, bool aNewLine = true )
+    public void AddDecodedMessage( string aPipelineName, string aMsg, bool aNewLine = true )
     {
-      AddMessage( "DECODED TEXT:" + Environment.NewLine, Color.Black, FontStyle.Regular, aNewLine, this.resultsTextBox ) ;
+      AddMessage( $"DECODED TEXT from {aPipelineName}:{Environment.NewLine}" , Color.Black, FontStyle.Regular, aNewLine, this.resultsTextBox ) ;
 
       AddMessage( aMsg, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
     }
@@ -568,7 +638,7 @@ namespace Transgraphier_1_0_App
         if (dialog.ShowDialog(this) == DialogResult.OK && listBox.SelectedItem != null)
         {
           string selectedSession = listBox.SelectedItem.ToString();
-          ShowSession( $"{OutputFolder}\\{selectedSession}" );
+          LoadSession( $"{OutputFolder}\\{selectedSession}" );
         }
       }
     }
