@@ -14,7 +14,6 @@ namespace Transgraphier_1_0_App
   {
     private Label mTitle;
     private WavePanel mWavePanel;
-    private ConfigurationTableView mParameters ;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
@@ -26,19 +25,6 @@ namespace Transgraphier_1_0_App
       set
       {
         mTitle.Text = value;
-      }
-    }
-
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public Dictionary<string, string> Parameters
-    {
-      get
-      {
-        return mParameters.Data;
-      }
-      set
-      {
-        mParameters.Data = value;
       }
     }
 
@@ -69,7 +55,6 @@ namespace Transgraphier_1_0_App
     {
       mTitle = new Label();
       mWavePanel = new WavePanel();
-      mParameters = new ConfigurationTableView();
 
       SuspendLayout();
 

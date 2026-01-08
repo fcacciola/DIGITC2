@@ -12,10 +12,10 @@ namespace DIGITC2_ENGINE
 
 public class Processor
 {
-  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, List<Config> aConfigs, Signal aStartSignal )
+  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, Config aConfig, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal, aConfigs  ) ;
+    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal, aConfig  ) ;
 
     return new SessionResult(lPipelineResults,aName);
   }
@@ -25,12 +25,12 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, List<Config> aConfigs )
+  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig )
   {
     var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
     DContext.Session.PushBucket(lStartBucket);
     var rPipelineResults = new List<PipelineResult>();
-    aConfigs.ForEach( lConfig => Process( aSession, aSettings, aStartSignal, lConfig, lStartBucket, rPipelineResults) ) ;
+    Process( aSession, aSettings, aStartSignal, aConfig, lStartBucket, rPipelineResults);
     DContext.Session.GotoBucket(lStartBucket) ;
     DContext.CloseLogger();
     return rPipelineResults ;

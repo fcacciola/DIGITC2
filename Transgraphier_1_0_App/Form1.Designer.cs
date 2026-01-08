@@ -231,6 +231,14 @@ namespace Transgraphier_1_0_App
       statusTextBox.ScrollBars = ScrollBars.Vertical;
       statusTextBox.Size = new Size(1916, 96);
       statusTextBox.TabIndex = 0;
+
+      mSessionsTabControl = new TabControl();
+      mSessionsTabControl.Dock = DockStyle.Fill;
+
+      // Insert the tab control in the middle (between results panel and input wave)
+      Controls.Add(mSessionsTabControl);
+      //Controls.SetChildIndex(mSessionsTabControl, this.Controls.GetChildIndex(mInputWave));
+
       // 
       // Form1
       // 

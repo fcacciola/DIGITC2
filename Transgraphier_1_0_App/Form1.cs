@@ -118,10 +118,9 @@ namespace Transgraphier_1_0_App
       AddGeneralMessage($"Input Folder: {InputFolder}.");
       AddGeneralMessage($"Output Folder: {OutputFolder}.");
       AddGeneralMessage($"Input WAV Samples Folder: {mSettings.GetPath("SamplesFolder") ?? InputFolder}.");
-      AddNewLine();
-      AddGeneralMessage($"Load an input WAV file, then click on PROCESS.");
-      AddGeneralMessage($"OR click SHOW to review results from an existing SESSION.");
 
+      if ( File.Exists($"{OutputFolder}\\LastSession.txt") )
+        LoadLastSessionButton.Enabled = true; 
     }
 
     static string InputFolder  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Input");
@@ -144,7 +143,7 @@ namespace Transgraphier_1_0_App
 
     Config LoadConfig()
     {
-      mConfigFile = Directory.GetFiles(InputFolder, "Config_*.txt").FirstOrDefault();
+      mConfigFile =$"{InputFolder}\\config.txt";
 
       var rConfig = Config.FromFile(mConfigFile); 
 
@@ -165,7 +164,6 @@ namespace Transgraphier_1_0_App
 
         SetupZoomPanController(lInputSignal);
         mInputWave.Signal = lInputSignal;
-        mInputWave.Parameters = GetParameters("Input");
         mInputWave.Title = "Input Signal";  
         mInputWave.Height = 300;
         mWaveViews.Clear();
@@ -248,7 +246,7 @@ namespace Transgraphier_1_0_App
 
         var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
 
-        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfigs, lSignal);
+        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lSignal);
 
         File.Copy( mInputFile, $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav", true );
 
@@ -256,7 +254,7 @@ namespace Transgraphier_1_0_App
 
         AddGeneralMessage("Processing finished.");
 
-        ShowSessions();
+        LoadLastSession();
 
         File.WriteAllText( $"{OutputFolder}\\LastSession.txt", mSessionName );
 
@@ -273,6 +271,15 @@ namespace Transgraphier_1_0_App
 
     void ShowSession( string aSessionFolder )
     {
+      if ( ! Directory.Exists( aSessionFolder ) ) 
+      {
+        AddErrorMessage($"Could not found session folder: {aSessionFolder}");
+        return ;
+      }
+
+      // Clear existing tabs
+      mSessionsTabControl.TabPages.Clear();
+
       mSessionsTabControl.Name = Path.GetFileNameWithoutExtension(aSessionFolder);
 
       AddGeneralMessage( $"Loading Session: [{aSessionFolder}]");
@@ -401,7 +408,6 @@ namespace Transgraphier_1_0_App
           lWaveView.Width = scrollPanel.Width;
           lWaveView.Height = 150;
           lWaveView.Title = lWaveFilename;
-          lWaveView.Parameters = GetParameters(lSessionResult.FilterName);
 
           var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
 
@@ -424,42 +430,37 @@ namespace Transgraphier_1_0_App
       mWaveViews.Invalidate();
       AddGeneralMessage("Session Results loaded");
 
+      this.ExportButton.Enabled = true ;
+
       this.Refresh();
     }
 
-    void ShowSessions()
+    string GetLastSessionFolder()
     {
-      // Create tab control if it doesn't exist
-      if (mSessionsTabControl == null)
-      {
-        mSessionsTabControl = new TabControl();
-        mSessionsTabControl.Dock = DockStyle.Fill;
-
-        // Insert the tab control in the middle (between results panel and input wave)
-        this.Controls.Add(mSessionsTabControl);
-        this.Controls.SetChildIndex(mSessionsTabControl, this.Controls.GetChildIndex(mInputWave));
-      }
-
-      // Clear existing tabs
-      mSessionsTabControl.TabPages.Clear();
-
       if (!Directory.Exists(OutputFolder))
       {
         AddErrorMessage($"Output folder not found: [{OutputFolder}]");
-        return;
+        return "";
       }
 
-      AddGeneralMessage( $"Loading results from: [{OutputFolder}]");
-
-      var lSessions = Directory.GetDirectories(OutputFolder).OrderBy(d => d);
-
-      if ( lSessions.Count() == 0 )
+      var lLastSessionFile = $"{OutputFolder}\\LastSession.txt";
+      if ( File.Exists(lLastSessionFile) )
       {
-        AddErrorMessage($"Output folder is empty: [{OutputFolder}]");
-        return;
+        var lLastSessionName = File.ReadAllText(lLastSessionFile);
+
+        return $"{OutputFolder}\\{lLastSessionName}";
+      }
+      else
+      {
+        AddErrorMessage($"Last Session File not found: [{lLastSessionFile}]");
+        return "";
       }
 
-      ShowSession( lSessions.First() ); 
+    }
+
+    void LoadLastSession()
+    {
+      ShowSession(GetLastSessionFolder()); 
     }
 
     private void AddMessage(string aMessage, Color color, FontStyle style, bool aNewLine,  RichTextBox aTextBox )
@@ -527,7 +528,49 @@ namespace Transgraphier_1_0_App
 
     private void LoadLastSession_Click(object sender, EventArgs e)
     {
-      ShowSessions();
+      LoadLastSession();
+    }
+
+    private void LoadSession_Click(object sender, EventArgs e)
+    {
+      // Get all session folders
+      var sessionFolders = Directory.GetDirectories(OutputFolder).ToList().ConvertAll( s => Path.GetFileNameWithoutExtension(s) ).ToArray() ;
+
+      if (sessionFolders.Length == 0)
+      {
+        AddErrorMessage("No sessions found in the output folder.");
+        return;
+      }
+
+      // Create a simple selection dialog
+      using (Form dialog = new Form())
+      {
+        dialog.Text = "Select Session";
+        dialog.Width = 600;
+        dialog.Height = 660;
+        dialog.StartPosition = FormStartPosition.CenterParent;
+
+        ListBox listBox = new ListBox();
+        listBox.Dock = DockStyle.Top;
+        listBox.Height = 530;
+        listBox.Items.AddRange(sessionFolders);
+
+        Button okButton = new Button();
+        okButton.Text = "OK";
+        okButton.Height = 70;
+        okButton.Dock = DockStyle.Top;
+        okButton.DialogResult = DialogResult.OK;
+
+        dialog.Controls.Add(okButton);
+        dialog.Controls.Add(listBox);
+        dialog.AcceptButton = okButton;
+
+        if (dialog.ShowDialog(this) == DialogResult.OK && listBox.SelectedItem != null)
+        {
+          string selectedSession = listBox.SelectedItem.ToString();
+          ShowSession( $"{OutputFolder}\\{selectedSession}" );
+        }
+      }
     }
 
     private void Import_Click(object sender, EventArgs e)
@@ -537,21 +580,48 @@ namespace Transgraphier_1_0_App
 
     private void Export_Click(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
+      try
+      {
+        string lastSessionFolder = GetLastSessionFolder();
+        if (string.IsNullOrEmpty(lastSessionFolder) || !Directory.Exists(lastSessionFolder))
+        {
+          AddErrorMessage("No valid last session folder found to export.");
+          return;
+        }
+
+        string sessionName = Path.GetFileName(lastSessionFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        string zipPath = Path.Combine(OutputFolder, sessionName + ".zip");
+
+        // Delete existing zip if present
+        if (File.Exists(zipPath))
+          File.Delete(zipPath);
+
+        // Create the zip file, including the folder itself
+        System.IO.Compression.ZipFile.CreateFromDirectory(
+            lastSessionFolder,
+            zipPath,
+            System.IO.Compression.CompressionLevel.Optimal,
+            includeBaseDirectory: true
+        );
+
+        AddGeneralMessage($"Exported session to: {zipPath}");
+      }
+      catch (Exception ex)
+      {
+        AddErrorMessage($"Export failed: {ex.Message}");
+      }
     }
 
-    private void LoadSession_Click(object sender, EventArgs e)
-    {
-        throw new NotImplementedException();
-    }
 
     private void RestoreOldParameters_Click(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
+      File.Copy(mConfigFile + ".backup", mConfigFile, true);
+      LoadConfig();
     }
 
     private void SaveNewParameters_Click(object sender, EventArgs e)
     {
+      File.Copy(mConfigFile, mConfigFile + ".backup", true);
       mConfig.Save(mConfigFile);
     }
 
