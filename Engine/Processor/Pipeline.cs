@@ -75,13 +75,13 @@ public class Pipeline
 
           rRB.Add( lPacket ) ;
 
+          lBranches.ForEach( b => aProcessor.BranchOut( this, lPacket, b) ) ; 
+
           if ( lPacket.ShouldQuit )
           {
             DContext.WriteLine2GUI("Filter asked to Quit Processor.");
             break ;
           }
-
-          lBranches.ForEach( b => aProcessor.BranchOut( this, lPacket, b) ) ; 
         }
         else
         {

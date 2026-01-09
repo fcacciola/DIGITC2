@@ -61,12 +61,15 @@ namespace DIGITC2_ENGINE
 
     protected void AddNewConfig( string aKey, string aValue )
     {
-      Config rNew = Config.Copy();
-      rNew.GetSection(Name).Set(aKey, aValue);
-      Branches.Add(rNew) ;
     }
 
-    protected void AddBranch( string aKey, float aValue ) => AddNewConfig(aKey, $"{aValue}");
+    protected void AddBranch( params string[] aKVList )
+    {
+      Config rNew = Config.Copy();
+      for( int i = 0 ; i < aKVList.Length ; i += 2 ) 
+        rNew.GetSection(Name).Set(aKVList[i], aKVList[i+1]);
+      Branches.Add(rNew) ;
+    }
 
     protected bool DoOutputDetails => Settings.GetBool("OutputDetails");
 

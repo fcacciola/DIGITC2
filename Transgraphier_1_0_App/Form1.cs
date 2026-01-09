@@ -289,7 +289,7 @@ namespace Transgraphier_1_0_App
       }
 
       public string Root { get ; private set ; }
-      public string Name { get ; private set ; }
+      public string Name { get ; set ; }
 
       public IEnumerable<string> Folders => mList ;
 
@@ -351,27 +351,30 @@ namespace Transgraphier_1_0_App
 
         var lCurrFolder = lCurrPipelineOutcome.CurrFolder;
 
-        while (true)
+        while ( lCurrFolder != null )
         {
-          var children = Directory.GetDirectories(lCurrFolder).OrderBy(x => x).ToArray();
-          if (children.Length == 1)
+          var lSubFolders = Directory.GetDirectories(lCurrFolder).OrderBy(x => x);
+
+          lCurrFolder = null ;
+
+          foreach( var lSF in lSubFolders )
           {
-            var lCurrSubFolder = Path.GetFileNameWithoutExtension(children[0]);
+            var lCurrSubFolder = Path.GetFileNameWithoutExtension(lSF);
 
             if ( lCurrSubFolder.StartsWith("Pipeline_") )
             {
               var lNewPipelineOutcome = lCurrPipelineOutcome.Copy();
-              mPipelineOutcomeList .Add(lNewPipelineOutcome) ;
-              mPipelineOutcomeStack.Push (lNewPipelineOutcome);
+              lNewPipelineOutcome.Name = lCurrSubFolder ;
+              mPipelineOutcomeList .Add (lNewPipelineOutcome) ;
+              mPipelineOutcomeStack.Push(lNewPipelineOutcome);
             }
-            else
+            else 
             {
               lCurrPipelineOutcome.Add(lCurrSubFolder);
             }
 
             lCurrFolder = lCurrPipelineOutcome.CurrFolder ;
           }
-          else break;
         }
       }
 
@@ -379,13 +382,18 @@ namespace Transgraphier_1_0_App
       {
         LoadPipeline( lPipelineFolder );
       }
+
+      if ( resultsTextBox.Text.Length == 0 )
+      {
+        AddEmptyDecodedMessage();
+      }
     }
 
 
     void LoadPipeline( PipelineOutcome aPipelineOutcome )
     {
       // Create a scrollable container for the tab content
-      var lRootTab = new TabPage { Name = Path.GetFileNameWithoutExtension(aPipelineOutcome.Name) };
+      var lRootTab = new TabPage { Name = aPipelineOutcome.Name, Text = aPipelineOutcome.Name };
       
       mSessionsTabControl.TabPages.Add(lRootTab);
 

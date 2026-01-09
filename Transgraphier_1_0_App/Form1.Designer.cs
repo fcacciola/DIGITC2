@@ -234,6 +234,10 @@ namespace Transgraphier_1_0_App
 
       mSessionsTabControl = new TabControl();
       mSessionsTabControl.Dock = DockStyle.Fill;
+      mSessionsTabControl.Appearance = TabAppearance.Buttons;
+      mSessionsTabControl.Padding = new Point(12, 6);
+      mSessionsTabControl.SizeMode = TabSizeMode.Fixed;
+      mSessionsTabControl.ItemSize = new Size(120, 40);
 
       // Insert the tab control in the middle (between results panel and input wave)
       Controls.Add(mSessionsTabControl);

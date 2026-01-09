@@ -54,7 +54,7 @@ public class Params
 
       foreach( var lKV in  lRead) 
       {
-        Set(lKV.Key, lKV.Value);
+        Set(lKV.Key.Trim(), lKV.Value.Trim());
       }
     }
 
@@ -214,7 +214,7 @@ public class Config
       foreach( var lKV in  lRead) 
       {
         var (lSection,lKey) = SplitSectionKey(lKV.Key);
-        rConfig.GetSection(lSection).Set(lKey, lKV.Value);
+        rConfig.GetSection(lSection.Trim()).Set(lKey.Trim(), lKV.Value.Trim());
       }
 
       return rConfig ;

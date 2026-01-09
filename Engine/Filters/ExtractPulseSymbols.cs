@@ -156,9 +156,12 @@ namespace DIGITC2_ENGINE
     {
       Options rOptions = new ();
 
-      rOptions.DullThreshold  = Params.GetInt("DullThreshold ");
-      rOptions.SplitThreshold = Params.GetInt("SplitThreshold");
-      rOptions.SplitLevelDiff = Params.GetInt("SplitLevelDiff");
+      rOptions.DullThreshold               = Params.GetInt("DullThreshold ");
+      rOptions.SplitThreshold              = Params.GetInt("SplitThreshold");
+      rOptions.SplitLevelDiff              = Params.GetInt("SplitLevelDiff");
+      rOptions.InsignificantLenThreshold   = Params.GetInt("InsignificantLenThreshold");
+      rOptions.ContiguousPulsesGapDuration = Params.GetDouble("ContiguousPulsesGapDuration");
+      rOptions.VeryShortThreshold          = Params.GetDouble("VeryShortThreshold");
 
       return rOptions;
 
@@ -230,11 +233,9 @@ namespace DIGITC2_ENGINE
 
     void SelectValidPulses()
     {
-      double lInsignificantDurationThreshold = 0.02 ;
-
       foreach( var lPulse in mData.Pulses0 )
       {
-        if ( lPulse.Length > lInsignificantDurationThreshold && lPulse.MaxLevel > mData.Options.DullThreshold )
+        if ( lPulse.Length > mData.Options.InsignificantLenThreshold && lPulse.MaxLevel > mData.Options.DullThreshold )
           mData.Pulses1.Add(lPulse );
       }
 
@@ -402,26 +403,34 @@ namespace DIGITC2_ENGINE
 
     double FindContiguousPulsesGapDuration()
     {
-      double rR = 0 ;
+      if ( mData.Options.ContiguousPulsesGapDuration == -1 )
+      {
+        double rR = 0.7 ;
 
-      var lDurations = mData.Pulses2.ConvertAll( s => s.ToSample() ) ;
+        var lDurations = mData.Pulses2.ConvertAll( s => s.ToSample() ) ;
 
-      var lDist = new Distribution( lDurations ) ;
+        var lDist = new Distribution( lDurations ) ;
 
-      var lFullRangeHistogram = new Histogram(lDist).Table ;
+        var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
+        var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
-      var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-      var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
-      var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
+        var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
+        var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
+        var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
 
-      if ( lPeaks.Count >= 3 ) 
-      {  
-        rR = MathX.LERP(lPeaks[0],lPeaks[1],.4);
+        if ( lPeaks.Count >= 3 ) 
+        {  
+          rR = MathX.LERP(lPeaks[0],lPeaks[1],.4);
+
+          AddBranch("ContiguousPulsesGapDuration",$"{(rR *  .8)}");
+          AddBranch("ContiguousPulsesGapDuration",$"{(rR * 1.2)}");
+        }
+
+        return rR;
+
       }
-
-      return rR;
+      else return mData.Options.ContiguousPulsesGapDuration ;
     }
 
     void MergeContiguousPulses()
@@ -462,26 +471,36 @@ namespace DIGITC2_ENGINE
 
     double FindVeryShortThreshold()
     {
-      double rR = 0 ;
+      if ( mData.Options.VeryShortThreshold == -1 )
+      {
+        double rR = 0 ;
 
-      var lDurations = mData.Pulses3.ConvertAll( s => s.ToSample() ) ;
+        var lDurations = mData.Pulses3.ConvertAll( s => s.ToSample() ) ;
 
-      var lDist = new Distribution( lDurations ) ;
+        var lDist = new Distribution( lDurations ) ;
 
-      var lFullRangeHistogram = new Histogram(lDist).Table ;
+        var lFullRangeHistogram = new Histogram(lDist).Table ;
 
-      var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
+        var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
-      var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-      var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
-      var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
+        var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
+        var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
+        var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
 
-      if ( lPeaks.Count >= 2 ) 
-      {  
-        rR = MathX.LERP(lPeaks[0],lPeaks[1],.6);
+        if ( lPeaks.Count >= 2 ) 
+        {  
+          rR = MathX.LERP(lPeaks[0],lPeaks[1],.6);
+
+          AddBranch("VeryShortThreshold",$"{(rR *  .6)}");
+          AddBranch("VeryShortThreshold",$"{(rR *  .8)}");
+          AddBranch("VeryShortThreshold",$"{(rR * 1.2)}");
+          AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
+        }
+
+        return rR;
       }
-
-      return rR;
+      else 
+        return mData.Options.VeryShortThreshold ;
     }
 
     void RemoveUnfitPulses()
@@ -500,9 +519,12 @@ namespace DIGITC2_ENGINE
 
     class Options
     {
-      internal int DullThreshold ;
-      internal int SplitThreshold ;
-      internal int SplitLevelDiff ;
+      internal int    DullThreshold ;
+      internal int    SplitThreshold ;
+      internal int    SplitLevelDiff ;
+      internal int    InsignificantLenThreshold ;
+      internal double ContiguousPulsesGapDuration = -1 ;
+      internal double VeryShortThreshold = -1 ;
     }
 
     class Data

@@ -11,6 +11,10 @@ Discretize_GateThresholds=9,7,5,4,3,1
 ExtractPulseSymbols_DullThreshold=5
 ExtractPulseSymbols_SplitThreshold=5
 ExtractPulseSymbols_SplitLevelDiff=5
+ExtractPulseSymbols_InsignificantLenThreshold = 882
+ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
+ExtractPulseSymbols_VeryShortThreshold = -1
+
 
 ExtractTapCode_SeparatorCountThreshold=5
 ExtractTapCode_MinTapCount=16
