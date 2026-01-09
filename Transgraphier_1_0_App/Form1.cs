@@ -153,18 +153,18 @@ namespace Transgraphier_1_0_App
     {
       try
       {
+        mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
+
         var lInputSignal = SignalLoader.LoadSignal(mInputFile);
 
         SetupZoomPanController(lInputSignal);
         mInputWave.Signal = lInputSignal;
-        mInputWave.Title = "Input Signal";  
-        mInputWave.Height = 300;
+        mInputWave.Title = mSessionName ;
         mWaveViews.Clear();
         mWaveViews.Add( mInputWave );
 
         AddGeneralMessage($"Input Signal loaded: {mInputFile}");
 
-        mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
         this.sessionName.Text = mSessionName;
         this.sessionName.Enabled = true;
         this.processButton .Enabled = true; 
@@ -247,12 +247,12 @@ namespace Transgraphier_1_0_App
 
         AddGeneralMessage("Processing finished.");
 
-        LoadLastSession();
-
         File.WriteAllText( $"{OutputFolder}\\LastSession.txt", mSessionName );
 
         this.ExportButton.Enabled = true;
         this.LoadLastSessionButton.Enabled = true;
+
+        LoadLastSession();
       }
       catch (Exception ex)
       {

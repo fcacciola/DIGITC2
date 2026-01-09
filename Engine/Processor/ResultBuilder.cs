@@ -81,7 +81,7 @@ namespace DIGITC2_ENGINE
 
         foreach ( PipelineResult lPR in PipelineResults ) 
         {   
-          string lResultsFolder = lPR.Folder ;
+          string lResultsFolder = lPR.FilterSequence.Last().OutputFolder ;
 
           string lReportName = $"Result.txt" ;
 

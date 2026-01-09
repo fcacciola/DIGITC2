@@ -90,12 +90,12 @@ namespace Transgraphier_1_0_App
       // statusTextBox
       // 
       sessionName.Dock = DockStyle.Left;
-      sessionName.BorderStyle = BorderStyle.Fixed3D;
+      sessionName.BorderStyle = BorderStyle.None;
       sessionName.Multiline = false;
       sessionName.Name = "sessionName";
       sessionName.ReadOnly = false;
       sessionName.ScrollBars = ScrollBars.None;
-      sessionName.Size = new Size(450, 25);
+      sessionName.Size = new Size(450, 40);
       sessionName.TabIndex = 0;
       sessionName.Enabled = false ;
 
@@ -206,9 +206,9 @@ namespace Transgraphier_1_0_App
       mInputWave.Dock = DockStyle.Top;
       mInputWave.Location = new Point(8, 350);
       mInputWave.Name = "inputWave";
-      mInputWave.Size = new Size(1920, 150);
+      mInputWave.Size = new Size(1920, 300);
       mInputWave.TabIndex = 4;
-      mInputWave.Title = "Input Wave";
+      mInputWave.Title = "";
       // 
       // statusPanel
       // 

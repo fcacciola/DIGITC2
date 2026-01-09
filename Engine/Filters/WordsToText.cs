@@ -39,7 +39,7 @@ namespace DIGITC2_ENGINE
 
       WriteLine2GUI($"FINAl TEXT:{Environment.NewLine}{lText}");  
 
-      File.WriteAllText( $"{Session.CurrentPipelineFolder}\\Message.txt", lText );
+      File.WriteAllText( $"{Session.CurrentOutputFolder}\\Message.txt", lText );
 
       List<TextSymbol> lTextSymbols = new List<TextSymbol> ();
       lTextSymbols.Add( new TextSymbol(0,lText) );  
