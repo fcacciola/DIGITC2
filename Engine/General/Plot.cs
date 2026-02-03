@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using OxyPlot.Wpf;
+using OxyPlot.WindowsForms;
 
 using Series = OxyPlot.Series.Series;
 
@@ -50,27 +50,19 @@ namespace DIGITC2_ENGINE
       mPlot.Series.Add(aSeries);
     }
 
-    //public BitmapSource ToBitmap()
-    //{
-    //  var lExporter = new PngExporter { Width = mOptions.BitmapWidth, Height = mOptions.BitmapHeight, Resolution = mOptions.BitmapResolution };
-    //  var rBitmap = lExporter.ExportToBitmap(mPlot);
-    //  return rBitmap;
-    //}
-
-    public void SavePNG( Stream aStream )
+    public Bitmap ToBitmap()
     {
-      //BitmapSource lBitmap = ToBitmap();
-      //BitmapEncoder lEncoder = new PngBitmapEncoder();
-      //lEncoder.Frames.Add(BitmapFrame.Create(lBitmap));
-      //lEncoder.Save(aStream);
+      var lExporter = new PngExporter { Width = mOptions.BitmapWidth, Height = mOptions.BitmapHeight, Resolution = mOptions.BitmapResolution };
+      var rBitmap = lExporter.ExportToBitmap(mPlot);
+      return rBitmap;
     }
 
     public void SavePNG( string aFilename )
     {
       DContext.WriteLine2GUI($"Saving PNG Image to: [{aFilename}]");
 
-      using (var lFileStream = new FileStream(aFilename, FileMode.Create))
-        SavePNG( lFileStream );  
+      var lBitmap = ToBitmap();
+      lBitmap.Save(aFilename);
     }
 
     Options   mOptions ;

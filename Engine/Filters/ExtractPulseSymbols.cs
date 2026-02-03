@@ -12,7 +12,20 @@ using System.Runtime.InteropServices;
 
 namespace DIGITC2_ENGINE
 {
-  public class PulseFilterHelper
+
+  public class FilterHelper
+  {
+    static public void PlotHistogram( string aName, DTable aHistogram, DTable aRankSize = null )
+    {
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      { 
+        aHistogram?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_Histogram.png"));
+        aRankSize ?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_RankSize.png"));
+      }
+    }
+  }
+
+  public class PulseFilterHelper : FilterHelper
   {
     static public PulseSymbol CreateSpecialPulse( PulseSymbol aSource, float aAmplitude )
     {
@@ -42,13 +55,13 @@ namespace DIGITC2_ENGINE
     {
       var lDist = new Distribution(aSamples) ;
 
-      var lFullRangeHistogram = new Histogram(lDist).Table ;
+      var lHistogram = new Histogram(lDist).Table ;
 
-      var lFullRangeRankSize = lFullRangeHistogram.ToRankSize();
+      var lFullRangeRankSize = lHistogram.ToRankSize();
 
       var rRankSize = aNormalizeRankSize ? lFullRangeRankSize.Normalized() : lFullRangeRankSize ;
 
-      var rHistogram = aNormalizeHistogram ? lFullRangeHistogram.Normalized() : lFullRangeHistogram ;  
+      var rHistogram = aNormalizeHistogram ? lHistogram.Normalized() : lHistogram ;  
 
       return (rHistogram, rRankSize);
     }
@@ -69,12 +82,7 @@ namespace DIGITC2_ENGINE
     {
       (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
 
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
-      { 
-        lHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_Histogram.png"));
-        lRankSize .CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile($"{aName}_Durations_RankSize.png"));
-      }
-
+      PlotHistogram(aName,lHistogram, lRankSize);
     }
   }
 
@@ -405,13 +413,26 @@ namespace DIGITC2_ENGINE
     {
       if ( mData.Options.ContiguousPulsesGapDuration == -1 )
       {
-        double rR = 0.7 ;
+        double rR = 0 ;
 
-        var lDurations = mData.Pulses2.ConvertAll( s => s.ToSample() ) ;
+        List<double> lGapDurations = new List<double>();
 
-        var lDist = new Distribution( lDurations ) ;
+        var lPulseA = mData.Pulses2[0];
+
+        for ( int i = 1; i < mData.Pulses2.Count ; i++ )
+        { 
+          var lPulseB = mData.Pulses2[i]; 
+
+          var lGap = lPulseB.StartTime - lPulseA.EndTime;
+
+          lGapDurations.Add( lGap );
+        }
+
+        var lDist = new Distribution( lGapDurations ) ;
 
         var lFullRangeHistogram = new Histogram(lDist).Table ;
+
+        FilterHelper.PlotHistogram("PulseGapDurations",lFullRangeHistogram);
 
         var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
 
@@ -419,8 +440,8 @@ namespace DIGITC2_ENGINE
         var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
         var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
 
-        if ( lPeaks.Count >= 3 ) 
-        {  
+        if ( lPeaks.Count > 3 )
+        {
           rR = MathX.LERP(lPeaks[0],lPeaks[1],.4);
 
           AddBranch("ContiguousPulsesGapDuration",$"{(rR *  .8)}");
@@ -428,7 +449,6 @@ namespace DIGITC2_ENGINE
         }
 
         return rR;
-
       }
       else return mData.Options.ContiguousPulsesGapDuration ;
     }
@@ -441,28 +461,35 @@ namespace DIGITC2_ENGINE
       WriteLine2GUI("Merging Contiguous Pulses");
       Indent();  
 
-      double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; //0.0070 ;
+      double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; 
 
-      var lPulseA = mData.Pulses2[0];
+      if ( lContiguousPulsesGapDuration > 0 ) 
+      {
+        var lPulseA = mData.Pulses2[0];
 
-      for ( int i = 1; i < mData.Pulses2.Count ; i++ )
-      { 
-        var lPulseB = mData.Pulses2[i]; 
+        for ( int i = 1; i < mData.Pulses2.Count ; i++ )
+        { 
+          var lPulseB = mData.Pulses2[i]; 
 
-        var lGap = lPulseB.StartTime - lPulseA.EndTime;
+          var lGap = lPulseB.StartTime - lPulseA.EndTime;
 
-        if ( lGap < lContiguousPulsesGapDuration ) 
-        {
-          WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
-          var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
-          lPulseA = lFilteredPulse;
+          if ( lGap < lContiguousPulsesGapDuration ) 
+          {
+            WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
+            var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
+            lPulseA = lFilteredPulse;
+          }
+          else 
+          {
+            WriteLine($"Adding pulse {lPulseA} to result.");
+            mData.Pulses3.Add(lPulseA);
+            lPulseA = lPulseB;
+          }
         }
-        else 
-        {
-          WriteLine($"Adding pulse {lPulseA} to result.");
-          mData.Pulses3.Add(lPulseA);
-          lPulseA = lPulseB;
-        }
+      }
+      else
+      {
+        mData.Pulses3 = mData.Pulses2 ;
       }
 
       PulseFilterHelper.PlotPulses(mData.Pulses3, $"{Name}_3");
@@ -487,14 +514,12 @@ namespace DIGITC2_ENGINE
         var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
         var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
 
-        if ( lPeaks.Count >= 2 ) 
-        {  
+        if ( lPeaks.Count >= 2  ) 
+        {
           rR = MathX.LERP(lPeaks[0],lPeaks[1],.6);
 
-          AddBranch("VeryShortThreshold",$"{(rR *  .6)}");
           AddBranch("VeryShortThreshold",$"{(rR *  .8)}");
           AddBranch("VeryShortThreshold",$"{(rR * 1.2)}");
-          AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
         }
 
         return rR;

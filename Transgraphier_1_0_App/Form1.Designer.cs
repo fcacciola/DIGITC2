@@ -1,4 +1,5 @@
 ﻿
+
 namespace Transgraphier_1_0_App
 {
   partial class Form1
@@ -40,6 +41,7 @@ namespace Transgraphier_1_0_App
       LoadSessionButton = new Button();
       ExportButton = new Button();
       ImportButton = new Button();
+      HelpButton = new Button();
       statusTextBox = new TextBox();
       statusPanel = new Panel();
       resultsTextBox = new RichTextBox();
@@ -52,6 +54,7 @@ namespace Transgraphier_1_0_App
       // 
       // buttonPanel
       // 
+      buttonPanel.Controls.Add(HelpButton);
       buttonPanel.Controls.Add(ImportButton);
       buttonPanel.Controls.Add(ExportButton);
       buttonPanel.Controls.Add(LoadSessionButton);
@@ -133,7 +136,7 @@ namespace Transgraphier_1_0_App
       // showButton
       // 
       LoadLastSessionButton.Dock = DockStyle.Left;
-      LoadLastSessionButton.Name = "showButton";
+      LoadLastSessionButton.Name = "LoadLastSessionButton";
       LoadLastSessionButton.Size = new Size(200, 30);
       LoadLastSessionButton.TabIndex = 2;
       LoadLastSessionButton.Text = "Load Last Session";
@@ -143,7 +146,7 @@ namespace Transgraphier_1_0_App
       // showButton
       // 
       LoadSessionButton.Dock = DockStyle.Left;
-      LoadSessionButton.Name = "showButton";
+      LoadSessionButton.Name = "LoadSessionButton";
       LoadSessionButton.Size = new Size(200, 30);
       LoadSessionButton.TabIndex = 2;
       LoadSessionButton.Text = "Load Session";
@@ -152,7 +155,7 @@ namespace Transgraphier_1_0_App
       // showButton
       // 
       ExportButton.Dock = DockStyle.Left;
-      ExportButton.Name = "showButton";
+      ExportButton.Name = "ExportButton";
       ExportButton.Size = new Size(200, 30);
       ExportButton.TabIndex = 2;
       ExportButton.Text = "Export Session";
@@ -162,11 +165,20 @@ namespace Transgraphier_1_0_App
       // showButton
       // 
       ImportButton.Dock = DockStyle.Left;
-      ImportButton.Name = "showButton";
+      ImportButton.Name = "ImportButton";
       ImportButton.Size = new Size(200, 30);
       ImportButton.TabIndex = 2;
       ImportButton.Text = "Import Session";
       ImportButton.Click += Import_Click;
+      // 
+      // showButton
+      // 
+      HelpButton.Dock = DockStyle.Left;
+      HelpButton.Name = "HelpButton";
+      HelpButton.Size = new Size(200, 30);
+      HelpButton.TabIndex = 2;
+      HelpButton.Text = "Help";
+      HelpButton.Click += Help_Click;
       // 
       // resultsPanel
       // 
@@ -261,7 +273,7 @@ namespace Transgraphier_1_0_App
       PerformLayout();
     }
 
-        #endregion
+    #endregion
 
     private Panel buttonPanel;
     private Button loadEVPButton;
@@ -274,6 +286,7 @@ namespace Transgraphier_1_0_App
     private Button LoadSessionButton;
     private Button ExportButton;
     private Button ImportButton;
+    private Button HelpButton;
     private Panel statusPanel;
     private TextBox statusTextBox;
     private Panel resultsPanel;

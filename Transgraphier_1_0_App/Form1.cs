@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 //using System.Windows.Controls;
@@ -83,6 +84,7 @@ namespace Transgraphier_1_0_App
     string        mConfigFile = null ;
     string        mInputFile = null ; 
     string        mSessionName = null ;
+    string        mSessionFolder = null ; 
     MainWindowGUI mMWGUI     = null; 
     WaveViews     mWaveViews = new WaveViews();
 
@@ -116,8 +118,9 @@ namespace Transgraphier_1_0_App
         LoadLastSessionButton.Enabled = true; 
     }
 
-    static string InputFolder  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Input");
-    static string OutputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
+    static string InputFolder  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varanormal\\Transgraphier\\Input");
+    static string OutputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varanormal\\Transgraphier\\Output");
+    static string AppInputFolder = Path.Combine(AppContext.BaseDirectory,"Input");
     static string SettingsFile = $"{InputFolder}\\Settings.txt";
 
     void SetupZoomPanController( DiscreteSignal aSignal)
@@ -205,20 +208,32 @@ namespace Transgraphier_1_0_App
 
         mSessionName = lSessionName ;
 
-        string lSessionFolder = $"{OutputFolder}\\{mSessionName}";  
+        mSessionFolder = $"{OutputFolder}\\{mSessionName}";  
 
-        bool lSessionExists =  Directory.Exists( lSessionFolder );
+        Clear();
+
+        bool lSessionExists =  Directory.Exists( mSessionFolder );
 
         if ( lSessionExists )
         {
-          AddGeneralMessage($"Session folder already exists: [{lSessionFolder}]");
-          processButton.Text = "Re-Process";
-        }
+          AddGeneralMessage($"Session folder already exists: [{mSessionFolder}]");
 
+          LoadSession();
+        }
       }
     }
 
-    void Process()
+    void Clear()
+    {
+      ClearDecodedMessage();
+
+      mSessionsTabControl.TabPages.Clear();
+
+      mSessionsTabControl.Name = Path.GetFileNameWithoutExtension(mSessionFolder);
+
+    }
+
+    void ProcessSession()
     {
       if ( mInputWave.Signal == null)
       {
@@ -312,26 +327,21 @@ namespace Transgraphier_1_0_App
     List<PipelineOutcome>  mPipelineOutcomeList = new List<PipelineOutcome>();
     Stack<PipelineOutcome> mPipelineOutcomeStack = new Stack<PipelineOutcome>();
 
-    void LoadSession( string aSessionFolder )
+    void LoadSession()
     {
-      if ( ! Directory.Exists( aSessionFolder ) ) 
+      if ( ! Directory.Exists( mSessionFolder ) ) 
       {
-        AddErrorMessage($"Could not found session folder: {aSessionFolder}");
+        AddErrorMessage($"Could not found session folder: {mSessionFolder}");
         return ;
       }
 
-      // Clear existing tabs
-      mSessionsTabControl.TabPages.Clear();
+      AddGeneralMessage( $"Loading Session: [{mSessionFolder}]");
 
-      mSessionsTabControl.Name = Path.GetFileNameWithoutExtension(aSessionFolder);
-
-      AddGeneralMessage( $"Loading Session: [{aSessionFolder}]");
-
-      mInputFile = Directory.GetFiles(aSessionFolder, "*.wav").FirstOrDefault();
+      mInputFile = Directory.GetFiles(mSessionFolder, "*.wav").FirstOrDefault();
 
       if ( mInputFile == null )
       {
-        AddErrorMessage($"Input file not found in session: [{aSessionFolder}]");
+        AddErrorMessage($"Input file not found in session: [{mSessionFolder}]");
         return;
       }
 
@@ -340,7 +350,7 @@ namespace Transgraphier_1_0_App
       mPipelineOutcomeList .Clear();
       mPipelineOutcomeStack.Clear();
 
-      var lHeadPipelineOutcome = new PipelineOutcome(aSessionFolder,"Pipeline_0");
+      var lHeadPipelineOutcome = new PipelineOutcome(mSessionFolder,"Pipeline_0");
 
       mPipelineOutcomeList .Add (lHeadPipelineOutcome);
       mPipelineOutcomeStack.Push(lHeadPipelineOutcome);
@@ -538,7 +548,9 @@ namespace Transgraphier_1_0_App
 
     void LoadLastSession()
     {
-      LoadSession(GetLastSessionFolder()); 
+      mSessionName = GetLastSessionFolder();
+      Clear();
+      LoadSession(); 
     }
 
     private void AddMessage(string aMessage, Color color, FontStyle style, bool aNewLine,  RichTextBox aTextBox )
@@ -568,6 +580,11 @@ namespace Transgraphier_1_0_App
     public void AddLogMessage( string aMsg, bool aNewLine = true )
     {
       AddMessage( aMsg, Color.Blue, FontStyle.Regular, aNewLine, logTextBox ) ;
+    }
+
+    public void ClearDecodedMessage()
+    {
+      this.resultsTextBox.Clear();
     }
 
     public void AddDecodedMessage( string aPipelineName, string aMsg, bool aNewLine = true )
@@ -601,7 +618,7 @@ namespace Transgraphier_1_0_App
 
     private void Process_Click(object sender, EventArgs e)
     {
-      Process();
+      ProcessSession();
     }
 
     private void LoadLastSession_Click(object sender, EventArgs e)
@@ -646,7 +663,9 @@ namespace Transgraphier_1_0_App
         if (dialog.ShowDialog(this) == DialogResult.OK && listBox.SelectedItem != null)
         {
           string selectedSession = listBox.SelectedItem.ToString();
-          LoadSession( $"{OutputFolder}\\{selectedSession}" );
+          mSessionFolder =  $"{OutputFolder}\\{selectedSession}";
+          Clear();
+          LoadSession();
         }
       }
     }
@@ -701,6 +720,28 @@ namespace Transgraphier_1_0_App
     {
       File.Copy(mConfigFile, mConfigFile + ".backup", true);
       mConfig.Save(mConfigFile);
+    }
+
+    private void Help_Click(object sender, EventArgs e)
+    {
+      // Put your PDF in your app folder (or another known location)
+      string lPdfPath = Path.Combine(InputFolder, "Manual.pdf");
+
+      try
+      {
+        var psi = new ProcessStartInfo
+        {
+          FileName = lPdfPath,
+          UseShellExecute = true,  // key line: use OS file association
+          Verb = "open"
+        };
+
+        Process.Start(psi);
+      }
+      catch (Exception ex)
+      {
+        AddErrorMessage($"Could not open the manual PDF.\n\n{ex.Message}");
+      }
     }
 
   }

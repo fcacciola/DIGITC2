@@ -1,0 +1,237 @@
+\documentclass[11pt]{report}
+
+% --- Basics ---
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{float}      % for [H] figure placement when needed
+\usepackage{caption}
+\usepackage{booktabs}   % nice tables (optional)
+
+% Optional: if you want better crossrefs like "Figure 3.2"
+% \usepackage[nameinlink,noabbrev]{cleveref}
+
+% Optional: captions for many screenshots can get repetitive
+% \captionsetup[figure]{font=small}
+
+% --- Screenshot helpers (put in the preamble) ---
+\usepackage{graphicx}
+\usepackage{float}      % enables [H]
+\usepackage{caption}
+
+% Optional: common folder for images
+\newcommand{\imgdir}{figs/}
+
+% Main screenshot macro:
+%  - #1: filename (relative to \imgdir unless you include a path)
+%  - #2: caption text
+%  - #3: label (without "fig:"; the macro adds it)
+%  - #4: width (optional; default 0.98\linewidth)
+\newcommand{\screenshot}[4][0.98\linewidth]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#1]{\imgdir#2}
+        \caption{#3}
+        \label{fig:#4}
+    \end{figure}
+}
+
+% Variant: screenshot with a short caption for LoF + long caption for the page
+%  - #1 width (optional; default 0.98\linewidth)
+%  - #2 filename
+%  - #3 short caption (List of Figures)
+%  - #4 long caption (printed under figure)
+%  - #5 label key
+\newcommand{\screenshotLF}[5][0.98\linewidth]{%
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#1]{\imgdir#2}
+        \caption[#3]{#4}
+        \label{fig:#5}
+    \end{figure}
+}
+
+% Quick reference helper for figures
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+
+
+\title{Transgraphier\\{\large User Manual}}
+\author{Fernando Cacciola}
+\date{Version 1.0 --- \today}
+
+\begin{document}
+    \maketitle
+    \tableofcontents
+    
+    % -------------------------
+    \chapter*{About This Manual}
+    \addcontentsline{toc}{chapter}{About This Manual}
+    \section*{Version, Audience, and Conventions}
+    \addcontentsline{toc}{section}{Version, Audience, and Conventions}
+    % - Which app version this matches
+    % - Intended audience (end-users / analysts)
+    % - Notation, terminology, UI conventions (menu names, buttons, etc.)
+    
+    \section*{Related Documents}
+%    \addcontentsline{toc}{section}{Related Documents}
+%    You can read the following document in order to understand what
+%    is it that this Application does at a technical level:
+%    \href{run:TechnicalPaper.pdf}{Technical Paper (PDF)}.
+    
+    % -------------------------
+    \chapter{Introduction}
+    \section{What the App Does}
+       
+       Given an \textbf{EVP} audio file that is \textit{specifically} is expected
+       to contain a text message \textit{encoded in binary} (like computers do),
+       but using \textbf{Tap Code} as encoding system, applies a sequence of audio processing steps in order to attempt to extract a Text Message from it.
+       
+    \section{Typical Workflow at a Glance}
+    
+\begin{itemize}
+    \item Open an audio file containing an \textbf{EVP}
+         
+    \item Click on Process (or Re-Process if this one file has already been processed)
+         
+    \item Look at the \textbf{TOP-RIGHT} panel.\\
+          If will either say that ``\textit{no message was decoded}'' OR\\
+          It will contain the text message that was decoded from the \textbf{EVP} audio.
+         
+    \item The TOP-LEFT panel will show a general log detailing what\\
+          the processing was doing.
+         
+    \item You can also look at the sequence of ``Filter Outputs'', right below\\
+           the Input Wave Form.\\
+           Details about the result of each processing step are shown there.
+\end{itemize}
+    
+    
+    % Open WAV -> Process -> Review slots + waveforms -> Export/Save (if relevant)
+    \section{Key Concepts and Terminology}
+    % "slot", "segment", "window", "analysis result", etc.
+    
+    % -------------------------
+    \chapter{Installation and Setup}
+    \section{System Requirements}
+    \section{Installation}
+    \section{Updating / Uninstalling}
+    \section{First Launch Checklist}
+    % where files are stored, default folders, permissions, audio formats supported
+    
+    % -------------------------
+    \chapter{Quick Start (5 Minutes)}
+    \section{Open a WAV File}
+    \section{Run \texttt{Process}}
+    \section{Read the Results View}
+    % interleaved text slots + waveforms explanation at a very high level
+    \section{Common First Issues}
+    % "no output", "file not supported", "long processing time", etc.
+    
+    % -------------------------
+    \chapter{User Interface Tour}
+    \section{Main Window Layout}
+    
+    % screenshot: full window labeled
+    \section{Menus and Toolbar}
+    \subsection{File Menu}
+    \subsection{Process Menu}
+    \subsection{View Menu}
+    \subsection{Help Menu}
+    \section{Panels / Regions}
+    \subsection{Input Waveform View}
+    \subsection{Results Timeline / Slots View}
+    \subsection{Details / Inspector (if any)}
+    \subsection{Status / Log Area (if any)}
+    
+    % -------------------------
+    \chapter{Primary Workflow: From WAV to Results}
+    \section{Selecting and Loading Audio}
+    \subsection{Supported Formats and Constraints}
+    \subsection{Large Files and Performance Notes}
+    \section{Running Processing}
+    \subsection{Process Options (High-Level)}
+    \subsection{Progress, Cancellation, and Errors}
+    \section{Understanding the Output}
+    \subsection{What a Text Slot Represents}
+    \subsection{What Each Waveform Represents}
+    \subsection{Navigation (zoom, pan, selection)}
+    \subsection{Interpreting Common Patterns}
+    % include representative screenshots here
+    \section{Saving / Exporting Results (if applicable)}
+    \subsection{Export Formats}
+    \subsection{Reproducibility (saving presets, parameters)}
+    
+    % -------------------------
+    \chapter{Working with Results}
+    \section{Browsing and Filtering Slots}
+    \section{Comparing Regions / Slots}
+    \section{Measurements and Annotations (if applicable)}
+    \section{Copying / Sharing Outputs}
+    % images, CSV, reports, etc.
+    
+    % -------------------------
+    \chapter{Processing Options and Presets}
+    \section{Parameters Overview}
+    % keep user-facing; link deep math to technical paper
+    \section{Presets}
+    \subsection{Choosing a Preset}
+    \subsection{Creating / Editing Presets}
+    \subsection{Reset to Defaults}
+    \section{Quality vs Speed Tradeoffs}
+    
+    % -------------------------
+    \chapter{Feature Reference}
+    % Use one section per major feature area. This is the "reference" part.
+    \section{Audio Input Handling}
+    \section{Segmentation / Windowing Controls (if applicable)}
+    \section{Detection / Classification Outputs (if applicable)}
+    \section{Visualization Controls}
+    \subsection{Waveform Display Options}
+    \subsection{Markers, Overlays, and Colors (if applicable)}
+    \section{Batch Processing (if applicable)}
+    \section{Command-line / Automation (if applicable)}
+    
+    % -------------------------
+    \chapter{Troubleshooting}
+    \section{Common Symptoms and Fixes}
+    \subsection{The app won’t open / crashes}
+    \subsection{WAV won’t load / silent audio}
+    \subsection{Process produces empty output}
+    \subsection{Processing is too slow}
+    \subsection{Waveforms look incorrect}
+    \section{Error Messages}
+    % copy/paste friendly list; map each to resolution steps
+    \section{How to Collect Logs for Support}
+    
+    % -------------------------
+    \chapter{FAQ}
+    \section{How do I interpret [common output]?}
+    \section{How do I choose parameters?}
+    \section{Can I reproduce results exactly?}
+    \section{What does the algorithm do? (link)}
+    See:
+    \href{run:TechnicalPaper.pdf}{Technical Paper (PDF)}.
+    
+    % -------------------------
+    \chapter{Keyboard Shortcuts}
+    % table
+    
+    \chapter{Glossary}
+    % definitions: slot, segment, frame, envelope, etc.
+    
+    % -------------------------
+    \appendix
+    \chapter{File Formats}
+    \section{Input Audio Requirements}
+    \section{Exported Data Formats}
+    
+    \chapter{Advanced Notes}
+    \section{Algorithm Overview (Non-mathematical)}
+    % Keep this gentle; point to paper for proofs/details
+    For full details, see:
+    \href{run:TechnicalPaper.pdf}{Technical Paper (PDF)}.
+    
+    \chapter{Change Log}
+    % optional
+    
+\end{document}
