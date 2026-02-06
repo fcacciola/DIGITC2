@@ -65,14 +65,25 @@ namespace DIGITC2_ENGINE
     {
     }
 
-    public OutputBucket CurrentBucket()
+    public OutputBucket CurrBucket()
     {
       return mBuckets.Count > 0 ? mBuckets.Peek() : null ;
     }
 
+    public OutputBucket PrevBucket()
+    {
+      OutputBucket rO = null ;
+      if ( mBuckets.Count > 1 )
+      {
+        var lAsArray = mBuckets.ToArray() ;
+        rO = lAsArray[1] ;
+      }
+      return rO ;
+    }
+    
     public void PushBucket( OutputBucket aBucket)
     {
-      string lBaseFolder = CurrentBucket()?.FullOutputFolder ?? RootOutputFolder ;
+      string lBaseFolder = CurrBucket()?.FullOutputFolder ?? RootOutputFolder ;
 
       aBucket.SetupFullOutputFolder(lBaseFolder);
 
@@ -86,7 +97,7 @@ namespace DIGITC2_ENGINE
     {
       mBuckets.Pop();
 
-      string lCurrentOutputFolder = CurrentBucket()?.FullOutputFolder ?? RootOutputFolder ;
+      string lCurrentOutputFolder = CurrBucket()?.FullOutputFolder ?? RootOutputFolder ;
 
       SetCurrentOutputFolder(lCurrentOutputFolder);
     }
@@ -99,7 +110,7 @@ namespace DIGITC2_ENGINE
       }
       else
       {
-        if ( CurrentBucket() != aBucket )
+        if ( CurrBucket() != aBucket )
         {
           RebuildBucketStack(aBucket);
           ActivateBucket    (aBucket); 

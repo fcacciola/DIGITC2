@@ -51,9 +51,11 @@ public class Processor
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
+        lPipeline.SetupFilters();
+
         aSession.GotoBucket(lPipeline.StartBucket);
         aSession.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
-        string lPipelineFolder = aSession.CurrentBucket().FullOutputFolder; 
+        string lPipelineFolder = aSession.CurrBucket().FullOutputFolder; 
         aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
         lPipelineResult.Folder = lPipelineFolder; 
@@ -61,7 +63,7 @@ public class Processor
 
         if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
         {
-          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Stopping further processing.") ;
+          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Skipping branch-out pipelines.") ;
           break ;
         }
 
@@ -85,12 +87,14 @@ public class Processor
 
   public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig )
   {
-    var lCurrFilterBucket = DContext.Session.CurrentBucket();   
+    var lPrevFilterBucket = DContext.Session.PrevBucket();   
 
-    var lNewPipeline = aPipeline.BranchOut(lCurrFilterBucket, aStartPacket, aConfig ) ;
+    if (  lPrevFilterBucket != null )
+    { 
+      var lNewPipeline = aPipeline.BranchOut(lPrevFilterBucket, aStartPacket.Prev, aConfig ) ;
 
-    EnqueuePipeline( lNewPipeline ) ; 
-
+      EnqueuePipeline( lNewPipeline ) ; 
+    }
   }
 
   readonly MainPipeline    mMainPipeline ;

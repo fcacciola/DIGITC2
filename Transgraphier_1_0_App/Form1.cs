@@ -235,6 +235,8 @@ namespace Transgraphier_1_0_App
 
     void ProcessSession()
     {
+      Clear();
+
       if ( mInputWave.Signal == null)
       {
         AddErrorMessage( "You must load an AUDIO file first.");
@@ -248,7 +250,9 @@ namespace Transgraphier_1_0_App
       try
       {
 
-        AddGeneralMessage("Processing started...");
+        mSessionFolder = lSession.CurrentOutputFolder ;
+
+        AddGeneralMessage( $"Processing started. Session Folder: {mSessionFolder}. ");
 
         var lSignal = new WaveSignal(mInputWave.Signal) ;
 
@@ -267,7 +271,7 @@ namespace Transgraphier_1_0_App
         this.ExportButton.Enabled = true;
         this.LoadLastSessionButton.Enabled = true;
 
-        LoadLastSession();
+        LoadSession();
       }
       catch (Exception ex)
       {
@@ -279,36 +283,29 @@ namespace Transgraphier_1_0_App
 
     public class PipelineOutcome 
     {
-      public PipelineOutcome( string aRoot, string aName ) 
+      public PipelineOutcome( string aCurrFolder ) 
       { 
-        Root = aRoot ;
-        Name = aName ;
-
-        CurrFolder = $"{aRoot}\\{aName}";
-        mList.Add(CurrFolder) ; 
+        mList.Add(aCurrFolder) ;  
       }
 
       public void Add( string aFolder ) 
       { 
-        CurrFolder = $"{CurrFolder}\\{aFolder}";
-        mList.Add(CurrFolder) ; 
+        string lNew = $"{mList.Last()}\\{aFolder}";
+        mList.Add(lNew) ; 
       }
 
-      public PipelineOutcome Copy() => new PipelineOutcome(Root, Name, mList);
+      public PipelineOutcome Copy() => new PipelineOutcome(mList);
 
-      PipelineOutcome( string aRoot, string aName, List<string> aList )
+      PipelineOutcome( List<string> aList )
       {
-        Root = aRoot ;
-        Name = aName ;
         mList.AddRange(aList); 
       }
 
-      public string Root { get ; private set ; }
       public string Name { get ; set ; }
 
       public IEnumerable<string> Folders => mList ;
 
-      public string CurrFolder { get ; private set ; }
+      public string LastFolder() => mList.Last() ;
 
       List<string> mList = new List<string>();
     }
@@ -337,20 +334,24 @@ namespace Transgraphier_1_0_App
 
       AddGeneralMessage( $"Loading Session: [{mSessionFolder}]");
 
-      mInputFile = Directory.GetFiles(mSessionFolder, "*.wav").FirstOrDefault();
-
       if ( mInputFile == null )
       {
-        AddErrorMessage($"Input file not found in session: [{mSessionFolder}]");
-        return;
-      }
+        mInputFile = Directory.GetFiles(mSessionFolder, "*.wav").FirstOrDefault();
 
-      LoadInputFile();
+        if ( mInputFile == null )
+        {
+          AddErrorMessage($"Input file not found in session: [{mSessionFolder}]");
+          return;
+        }
+
+        LoadInputFile();
+      }
 
       mPipelineOutcomeList .Clear();
       mPipelineOutcomeStack.Clear();
 
-      var lHeadPipelineOutcome = new PipelineOutcome(mSessionFolder,"Pipeline_0");
+      var lHeadPipelineOutcome = new PipelineOutcome($"{mSessionFolder}\\Pipeline_0");
+      lHeadPipelineOutcome.Name = "Pipeline_0";
 
       mPipelineOutcomeList .Add (lHeadPipelineOutcome);
       mPipelineOutcomeStack.Push(lHeadPipelineOutcome);
@@ -359,33 +360,45 @@ namespace Transgraphier_1_0_App
       {
         var lCurrPipelineOutcome = mPipelineOutcomeStack.Pop(); 
 
-        var lCurrFolder = lCurrPipelineOutcome.CurrFolder;
+        var lCurrFolder = lCurrPipelineOutcome.LastFolder();
 
-        while ( lCurrFolder != null )
+        do
         {
-          var lSubFolders = Directory.GetDirectories(lCurrFolder).OrderBy(x => x);
+          var lSubFolders = Directory.GetDirectories(lCurrFolder).ToList().ConvertAll( sf => Path.GetFileNameWithoutExtension(sf) ) ;
 
-          lCurrFolder = null ;
-
-          foreach( var lSF in lSubFolders )
+          // This is to make sure we process the Pipeline subfolder BEFORE the next subfolder
+          if ( lSubFolders.Count == 2 )
           {
-            var lCurrSubFolder = Path.GetFileNameWithoutExtension(lSF);
+            string lPipelineSubFolder,  lNextSubFolder ;
 
-            if ( lCurrSubFolder.StartsWith("Pipeline_") )
+            if ( lSubFolders[0].StartsWith("Pipeline_") )
             {
-              var lNewPipelineOutcome = lCurrPipelineOutcome.Copy();
-              lNewPipelineOutcome.Name = lCurrSubFolder ;
-              mPipelineOutcomeList .Add (lNewPipelineOutcome) ;
-              mPipelineOutcomeStack.Push(lNewPipelineOutcome);
+              lPipelineSubFolder = lSubFolders[0];
+              lNextSubFolder     = lSubFolders[1];
             }
-            else 
+            else
             {
-              lCurrPipelineOutcome.Add(lCurrSubFolder);
+              lPipelineSubFolder = lSubFolders[1];
+              lNextSubFolder     = lSubFolders[0];
             }
 
-            lCurrFolder = lCurrPipelineOutcome.CurrFolder ;
+            var lNewPipelineOutcome = lCurrPipelineOutcome.Copy();
+            lNewPipelineOutcome.Name = lPipelineSubFolder;
+            lNewPipelineOutcome.Add(lPipelineSubFolder);
+            mPipelineOutcomeList .Add (lNewPipelineOutcome) ;
+            mPipelineOutcomeStack.Push(lNewPipelineOutcome);
+
+            lCurrPipelineOutcome.Add(lNextSubFolder);
           }
+          else if ( lSubFolders.Count == 1 )
+          {
+            lCurrPipelineOutcome.Add(lSubFolders[0]);
+          }
+          else break ;
+
+          lCurrFolder =lCurrPipelineOutcome.LastFolder() ;
         }
+        while ( true ) ;
       }
 
       foreach( var lPipelineFolder in mPipelineOutcomeList )
@@ -548,7 +561,9 @@ namespace Transgraphier_1_0_App
 
     void LoadLastSession()
     {
-      mSessionName = GetLastSessionFolder();
+      mInputFile = null ;
+      mSessionFolder = GetLastSessionFolder();
+      mSessionName = Path.GetFileNameWithoutExtension(mSessionFolder);
       Clear();
       LoadSession(); 
     }

@@ -38,7 +38,7 @@ public class Pipeline
 {
   public Pipeline BranchOut( OutputBucket aStartBucket, Packet aStartPacket, Config aConfig )
   {
-    var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
+    var lRemainingFilters = mFilters.Skip(mFilterIdx).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
          return null ;
@@ -135,6 +135,11 @@ public class Pipeline
     mFilterIdx   = 0 ; 
   }
 
+  public void SetupFilters( ) 
+  {
+    mFilters.ForEach( filter => filter.Setup( Session, Settings, Config) ) ;
+  }
+
 
   protected List<Filter> mFilters     = new List<Filter>();
   protected Packet       mStartPacket = null ;
@@ -172,8 +177,6 @@ public class MainPipeline : Pipeline
     mStartPacket = new Packet(null, null, null, aStartSignal, "") ;
 
     StartBucket = aStartBucket ;
-
-    mFilters.ForEach( filter => filter.Setup( Session, Settings, Config) ) ;
   }
 
   public void End()
