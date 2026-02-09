@@ -518,8 +518,8 @@ namespace DIGITC2_ENGINE
         {
           rR = MathX.LERP(lPeaks[0],lPeaks[1],.3);
 
-          AddBranch("VeryShortThreshold",$"{(rR *  .8)}");
-          AddBranch("VeryShortThreshold",$"{(rR * 1.2)}");
+          AddBranch("VeryShortThreshold",$"{(rR *   6)}");
+          AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
         }
 
         return rR;

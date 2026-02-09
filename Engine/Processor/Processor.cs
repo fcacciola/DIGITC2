@@ -54,16 +54,24 @@ public class Processor
         lPipeline.SetupFilters();
 
         aSession.GotoBucket(lPipeline.StartBucket);
-        aSession.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
+        aSession.PushBucket(OutputBucket.WithoutLogFile(lPipeline.Name));
         string lPipelineFolder = aSession.CurrBucket().FullOutputFolder; 
         aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
-        lPipelineResult.Folder = lPipelineFolder; 
-        rPipelineResults.Add(lPipelineResult) ; 
-
-        if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
+        if ( lPipelineResult != null )
         {
-          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Skipping branch-out pipelines.") ;
+          lPipelineResult.Folder = lPipelineFolder; 
+          rPipelineResults.Add(lPipelineResult) ; 
+
+          if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
+          {
+            DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Skipping branch-out pipelines.") ;
+            break ;
+          }
+        }
+        else
+        {
+          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} failed. Aborting.") ;
           break ;
         }
 
@@ -85,13 +93,13 @@ public class Processor
     mPipelines.Enqueue( aPipeline ) ;  
   }
 
-  public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig )
+  public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig, string aSubName )
   {
     var lPrevFilterBucket = DContext.Session.PrevBucket();   
 
     if (  lPrevFilterBucket != null )
     { 
-      var lNewPipeline = aPipeline.BranchOut(lPrevFilterBucket, aStartPacket.Prev, aConfig ) ;
+      var lNewPipeline = aPipeline.BranchOut(lPrevFilterBucket, aStartPacket.Prev, aConfig, $"{aStartPacket.FilterName}_{aSubName}" ) ;
 
       EnqueuePipeline( lNewPipeline ) ; 
     }

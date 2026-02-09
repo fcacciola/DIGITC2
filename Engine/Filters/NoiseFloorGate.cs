@@ -148,49 +148,56 @@ public static class ExactPercentile
 
   public class NoiseFloorGate : WaveFilter
   {
-    public class NoiseFloorEstimationParams 
+    public class Options 
     {
-      public float TrimRatio  = 0.05f ;
-      public int   Percentile = 10;
+      public float  EnvelopeAttackTime;
+      public float  EnvelopeReleaseTime;
+      public float  FloorEstimationTrimRatio ;
+      public int    FloorEstimationPercentile;
+      public float  Floor;
     }
 
     public NoiseFloorGate() 
     { 
     }
 
+    Options CreateOptions()
+    {
+      Options rOptions = new ();
+
+      rOptions.EnvelopeAttackTime        = Params.GetFloat("EnvelopeAttack");
+      rOptions.EnvelopeReleaseTime       = Params.GetFloat("EnvelopeRelease") ;
+      rOptions.FloorEstimationTrimRatio  = Params.GetFloat("FloorEstimationTrimRatio");
+      rOptions.FloorEstimationPercentile = Params.GetInt  ("FloorEstimationPercentile");
+      rOptions.Floor                     = Params.GetFloat("Floor");
+
+      return rOptions;
+
+    }
+
     protected override Packet Process ()
     {
+      mOptions = CreateOptions();
+
       WaveInput.Rep.Sanitize() ;
 
-      var lEnvelopeParams = new Envelope.Args{AttackTime=Params.GetFloat("EnvelopeAttack"), ReleaseTime= Params.GetFloat("EnvelopeRelease") };
+      var lEnvelopeParams = new Envelope.Args{ AttackTime = mOptions.EnvelopeAttackTime, ReleaseTime = mOptions.EnvelopeReleaseTime};
       var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
 
       string lEnvelopeLabel = $"Envelope_{lEnvelopeParams}";
       
       Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
-      float lFloor = GetNoiseFloor(lEnvelope);
+      var (lFloor,lNewSamples) = EstimateFloor(lEnvelope);
 
-      int lGates = 0 ;
-
-      const int cTries = 5; 
-      const int cMinGates = ( ( 2 * 8 ) + 5 ) * 5 ; // At least 5 letters
-
-      float[] lNewSamples = null ;
-
-      for ( int i = 0 ; i < cTries && lGates < cMinGates ; ++ i )
-      {
-        lFloor *= 1.05f ;
-        WriteLine2GUI($"Applying Noise Gate at: {lFloor}");
+      if ( lNewSamples == null )
         lNewSamples = RawApplyGate(lEnvelope.Samples, lFloor);
-        lGates = CountGates(lNewSamples);
-      }
 
       var lGated = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
 
       lGated.Sanitize();
 
-      string lLabel = $"NoiseGate_{lEnvelopeLabel}_{(int)(lFloor*100)}]";
+      string lLabel = $"NoiseGate_{(int)(lFloor*100000)}";
 
       Save(lGated, $"{lLabel}.wav") ;
 
@@ -198,6 +205,40 @@ public static class ExactPercentile
       lES.Name = lLabel;
 
       return CreateOutput(lES, lLabel);
+    }
+
+    (float,float[]) EstimateFloor( DiscreteSignal aEnvelope )
+    {
+      float rFloor = mOptions.Floor ;
+
+      float[] rNewSamples = null ;
+
+      if ( rFloor == -1 )
+      {
+        rFloor = GetNoiseFloor(aEnvelope);
+
+        int lGates = 0 ;
+
+        const int cTries = 5; 
+        const int cMinGates = ( ( 2 * 8 ) + 5 ) * 5 ; // At least 5 letters
+
+        for ( int i = 0 ; i < cTries && lGates < cMinGates ; ++ i )
+        {
+          rFloor *= 1.05f ;
+          WriteLine2GUI($"Applying Noise Gate at: {rFloor}");
+          rNewSamples = RawApplyGate(aEnvelope.Samples, rFloor);
+          lGates = CountGates(rNewSamples);
+        }
+
+        if ( rFloor > 0 && lGates < cMinGates )
+        {
+          AddBranch("Floor",$"{(0.2)}");
+          AddBranch("Floor",$"{(0.4)}");
+          AddBranch("Floor",$"{(0.6)}");
+        }
+      }
+
+      return (rFloor,rNewSamples) ;
     }
 
     float GetNoiseFloor( DiscreteSignal aEnvelope )
@@ -210,7 +251,7 @@ public static class ExactPercentile
       float? rNF_ = Params.GetOptionalFloat("NoiseFloor");
       if ( rNF_ is null )
       {
-        rNF = EstimateBaseline(aEnvelope.Samples, new NoiseFloorEstimationParams() );
+        rNF = EstimateBaseline(aEnvelope.Samples, new Options() );
       }
       else rNF = rNF_.Value ;
 
@@ -231,15 +272,15 @@ public static class ExactPercentile
     }
 
 
-    public static float EstimateBaseline(float[] aSamples, NoiseFloorEstimationParams aParams )
+    public static float EstimateBaseline(float[] aSamples, Options aParams )
     {
       float[] lSorted = new float[aSamples.Length];
       Array.ConstrainedCopy(aSamples,0, lSorted, 0, lSorted.Length);
       Array.Sort(lSorted);
 
-      var lTrimmed = Trim(lSorted, aParams.TrimRatio);
+      var lTrimmed = Trim(lSorted, aParams.FloorEstimationTrimRatio);
 
-      float rR = lTrimmed.Percentile(aParams.Percentile);
+      float rR = lTrimmed.Percentile(aParams.FloorEstimationPercentile);
 
       return rR ;
     }
@@ -283,7 +324,7 @@ public static class ExactPercentile
       return rR ;
     }
 
-    NoiseFloorEstimationParams mParams = new NoiseFloorEstimationParams();
+    Options mOptions = new Options();
 
     public override string Name => this.GetType().Name ;
 

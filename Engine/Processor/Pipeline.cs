@@ -36,13 +36,13 @@ public class PipelineSelection
 
 public class Pipeline
 {
-  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aStartPacket, Config aConfig )
+  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aStartPacket, Config aConfig, string aSubName )
   {
     var lRemainingFilters = mFilters.Skip(mFilterIdx).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
          return null ;
-    else return new Pipeline( Session, Settings, aConfig, aStartBucket, aStartPacket, mLevel + 1, lRemainingFilters ) ;
+    else return new Pipeline( Session, Settings, aConfig, $"{Name}_{aSubName}", aStartBucket, aStartPacket, lRemainingFilters ) ;
   }
 
   public PipelineResult Process( Processor aProcessor )
@@ -75,7 +75,12 @@ public class Pipeline
 
           rRB.Add( lPacket ) ;
 
-          lBranches.ForEach( b => aProcessor.BranchOut( this, lPacket, b) ) ; 
+          for( int i = 0 ; i < lBranches.Count ; i++ )
+          {
+            var lBranch = lBranches[i] ;  
+            string lSN = "_" + (char)('A'+i);
+            aProcessor.BranchOut( this, lPacket, lBranch, lSN) ;
+          }
 
           if ( lPacket.ShouldQuit )
           {
@@ -106,11 +111,9 @@ public class Pipeline
 
   public string Name { get ; private set ; }
 
-  public int Level => mLevel ;
-
   public OutputBucket StartBucket { get ; protected set ; } 
 
-  public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
+  public override string ToString() => $"{Name} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
   protected Pipeline( Session aSession, Settings aSettings, Config aConfig, string aName, OutputBucket aStartBucket )
   { 
@@ -121,16 +124,15 @@ public class Pipeline
     StartBucket = aStartBucket ;
   }
 
-  Pipeline( Session aSession, Settings aSettings, Config aConfig, OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( Session aSession, Settings aSettings, Config aConfig, string aName, OutputBucket aStartBucket, Packet aPacket, List<Filter> aFilters )
   { 
     Session      = aSession ;
     Settings     = aSettings ;
     Config       = aConfig ;
-    Name         = aPacket.Name ;  
+    Name         = aName ;  
     StartBucket  = aStartBucket ;
 
     mStartPacket = aPacket ;  
-    mLevel       = aLevel ;
     mFilters     = aFilters ;
     mFilterIdx   = 0 ; 
   }
@@ -144,7 +146,6 @@ public class Pipeline
   protected List<Filter> mFilters     = new List<Filter>();
   protected Packet       mStartPacket = null ;
 
-  int mLevel    = 0 ;
   int mFilterIdx = 0 ;  
 
 }

@@ -350,8 +350,8 @@ namespace Transgraphier_1_0_App
       mPipelineOutcomeList .Clear();
       mPipelineOutcomeStack.Clear();
 
-      var lHeadPipelineOutcome = new PipelineOutcome($"{mSessionFolder}\\Pipeline_0");
-      lHeadPipelineOutcome.Name = "Pipeline_0";
+      var lHeadPipelineOutcome = new PipelineOutcome($"{mSessionFolder}\\Main");
+      lHeadPipelineOutcome.Name = "Main";
 
       mPipelineOutcomeList .Add (lHeadPipelineOutcome);
       mPipelineOutcomeStack.Push(lHeadPipelineOutcome);
@@ -367,36 +367,33 @@ namespace Transgraphier_1_0_App
           var lSubFolders = Directory.GetDirectories(lCurrFolder).ToList().ConvertAll( sf => Path.GetFileNameWithoutExtension(sf) ) ;
 
           // This is to make sure we process the Pipeline subfolder BEFORE the next subfolder
-          if ( lSubFolders.Count == 2 )
+
+          List<string> lNewPipelines   = new List<string>();
+          List<string> lNextSubFolders = new List<string>();
+
+          foreach( var lSubFolder in lSubFolders )
           {
-            string lPipelineSubFolder,  lNextSubFolder ;
+            if ( lSubFolder.StartsWith("Main") )
+                 lNewPipelines  .Add( lSubFolder );
+            else lNextSubFolders.Add( lSubFolder );
+          }
 
-            if ( lSubFolders[0].StartsWith("Pipeline_") )
-            {
-              lPipelineSubFolder = lSubFolders[0];
-              lNextSubFolder     = lSubFolders[1];
-            }
-            else
-            {
-              lPipelineSubFolder = lSubFolders[1];
-              lNextSubFolder     = lSubFolders[0];
-            }
-
+          foreach( var lNewPipelineSubFolder in lNewPipelines )
+          {
             var lNewPipelineOutcome = lCurrPipelineOutcome.Copy();
-            lNewPipelineOutcome.Name = lPipelineSubFolder;
-            lNewPipelineOutcome.Add(lPipelineSubFolder);
+            lNewPipelineOutcome.Name = lNewPipelineSubFolder;
+            lNewPipelineOutcome.Add(lNewPipelineSubFolder);
             mPipelineOutcomeList .Add (lNewPipelineOutcome) ;
             mPipelineOutcomeStack.Push(lNewPipelineOutcome);
-
-            lCurrPipelineOutcome.Add(lNextSubFolder);
           }
-          else if ( lSubFolders.Count == 1 )
+          
+          if ( lNextSubFolders.Count == 1 )
           {
-            lCurrPipelineOutcome.Add(lSubFolders[0]);
+            lCurrPipelineOutcome.Add(lNextSubFolders[0]);
           }
           else break ;
 
-          lCurrFolder =lCurrPipelineOutcome.LastFolder() ;
+          lCurrFolder = lCurrPipelineOutcome.LastFolder() ;
         }
         while ( true ) ;
       }

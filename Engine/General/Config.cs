@@ -68,7 +68,7 @@ public class Params
   //}
 
   public string Get( string aKey)
-  {
+  { 
     return Map.ContainsKey(aKey) ? Map[aKey] : null; 
   }
 
@@ -116,10 +116,10 @@ public class Params
   public double? GetOptionalDouble( string aKey) { string v = Get(aKey); if ( v != null ) return ToDouble(v) ; else return null ; }
   public bool?   GetOptionalBool  ( string aKey) { string v = Get(aKey); if ( v != null ) return ToBool  (v) ; else return null ; }
 
-  public int    GetInt   ( string aKey) => GetOptionalInt   ( aKey) ?? 0 ;
-  public float  GetFloat ( string aKey) => GetOptionalFloat ( aKey) ?? 0.0f;
-  public double GetDouble( string aKey) => GetOptionalDouble( aKey) ?? 0.0;
-  public bool   GetBool  ( string aKey) => GetOptionalBool  ( aKey) ?? false;
+  public int    GetInt   ( string aKey) => GetOptionalInt   ( aKey ) ?? 0 ;
+  public float  GetFloat ( string aKey) => GetOptionalFloat ( aKey ) ?? 0.0f;
+  public double GetDouble( string aKey) => GetOptionalDouble( aKey ) ?? 0.0;
+  public bool   GetBool  ( string aKey) => GetOptionalBool  ( aKey ) ?? false;
 
   public string GetPath( string aKey ) => ConfigHelper.ExpandRelativeFilePath(Get(aKey));
 

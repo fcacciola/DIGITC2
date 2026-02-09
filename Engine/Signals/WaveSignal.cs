@@ -125,16 +125,30 @@ namespace DIGITC2_ENGINE
   {
     public static void SaveTo( this DiscreteSignal aDS, Stream aStream ) 
     {
-      var lWF = new WaveFile(aDS);
-      lWF.SaveTo( aStream );  
+      try
+      {
+        var lWF = new WaveFile(aDS);
+        lWF.SaveTo( aStream );  
+      }
+      catch( Exception ex )
+      {
+        DContext.Error(ex);
+      }
     }
 
     public static void SaveTo( this DiscreteSignal aDS, string aFilename )  
     {
       DContext.WriteLine2GUI($"Saving signal to file: [{aFilename}]");
 
-      using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
-        aDS.SaveTo( lStream );  
+      try
+      {
+        using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
+          aDS.SaveTo( lStream );  
+      }
+      catch( Exception ex )
+      {
+        DContext.Error(ex);
+      }
     }
 
     public static void ClampOutliers(this DiscreteSignal signal, float aFloor = 1e-4f, float aCeiling = .99f)

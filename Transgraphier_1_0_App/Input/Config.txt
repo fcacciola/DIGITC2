@@ -1,5 +1,6 @@
-
-
+NoiseFloorGate_FloorEstimationTrimRatio=0.05 
+NoiseFloorGate_FloorEstimationPercentile=10
+NoiseFloorGate_Floor=-1
 NoiseFloorGate_EnvelopeAttack=0.005
 NoiseFloorGate_EnvelopeRelease=0.01
 
@@ -14,7 +15,6 @@ ExtractPulseSymbols_SplitLevelDiff=5
 ExtractPulseSymbols_InsignificantLenThreshold = 882
 ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
 ExtractPulseSymbols_VeryShortThreshold = -1
-
 
 ExtractTapCode_SeparatorCountThreshold=5
 ExtractTapCode_MinTapCount=16
