@@ -27,21 +27,14 @@ public class Processor
 
   public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig )
   {
-    var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
-    DContext.Session.PushBucket(lStartBucket);
     var rPipelineResults = new List<PipelineResult>();
-    Process( aSession, aSettings, aStartSignal, aConfig, lStartBucket, rPipelineResults);
-    DContext.Session.GotoBucket(lStartBucket) ;
-    DContext.CloseLogger();
-    return rPipelineResults ;
-  }
 
-  public void Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig, OutputBucket aStartBucket, List<PipelineResult> rPipelineResults )
-  {
+    mMainPipeline.Start( aSession, aSettings, aConfig, aStartSignal ) ;
+
+    string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 
     try
     {
-      mMainPipeline.Start( aSession, aSettings, aConfig, aStartSignal, aStartBucket ) ;
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
@@ -53,9 +46,8 @@ public class Processor
 
         lPipeline.SetupFilters();
 
-        aSession.GotoBucket(lPipeline.StartBucket);
-        aSession.PushBucket(OutputBucket.WithoutLogFile(lPipeline.Name));
-        string lPipelineFolder = aSession.CurrBucket().FullOutputFolder; 
+        lPipeline.AddSlot(OutputSlot.WithoutLogFile(lPipeline.Name));
+        string lPipelineFolder = lPipeline.OutputBucket.CurrFullOutputFolder; 
         aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
         if ( lPipelineResult != null )
@@ -86,6 +78,10 @@ public class Processor
       DContext.Error(x);
     }
 
+    aSession.SetCurrentOutputFolder(lMainPipelineFolder);
+    DContext.CloseLogger();
+
+    return rPipelineResults ;
   }
 
   public void EnqueuePipeline ( Pipeline aPipeline ) 
@@ -95,11 +91,11 @@ public class Processor
 
   public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig, string aSubName )
   {
-    var lPrevFilterBucket = DContext.Session.PrevBucket();   
+    var lPrevFilterSlot = aPipeline.OutputBucket.PrevSlot();   
 
-    if (  lPrevFilterBucket != null )
+    if (  lPrevFilterSlot != null )
     { 
-      var lNewPipeline = aPipeline.BranchOut(lPrevFilterBucket, aStartPacket.Prev, aConfig, $"{aStartPacket.FilterName}_{aSubName}" ) ;
+      var lNewPipeline = aPipeline.BranchOut(lPrevFilterSlot, aStartPacket.Prev, aConfig, $"{aStartPacket.FilterName}_{aSubName}" ) ;
 
       EnqueuePipeline( lNewPipeline ) ; 
     }

@@ -208,6 +208,9 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseDown(e);
 
+      if ( ZoomPanController == null || mSignal == null )
+        return ;
+
       if (e.Button == MouseButtons.Left)
       {
         mLastMousePos = e.Location;
@@ -221,6 +224,9 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseUp(e);
 
+      if ( ZoomPanController == null || mSignal == null )
+        return ;
+
       if (e.Button == MouseButtons.Left && mIsPanning)
       {
         mIsPanning = false;
@@ -232,6 +238,9 @@ namespace Transgraphier_1_0_App
     protected override void OnMouseMove(MouseEventArgs e)
     {
       base.OnMouseMove(e);
+
+      if ( ZoomPanController == null || mSignal == null )
+        return ;
 
       if (e.Button == MouseButtons.Left && mIsPanning)
       {

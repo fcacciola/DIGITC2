@@ -398,7 +398,7 @@ namespace Transgraphier_1_0_App
         while ( true ) ;
       }
 
-      foreach( var lPipelineFolder in mPipelineOutcomeList )
+      foreach( var lPipelineFolder in mPipelineOutcomeList.OrderBy( p => p.Name ) )
       {
         LoadPipeline( lPipelineFolder );
       }
