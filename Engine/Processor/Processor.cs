@@ -33,6 +33,8 @@ public class Processor
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 
+    const int MAX_PIPELINES = 10 ;
+
     try
     {
 
@@ -63,11 +65,17 @@ public class Processor
         }
         else
         {
-          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} failed. Aborting.") ;
+          DContext.Error($"Pipeline {lPipelineIdx} failed. Aborting.") ;
           break ;
         }
 
         lPipelineIdx ++ ;
+
+        if ( lPipelineIdx > MAX_PIPELINES )
+        {
+          DContext.Error($"Too many Pipelines. Aborting.") ;
+          break ;
+        }
       }
       while (mPipelines.Count > 0);
 

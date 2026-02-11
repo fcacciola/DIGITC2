@@ -188,7 +188,7 @@ public static class ExactPercentile
       
       Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
-      var (lFloor,lNewSamples) = EstimateFloor(lEnvelope);
+      var (lFloor,lNewSamples) = EstimateFloor(lEnvelope.Samples);
 
       if ( lNewSamples == null )
         lNewSamples = RawApplyGate(lEnvelope.Samples, lFloor);
@@ -207,7 +207,7 @@ public static class ExactPercentile
       return CreateOutput(lES, lLabel);
     }
 
-    (float,float[]) EstimateFloor( DiscreteSignal aEnvelope )
+    (float,float[]) EstimateFloor( float[] aEnvelope )
     {
       float rFloor = mOptions.Floor ;
 
@@ -215,18 +215,20 @@ public static class ExactPercentile
 
       if ( rFloor == -1 )
       {
-        rFloor = GetNoiseFloor(aEnvelope);
+        rFloor = EstimateBaseline(aEnvelope,mOptions);
 
         int lGates = 0 ;
 
         const int cTries = 5; 
         const int cMinGates = ( ( 2 * 8 ) + 5 ) * 5 ; // At least 5 letters
 
+//        rFloor *= 1f / 1.05f ; // To counter the very first scale up in the loop
+
         for ( int i = 0 ; i < cTries && lGates < cMinGates ; ++ i )
         {
           rFloor *= 1.05f ;
           WriteLine2GUI($"Applying Noise Gate at: {rFloor}");
-          rNewSamples = RawApplyGate(aEnvelope.Samples, rFloor);
+          rNewSamples = RawApplyGate(aEnvelope, rFloor);
           lGates = CountGates(rNewSamples);
         }
 
@@ -239,23 +241,6 @@ public static class ExactPercentile
       }
 
       return (rFloor,rNewSamples) ;
-    }
-
-    float GetNoiseFloor( DiscreteSignal aEnvelope )
-    {
-      //
-      // Along the very first pipeline, a noise floor value is automatically estimated.
-      // Then branches are open with varations of that estimation
-      float rNF ;
-
-      float? rNF_ = Params.GetOptionalFloat("NoiseFloor");
-      if ( rNF_ is null )
-      {
-        rNF = EstimateBaseline(aEnvelope.Samples, new Options() );
-      }
-      else rNF = rNF_.Value ;
-
-      return rNF ;
     }
 
     static float[] Trim( float[] aSamples, float aTrimRatio )
