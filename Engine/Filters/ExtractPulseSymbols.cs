@@ -23,6 +23,50 @@ namespace DIGITC2_ENGINE
         aRankSize ?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_RankSize.png"));
       }
     }
+
+    static public void DumpValues<T>( string aName, T[] aValues )
+    {
+      try
+      {
+        string[] lAsStrings = new string[aValues.Length];
+        for( int i = 0 ; i <  aValues.Length ; i++ ) 
+          lAsStrings[i] = $"{aValues[i]}";
+
+        var lCSV = string.Join(" , ", lAsStrings ) ;
+
+        File.WriteAllText(DContext.Session.OutputFile($"{aName}_CSV.txt"), lCSV);
+      }
+      catch( Exception e )
+      {
+        DContext.Error(e);
+      }
+    }
+  }
+
+  public static class PulseSymbolExtensions
+  {
+    static public double[] CalculateGapDurations( this List<PulseSymbol> aPulses )
+    {
+      var rGapDurations = new double[aPulses.Count-1];
+
+      var lPulseA = aPulses[0];
+
+      for ( int i = 1, k = 0; i < aPulses.Count ; i++, k++ )
+      { 
+        var lPulseB = aPulses[i]; 
+
+        var lGap = lPulseB.StartTime - lPulseA.EndTime;
+
+        if ( lGap > 0 )
+          rGapDurations[k] = lGap ;
+
+        lPulseA = lPulseB;
+      }
+
+      //FilterHelper.DumpValues("GapDurations",mGapDurations);
+
+      return rGapDurations;
+    }
   }
 
   public class PulseFilterHelper : FilterHelper
@@ -177,7 +221,7 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process ()
     {
-      mData = new Data(){ Options = CreateOptions() } ;
+      mOptions = CreateOptions() ;
 
       CreatePulses();
       SelectValidPulses();
@@ -185,70 +229,70 @@ namespace DIGITC2_ENGINE
       MergeContiguousPulses();
       RemoveUnfitPulses();
 
-      return CreateOutput( new LexicalSignal(mData.Pulses4), Name) ;
+      return CreateOutput( new LexicalSignal(mPulses4), Name, null, false) ;
     }
    
     public override string Name => this.GetType().Name ;
 
     void CreatePulses()
     {
-      mData.InGap = WaveInput.Samples[0] == 0 ;
+      mInGap = WaveInput.Samples[0] == 0 ;
 
-      mData.PulseStart = 0 ;
-      mData.Pos        = 0 ;
+      mPulseStart = 0 ;
+      mPos        = 0 ;
 
       WriteLine2GUI($"Creating pulses for WaveSignal of Length {WaveInput.Samples.Length}");
       Indent();  
 
-      for ( mData.Pos = 0 ; mData.Pos < WaveInput.Samples.Length ; ++ mData.Pos )
+      for ( mPos = 0 ; mPos < WaveInput.Samples.Length ; ++ mPos )
       {
-        float lV = WaveInput.Samples[mData.Pos] ;
+        float lV = WaveInput.Samples[mPos] ;
 
         if ( lV > 0 )
         {
-          if ( mData.InGap )
+          if ( mInGap )
           {
-            mData.PulseStart = mData.Pos ;
-            //DContext.WriteLine($"Pulse start at {mData.PulseStart}");
+            mPulseStart = mPos ;
+            //DContext.WriteLine($"Pulse start at {mPulseStart}");
           }
-          mData.InGap = false ;  
+          mInGap = false ;  
         }
         else
         {
           AddPulse();
-          mData.InGap = true ;  
+          mInGap = true ;  
         }
       }
 
       AddPulse();
 
-      PulseFilterHelper.PlotPulses(mData.Pulses0, "0_Raw_Pulses");
+      PulseFilterHelper.PlotPulses(mPulses0, "0_Raw_Pulses");
 
       Unindent();  
     }
 
     void AddPulse()
     {
-      if ( ! mData.InGap )
+      if ( ! mInGap )
       {
-        var lSteps = PulseStepBuilder.Build(WaveInput, mData.PulseStart, mData.Pos ) ;
+        var lSteps = PulseStepBuilder.Build(WaveInput, mPulseStart, mPos ) ;
 
-        //DContext.WriteLine($"Creatign new Pulse from {mData.PulseStart} to {mData.Pos} with {lSteps.Textualize()}");
+        //DContext.WriteLine($"Creatign new Pulse from {mPulseStart} to {mPos} with {lSteps.Textualize()}");
 
-        mData.Pulses0.Add( new PulseSymbol(mData.Pulses0.Count, mData.PulseStart, mData.Pos, lSteps ) );
+        mPulses0.Add( new PulseSymbol(mPulses0.Count, mPulseStart, mPos, lSteps ) );
       }
     }
 
     void SelectValidPulses()
     {
-      foreach( var lPulse in mData.Pulses0 )
+      foreach( var lPulse in mPulses0 )
       {
-        if ( lPulse.Length > mData.Options.InsignificantLenThreshold && lPulse.MaxLevel > mData.Options.DullThreshold )
-          mData.Pulses1.Add(lPulse );
+        if ( lPulse.Length > mOptions.InsignificantLenThreshold && lPulse.MaxLevel > mOptions.DullThreshold )
+          mPulses1.Add(lPulse );
       }
 
-      PulseFilterHelper.PlotPulses                (mData.Pulses1, "1_Valid_Pulses");
-      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses1, "1_Valid_Pulses");
+      PulseFilterHelper.PlotPulses                (mPulses1, "1_Valid_Pulses");
+      PulseFilterHelper.PlotPulseDurationHistogram(mPulses1, "1_Valid_Pulses");
     }
 
     struct Run
@@ -277,7 +321,7 @@ namespace DIGITC2_ENGINE
 
         if ( i > 0 && i < lL )
         {
-          bool lDullEnough  = lStep.Level < mData.Options.SplitThreshold ;
+          bool lDullEnough  = lStep.Level < mOptions.SplitThreshold ;
           if ( lDullEnough )
           {
             bool lFromPeak = false ;
@@ -291,7 +335,7 @@ namespace DIGITC2_ENGINE
               if ( lPrevLevel >= lCurrLevel)
               {
                 lDiff += lPrevLevel - lCurrLevel ;
-                if ( lDiff >= mData.Options.SplitLevelDiff )
+                if ( lDiff >= mOptions.SplitLevelDiff )
                 {
                   lFromPeak = true ;  
                   break ;
@@ -322,7 +366,7 @@ namespace DIGITC2_ENGINE
                 if ( lNextLevel >= lCurrLevel)
                 {
                   lDiff += lNextLevel - lCurrLevel ;
-                  if ( lDiff >= mData.Options.SplitLevelDiff )
+                  if ( lDiff >= mOptions.SplitLevelDiff )
                   {
                     lToPeak = true ;  
                     break ;
@@ -376,8 +420,8 @@ namespace DIGITC2_ENGINE
 
           var lNewPulseStart = lSteps.First().Start ;
           var lNewPulseEnd   = lSteps.Last ().End ;  
-          var lNewPulse = new PulseSymbol(mData.Pulses2.Count, lNewPulseStart, lNewPulseEnd, lSteps );
-          mData.Pulses2.Add(lNewPulse);
+          var lNewPulse = new PulseSymbol(mPulses2.Count, lNewPulseStart, lNewPulseEnd, lSteps );
+          mPulses2.Add(lNewPulse);
         }
       }
       //DContext.Unindent();  
@@ -388,7 +432,7 @@ namespace DIGITC2_ENGINE
       WriteLine2GUI("Splitting Pulses");
       Indent();  
 
-      foreach( var lPulse in mData.Pulses1 )
+      foreach( var lPulse in mPulses1 )
       {
         //DContext.WriteLine($"Checking  pulse {lPulse}");
         //DContext.Indent();  
@@ -399,63 +443,33 @@ namespace DIGITC2_ENGINE
         }
         else
         {
-          mData.Pulses2.Add( lPulse ); 
+          mPulses2.Add( lPulse ); 
         }
         //DContext.Unindent();  
       }
 
-      PulseFilterHelper.PlotPulses                (mData.Pulses2, "2_Split_Pulses");
-      PulseFilterHelper.PlotPulseDurationHistogram(mData.Pulses2, "2_Split_Pulses");
+      PulseFilterHelper.PlotPulses                (mPulses2, "2_Split_Pulses");
+      PulseFilterHelper.PlotPulseDurationHistogram(mPulses2, "2_Split_Pulses");
       Unindent();  
     }
 
     double FindContiguousPulsesGapDuration()
     {
-      if ( mData.Options.ContiguousPulsesGapDuration == -1 )
+      if ( mOptions.ContiguousPulsesGapDuration == -1 )
       {
-        double rR = 0 ;
+        double rGP = PulseSymbolStats_MergeTheshold.Calculate(mPulses2);
 
-        List<double> lGapDurations = new List<double>();
+        AddBranch("ContiguousPulsesGapDuration",$"{(rGP *  .75)}");
+        AddBranch("ContiguousPulsesGapDuration",$"{(rGP * 1.25)}");
 
-        var lPulseA = mData.Pulses2[0];
-
-        for ( int i = 1; i < mData.Pulses2.Count ; i++ )
-        { 
-          var lPulseB = mData.Pulses2[i]; 
-
-          var lGap = lPulseB.StartTime - lPulseA.EndTime;
-
-          lGapDurations.Add( lGap );
-        }
-
-        var lDist = new Distribution( lGapDurations ) ;
-
-        var lFullRangeHistogram = new Histogram(lDist).Table ;
-
-        FilterHelper.PlotHistogram("PulseGapDurations",lFullRangeHistogram);
-
-        var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
-
-        var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-        var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
-        var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
-
-        if ( lPeaks.Count > 3 )
-        {
-          rR = MathX.LERP(lPeaks[0],lPeaks[1],.4);
-
-          AddBranch("ContiguousPulsesGapDuration",$"{(rR *  .8)}");
-          AddBranch("ContiguousPulsesGapDuration",$"{(rR * 1.2)}");
-        }
-
-        return rR;
+        return rGP;
       }
-      else return mData.Options.ContiguousPulsesGapDuration ;
+      else return mOptions.ContiguousPulsesGapDuration ;
     }
 
     void MergeContiguousPulses()
     {
-      if ( mData.Pulses2.Count < 2 )
+      if ( mPulses2.Count < 2 )
         return ;
 
       WriteLine2GUI("Merging Contiguous Pulses");
@@ -465,11 +479,11 @@ namespace DIGITC2_ENGINE
 
       if ( lContiguousPulsesGapDuration > 0 ) 
       {
-        var lPulseA = mData.Pulses2[0];
+        var lPulseA = mPulses2[0];
 
-        for ( int i = 1; i < mData.Pulses2.Count ; i++ )
+        for ( int i = 1; i < mPulses2.Count ; i++ )
         { 
-          var lPulseB = mData.Pulses2[i]; 
+          var lPulseB = mPulses2[i]; 
 
           var lGap = lPulseB.StartTime - lPulseA.EndTime;
 
@@ -482,27 +496,27 @@ namespace DIGITC2_ENGINE
           else 
           {
             WriteLine($"Adding pulse {lPulseA} to result.");
-            mData.Pulses3.Add(lPulseA);
+            mPulses3.Add(lPulseA);
             lPulseA = lPulseB;
           }
         }
       }
       else
       {
-        mData.Pulses3 = mData.Pulses2 ;
+        mPulses3 = mPulses2 ;
       }
 
-      PulseFilterHelper.PlotPulses(mData.Pulses3, "3_Contiguous_Pulses_Merged");
+      PulseFilterHelper.PlotPulses(mPulses3, "3_Contiguous_Pulses_Merged");
       Unindent();  
     }
 
     double FindVeryShortThreshold()
     {
-      if ( mData.Options.VeryShortThreshold == -1 )
+      if ( mOptions.VeryShortThreshold == -1 )
       {
         double rR = 0 ;
 
-        var lDurations = mData.Pulses3.ConvertAll( s => s.ToSample() ) ;
+        var lDurations = mPulses3.ConvertAll( s => s.ToSample() ) ;
 
         var lDist = new Distribution( lDurations ) ;
 
@@ -525,7 +539,7 @@ namespace DIGITC2_ENGINE
         return rR;
       }
       else 
-        return mData.Options.VeryShortThreshold ;
+        return mOptions.VeryShortThreshold ;
     }
 
     void RemoveUnfitPulses()
@@ -534,11 +548,11 @@ namespace DIGITC2_ENGINE
 
       double lVeryShortPulses = FindVeryShortThreshold();
 
-      mData.Pulses4.AddRange( mData.Pulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
+      mPulses4.AddRange( mPulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
 
-      PulseFilterHelper.PlotPulses(mData.Pulses4, "4_Final_Pulses");
+      PulseFilterHelper.PlotPulses(mPulses4, "4_Final_Pulses");
 
-      WriteLine2GUI($"Final pulses: {mData.Pulses4.Count}");
+      WriteLine2GUI($"Final pulses: {mPulses4.Count}");
     }
 
 
@@ -552,21 +566,15 @@ namespace DIGITC2_ENGINE
       internal double VeryShortThreshold = -1 ;
     }
 
-    class Data
-    {
-      internal Options           Options ;
-      internal List<PulseSymbol> Pulses0 = new List<PulseSymbol>();
-      internal List<PulseSymbol> Pulses1 = new List<PulseSymbol>();
-      internal List<PulseSymbol> Pulses2 = new List<PulseSymbol>();
-      internal List<PulseSymbol> Pulses3 = new List<PulseSymbol>() ;
-      internal List<PulseSymbol> Pulses4 = new List<PulseSymbol>() ;
-      internal bool              InGap ;
-      internal int               PulseStart ;
-      internal int               Pos ;
-    }
-
-    Data mData ;
-
+    Options           mOptions ;
+    List<PulseSymbol> mPulses0 = new List<PulseSymbol>();
+    List<PulseSymbol> mPulses1 = new List<PulseSymbol>();
+    List<PulseSymbol> mPulses2 = new List<PulseSymbol>();
+    List<PulseSymbol> mPulses3 = new List<PulseSymbol>() ;
+    List<PulseSymbol> mPulses4 = new List<PulseSymbol>() ;
+    bool              mInGap ;
+    int               mPulseStart ;
+    int               mPos ;
   }
 
 

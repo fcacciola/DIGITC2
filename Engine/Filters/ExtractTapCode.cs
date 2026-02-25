@@ -128,9 +128,7 @@ namespace DIGITC2_ENGINE
       WriteLine("Raw Taps:");
       lTaps.ForEach( t => WriteLine(t.ToString()));
 
-      var lDurations = lTaps.ConvertAll( t => t.LagFromPrev ) ;
-
-      var lTapClassifier = BuildTapClassifier(lDurations);
+      var lTapClassifier = BuildTapClassifier(lPulses.CalculateGapDurations());
 
       lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
@@ -247,65 +245,11 @@ namespace DIGITC2_ENGINE
       public double InternalH ;
     }
 
-    TapClassifier BuildTapClassifier( List<double> aDurations ) 
+    TapClassifier BuildTapClassifier( double[] aGapDurartions ) 
     { 
-      var lDist0 = new Distribution(aDurations) ;
-
-      double lMax = aDurations.Max();
-
-      var lDist = lDist0.ExtendedWithBaseline(0,lMax+10,1);
-
-      var lFullRangeHistogram = new Histogram(lDist).Table ;
-
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
-      { 
-        lFullRangeHistogram.CreatePlot(Plot.Options.Bars).SavePNG(DContext.Session.OutputFile("Durations_Histogram.png"));
-      }
-
-      var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
-
-      var lPeaksByH = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-      var lBest3    = lPeaksByH.Take(3).ToList();
-      var lPeaks    = lBest3.OrderBy( xp => xp.Value.X.Value ).ToList();
-
-      var lPeak1 = lPeaks.Count > 0 ? lPeaks[0] : null ;
-      var lPeak2 = lPeaks.Count > 1 ? lPeaks[1] : null ;
-
-      WriteLine($"Peaks: {lPeak1}, {lPeak2}");
-
-      double lInternalLag, lNonInternalLag ;
-
-      if ( lPeak1 != null)
-      {
-        lInternalLag = lPeak1.Value.X.Value ;
-        WriteLine($"Internal Lag (from peak): {lInternalLag}");
-      }
-      else
-      { 
-        lInternalLag = aDurations.Minimum();
-        WriteLine($"Internal Lag (from minimum): {lInternalLag}");
-      }
-
-      if ( lPeak2 != null)
-      {
-        lNonInternalLag = lPeak2.Value.X.Value ;
-        WriteLine($"NON Internal Lag (from peak): {lNonInternalLag}");
-      }
-      else
-      { 
-        lNonInternalLag = lInternalLag * 2.5;
-        WriteLine($"NON Internal Lag (from minimum): {lNonInternalLag}");
-      }
-
-      var lInternalH = MathX.LERP(lInternalLag,lNonInternalLag,0.4);
-
-//lInternalH = 23 ;
-
-      DContext.WriteLine($"Internal Threshold: {lInternalH}");
-
-      return new TapClassifier{ InternalH = lInternalH };
+      var rStats = PulseSymbolStats_TapCodeGaps.Calculate(aGapDurartions);
+      return new TapClassifier{ InternalH = rStats.IntraCountTypicalSeconds };
     } 
-
     
     public override string Name => this.GetType().Name ;
 
