@@ -194,6 +194,89 @@ namespace Transgraphier_1_0_App
       var lPoly = GetPoly();
       if (lPoly != null)
         e.Graphics.DrawLines(Pens.Blue, lPoly.ToArray());
+
+      // Draw time ruler at bottom
+      DrawTimeRuler(e.Graphics);
+    }
+
+    void DrawTimeRuler(Graphics g)
+    {
+      if (ZoomPanController == null)
+        return;
+
+      // Ruler area
+      int rulerTop = Height - LabelH;
+      int rulerHeight = LabelH;
+
+      // background
+      using (Brush b = new SolidBrush(Color.White))
+        g.FillRectangle(b, 0, rulerTop, Width, rulerHeight);
+
+      // top separator line
+      g.DrawLine(Pens.Black, 0, rulerTop, Width, rulerTop);
+
+      // compute pixels per second
+      double samplesPerPixel = ZoomPanController.SamplesPerPixel;
+      if (samplesPerPixel <= 0) samplesPerPixel = 1.0;
+      double pixelsPerSecond = SIG.SamplingRate / samplesPerPixel;
+
+      // choose base unit in seconds according to zoom
+      double unit; // in seconds
+      if (pixelsPerSecond <= 50)
+        unit = 1.0; // seconds
+      else if (pixelsPerSecond <= 200)
+        unit = 0.01; // centiseconds
+      else
+        unit = 0.001; // milliseconds
+
+      // ensure minimum pixel spacing for ticks
+      double tickPx = unit * pixelsPerSecond;
+      while (tickPx < 6)
+      {
+        unit *= 10.0;
+        tickPx = unit * pixelsPerSecond;
+      }
+
+      // start time at left pixel
+      double startSample = ZoomPanController.StartSample;
+      double startTime = startSample / (double)SIG.SamplingRate; // seconds
+
+      // compute first tick >= startTime
+      double firstTickIndex = Math.Ceiling(startTime / unit);
+      double tickTime = firstTickIndex * unit;
+
+      var textFont = this.Font;
+      var textBrush = Brushes.Black;
+
+      // draw ticks across width
+      for (; ; )
+      {
+        double x = (tickTime - startTime) * pixelsPerSecond;
+        if (x > Width) break;
+        if (x >= 0)
+        {
+          int ix = (int)Math.Round(x);
+          // tick height depends on whether it is major tick (multiple of bigger unit)
+          int tickH = rulerHeight / 2;
+          g.DrawLine(Pens.Black, ix, rulerTop + rulerHeight - 1, ix, rulerTop + rulerHeight - 1 - tickH);
+
+          // label
+          string label;
+          if (unit >= 1.0)
+            label = $"{tickTime:0}s";
+          else if (unit >= 0.01)
+            label = $"{tickTime:0.00}s";
+          else
+            label = $"{tickTime * 1000:0}ms";
+
+          var size = g.MeasureString(label, textFont);
+          int tx = ix - (int)(size.Width / 2);
+          int ty = rulerTop + 2;
+          g.DrawString(label, textFont, textBrush, tx, ty);
+        }
+
+        tickTime += unit;
+      }
     }
 
     protected override void OnPaintBackground(PaintEventArgs e)
