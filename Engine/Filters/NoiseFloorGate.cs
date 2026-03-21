@@ -259,13 +259,16 @@ public static class ExactPercentile
 
     public static float EstimateBaseline(float[] aSamples, Options aParams )
     {
-      float[] lSorted = new float[aSamples.Length];
-      Array.ConstrainedCopy(aSamples,0, lSorted, 0, lSorted.Length);
-      Array.Sort(lSorted);
+      float[] lCopy = new float[aSamples.Length];
+      Array.ConstrainedCopy(aSamples,0, lCopy, 0, lCopy.Length);
 
-      var lTrimmed = Trim(lSorted, aParams.FloorEstimationTrimRatio);
+      //Array.Sort(lSorted);
 
-      float rR = lTrimmed.Percentile(aParams.FloorEstimationPercentile);
+      var lTrimmed = Trim(lCopy, aParams.FloorEstimationTrimRatio);
+
+      //float rR = ArrayStatistics.PercentileInplace   lTrimmed.Percentile(aParams.FloorEstimationPercentile);
+
+      float rR = ArrayStatistics.PercentileInplace(lTrimmed,aParams.FloorEstimationPercentile);
 
       return rR ;
     }

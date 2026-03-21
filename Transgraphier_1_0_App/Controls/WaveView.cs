@@ -307,9 +307,10 @@ namespace Transgraphier_1_0_App
 
     public int RulerH = 0;
     const int MarginS = 2;
+    const int cTitleHeight = 30;
 
-    int BottomY => Height - MarginS;
-    int WaveH => Height - RulerH - (MarginS * 2);
+    int BottomY => Height - MarginS - RulerH;
+    int WaveH => Height - RulerH - (MarginS * 2) - cTitleHeight;
     int WaveHalfH => WaveH / 2;
     int CenterY => BottomY - WaveHalfH;
 
@@ -391,6 +392,11 @@ namespace Transgraphier_1_0_App
 
       // center line
       e.Graphics.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
+
+      //var ty = CenterY - (int)Math.Ceiling(+0.85 * WaveHalfH);
+      //var by = CenterY - (int)Math.Ceiling(-0.85 * WaveHalfH);
+      //e.Graphics.DrawLine(Pens.Red, new Point(0, ty), new Point(Width, ty));
+      //e.Graphics.DrawLine(Pens.Blue, new Point(0, by), new Point(Width, by));
 
       var lPoly = GetPoly();
       if (lPoly != null)

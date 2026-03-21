@@ -260,7 +260,18 @@ namespace Transgraphier_1_0_App
 
         var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lSignal);
 
-        File.Copy( mInputFile, $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav", true );
+        string lInputCopy = $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav";
+        if ( ! File.Exists(lInputCopy) )
+        {
+          try
+          {
+            File.Copy( mInputFile, lInputCopy, true );
+          }
+          catch( Exception e )
+          {
+            AddErrorMessage(e.Message);
+          }
+        }
 
         lResult.Save()  ;
 

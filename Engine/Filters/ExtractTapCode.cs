@@ -128,7 +128,9 @@ namespace DIGITC2_ENGINE
       WriteLine("Raw Taps:");
       lTaps.ForEach( t => WriteLine(t.ToString()));
 
-      var lTapClassifier = BuildTapClassifier(lPulses.CalculateGapDurations());
+      var lTapClassifier = BuildTapClassifier( lTaps );
+
+      WriteLine($"Inter Count Gap Max Duration: {(lTapClassifier.InternalH/100):F2}s");
 
       lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
@@ -245,10 +247,11 @@ namespace DIGITC2_ENGINE
       public double InternalH ;
     }
 
-    TapClassifier BuildTapClassifier( double[] aGapDurartions ) 
+    TapClassifier BuildTapClassifier( List<Tap> aTaps ) 
     { 
-      var rStats = PulseSymbolStats_TapCodeGaps.Calculate(aGapDurartions);
-      return new TapClassifier{ InternalH = rStats.IntraCountTypicalSeconds };
+      var lLags = aTaps.ConvertAll( t => t.LagFromPrev ).ToArray();
+      var rStats = PulseSymbolStats_TapCodeGaps.Calculate(lLags);
+      return new TapClassifier{ InternalH = MathX.LERP(rStats.IntraCountTypicalSeconds, rStats.IntraCodeTypicalSeconds, 0.35) };
     } 
     
     public override string Name => this.GetType().Name ;
