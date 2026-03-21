@@ -500,7 +500,7 @@ namespace Transgraphier_1_0_App
           string lWaveFilename = Path.GetFileNameWithoutExtension(lWaveResult);
 
           // Create WaveFormView for this file
-          WaveView lWaveView = new WaveView();
+          WaveView lWaveView = new WaveView(false);
           lWaveView.Location = new Point(0, currentY);
           lWaveView.Width = scrollPanel.Width;
           lWaveView.Height = 150;

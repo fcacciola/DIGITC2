@@ -70,7 +70,7 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process ()
     {
-      var lGT = new GateThresholds( 0.1f, 0.85f );
+      var lGT = new GateThresholds( 0.25f, 0.85f );
 
       mGates.Add( new Gate($"DiscretizeAt_{lGT.Cuts[0]}",lGT) ) ;
 

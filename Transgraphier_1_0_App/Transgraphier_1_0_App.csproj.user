@@ -10,8 +10,5 @@
     <Compile Update="Controls\LexicalView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Controls\WaveView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
   </ItemGroup>
 </Project>

@@ -10,10 +10,183 @@ using NWaves.Signals;
 
 namespace Transgraphier_1_0_App
 {
+  public class Ruler
+  {
+    public double Unit { get; init; }
+    public int rulerTop;
+    public int rulerHeight;
+    public List<RulerTick> Ticks { get; init; } = new List<RulerTick>();
+
+    public Font textFont { get; init; }
+    public Brush textBrush = Brushes.Black; 
+  }
+
+  public class RulerTick
+  {
+    public Ruler Ruler { get ; init ; }
+    public double Time { get; init; }  // in seconds
+    public double X { get; init; }  // in pixels
+    public string Label ;
+
+    public void Draw( Graphics g )
+    {
+      int ix = (int)Math.Round(X);
+      // tick height depends on whether it is major tick (multiple of bigger unit)
+      const int tickH = 10;
+      g.DrawLine(Pens.Black, ix, Ruler.rulerTop + Ruler.rulerHeight - 1, ix, Ruler.rulerTop + Ruler.rulerHeight - 1 - tickH);
+
+      var size = g.MeasureString(Label, Ruler.textFont);
+      int tx = ix - (int)(size.Width / 2);
+      int ty = Ruler.rulerTop + 2;
+      g.DrawString(Label, Ruler.textFont, Ruler.textBrush, tx, ty);
+
+    }
+
+
+  }
+
+
+  public static class WaveformRuler
+  {
+    // Candidate time units in ascending order (seconds)
+    private static readonly double[] TimeUnits =
+    [
+        0.01, 0.05, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0
+    ];
+
+    /// <summary>
+    /// Formats a time value in seconds into a human-readable label,
+    /// adapting precision to the current time unit.
+    /// </summary>
+    public static string FormatTickLabel(double timeSeconds, double unit)
+    {
+      TimeSpan ts = TimeSpan.FromSeconds(timeSeconds);
+
+      if (unit >= 60.0)
+        return $"{(int)ts.TotalMinutes}m";
+
+      if (unit >= 30.0)
+        return $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}m";
+
+      // Sub-second: show decimal places scaled to the unit
+      int decimals = unit switch
+      {
+        >= 10.0 => 1,
+        >= 1.0 => 1,
+        >= 0.5 => 1,
+        >= 0.1 => 2,
+        >= 0.05 => 2,
+        _ => 2
+      };
+
+      string tustr = "s";
+      string mstr = "";
+      string fracstr = "";
+      
+      int m = (int)ts.TotalMinutes;
+      if ( m > 0 )
+      {
+        mstr = m > 0 ? $"{m}:" : "" ;
+        tustr = "m";
+      }
+      
+      // Extract only the sub-second fractional part
+      double frac = ts.TotalSeconds - Math.Floor(ts.TotalSeconds);
+      if ( frac > 0 )
+      {
+        fracstr = decimals switch
+                  {
+                    1 => $".{(int)(frac * 10)}",
+                    2 => $".{(int)(frac * 100):D2}",
+                    _ => $".{(int)(frac * 1000):D3}"
+                  };
+      }
+
+    
+      return $"{mstr}{ts.Seconds:D2}{fracstr}{tustr}";
+    }
+    
+    /// <summary>
+    /// Picks the smallest time unit (in seconds) such that adjacent
+    /// tick marks are at least <paramref name="minSpacingPx"/> pixels apart.
+    /// </summary>
+    public static double PickTimeUnit(double pixelsPerSecond, double minSpacingPx = 80.0)
+    {
+      foreach (double unit in TimeUnits)
+      {
+        if (unit * pixelsPerSecond >= minSpacingPx)
+          return unit;
+      }
+
+      return TimeUnits[^1]; // fallback: 60s
+    }
+
+    /// <summary>
+    /// Returns the first tick time that is >= startTime and
+    /// falls exactly on a multiple of <paramref name="unit"/>.
+    /// </summary>
+    public static double FirstTickTime(double startTime, double unit)
+    {
+      return Math.Ceiling(startTime / unit) * unit;
+    }
+
+    /// <summary>
+    /// Converts a time value to its pixel X coordinate relative
+    /// to the left edge of the viewport.
+    /// </summary>
+    public static double TimeToPixel(double time, double startTime, double pixelsPerSecond)
+    {
+      return (time - startTime) * pixelsPerSecond;
+    }
+
+    /// <summary>
+    /// Generates all ruler ticks visible within the viewport.
+    /// </summary>
+    /// <param name="startTime">Time (seconds) at the left edge (x=0).</param>
+    /// <param name="viewportWidthPx">Width of the visible ruler in pixels.</param>
+    /// <param name="pixelsPerSecond">Zoom factor.</param>
+    /// <param name="minSpacingPx">Minimum pixel gap between labels.</param>
+    public static Ruler GetRulerTicks(
+        Font textFont,
+        int rulerTop,
+        int rulerHeight,
+        double startTime,
+        double viewportWidthPx,
+        double pixelsPerSecond,
+        double minSpacingPx = 80.0
+        )
+    {
+
+      double unit = PickTimeUnit(pixelsPerSecond, minSpacingPx);
+      double endTime = startTime + viewportWidthPx / pixelsPerSecond;
+      double t = FirstTickTime(startTime, unit);
+      Ruler rR  = new Ruler { Unit = unit, textFont = textFont, rulerTop  = rulerTop, rulerHeight = rulerHeight };
+
+      while (t <= endTime)
+      {
+        rR.Ticks.Add(new RulerTick
+        {
+          Ruler = rR,
+          Time = t,
+          X = TimeToPixel(t, startTime, pixelsPerSecond),
+          Label = FormatTickLabel(t,unit)
+        });
+
+        // Round to 10 decimal places to prevent floating-point drift
+        t = Math.Round(t + unit, 10);
+      }
+
+      return rR;
+    }
+
+  }
+
+
   public class WaveView : UserControl
   {
     private Label mTitle;
     private WavePanel mWavePanel;
+    private bool mIncludeRuler;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
@@ -40,8 +213,9 @@ namespace Transgraphier_1_0_App
       get => mWavePanel.Signal; set => mWavePanel.Signal = value;
     }
 
-    public WaveView()
+    public WaveView(bool aIncludeRuler)
     {
+      mIncludeRuler = aIncludeRuler;
       InitializeComponent();
     }
 
@@ -54,7 +228,7 @@ namespace Transgraphier_1_0_App
     private void InitializeComponent()
     {
       mTitle = new Label();
-      mWavePanel = new WavePanel();
+      mWavePanel = new WavePanel(mIncludeRuler);
 
       SuspendLayout();
 
@@ -66,7 +240,7 @@ namespace Transgraphier_1_0_App
       mTitle.Location = new Point(4, 2);
       mTitle.Name = "mTitle";
       mTitle.Padding = new Padding(5, 0, 0, 0);
-      mTitle.Height = 30 ;
+      mTitle.Height = 30;
       mTitle.TabIndex = 1;
       mTitle.Text = "mTitle";
       mTitle.TextAlign = ContentAlignment.MiddleLeft;
@@ -76,7 +250,7 @@ namespace Transgraphier_1_0_App
       mWavePanel.Dock = DockStyle.Fill;
       mWavePanel.Name = "mWavePanel";
       mWavePanel.TabIndex = 0;
-      mWavePanel.Height = 200 ;
+      mWavePanel.Height = 200;
       Controls.Add(mWavePanel);
 
       Name = "WaveView";
@@ -87,15 +261,17 @@ namespace Transgraphier_1_0_App
 
   public class WavePanel : Control
   {
-    public WavePanel()
+    public WavePanel(bool aIncludeRuler)
     {
+      mIncludeRuler = aIncludeRuler;
+      RulerH = mIncludeRuler ? 40 : 0;
       InitializeComponent();
     }
 
     private void InitializeComponent()
     {
       SuspendLayout();
-      Height = 165 ;
+      Height = 165;
       ResumeLayout(false);
     }
 
@@ -111,8 +287,10 @@ namespace Transgraphier_1_0_App
       }
     }
 
+    bool mIncludeRuler;
 
     Point[] Poly = null;
+    Ruler Ruler = null ;
 
     public void InvalidateRender()
     {
@@ -127,13 +305,13 @@ namespace Transgraphier_1_0_App
       return Poly;
     }
 
-    const int LabelH  = 30 ;
-    const int MarginS = 2 ;
+    public int RulerH = 0;
+    const int MarginS = 2;
 
-    int BottomY   => Height - MarginS ;
-    int WaveH     => Height - LabelH - ( MarginS * 2 ) ;
-    int WaveHalfH => WaveH / 2 ;
-    int CenterY   => BottomY - WaveHalfH;
+    int BottomY => Height - MarginS;
+    int WaveH => Height - RulerH - (MarginS * 2);
+    int WaveHalfH => WaveH / 2;
+    int CenterY => BottomY - WaveHalfH;
 
     void CacheRender()
     {
@@ -179,6 +357,29 @@ namespace Transgraphier_1_0_App
       }
 
       Poly = lPoly.ToArray();
+
+      if ( mIncludeRuler )
+      {
+        // Ruler area
+        int rulerTop = Height - RulerH;
+        int rulerHeight = RulerH;
+
+        // start time at left pixel
+        double startTime = ZoomPanController.StartSample / (double)SIG.SamplingRate; // seconds
+
+        // compute pixels per second
+        double pixelsPerSecond = SIG.SamplingRate / ZoomPanController.SamplesPerPixel;
+
+        Ruler = WaveformRuler.GetRulerTicks(
+            textFont       : this.Font,
+            rulerTop       : rulerTop,
+            rulerHeight    : rulerHeight,
+            startTime:       startTime,
+            viewportWidthPx: Width,
+            pixelsPerSecond: pixelsPerSecond,
+            minSpacingPx:    80
+        );
+      }
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -196,17 +397,18 @@ namespace Transgraphier_1_0_App
         e.Graphics.DrawLines(Pens.Blue, lPoly.ToArray());
 
       // Draw time ruler at bottom
-      DrawTimeRuler(e.Graphics);
+      if (mIncludeRuler)
+        DrawTimeRuler(e.Graphics);
     }
 
     void DrawTimeRuler(Graphics g)
     {
-      if (ZoomPanController == null)
+      if (ZoomPanController == null || Ruler == null )
         return;
 
       // Ruler area
-      int rulerTop = Height - LabelH;
-      int rulerHeight = LabelH;
+      int rulerTop = Height - RulerH;
+      int rulerHeight = RulerH;
 
       // background
       using (Brush b = new SolidBrush(Color.White))
@@ -215,68 +417,7 @@ namespace Transgraphier_1_0_App
       // top separator line
       g.DrawLine(Pens.Black, 0, rulerTop, Width, rulerTop);
 
-      // compute pixels per second
-      double samplesPerPixel = ZoomPanController.SamplesPerPixel;
-      if (samplesPerPixel <= 0) samplesPerPixel = 1.0;
-      double pixelsPerSecond = SIG.SamplingRate / samplesPerPixel;
-
-      // choose base unit in seconds according to zoom
-      double unit; // in seconds
-      if (pixelsPerSecond <= 50)
-        unit = 1.0; // seconds
-      else if (pixelsPerSecond <= 200)
-        unit = 0.01; // centiseconds
-      else
-        unit = 0.001; // milliseconds
-
-      // ensure minimum pixel spacing for ticks
-      double tickPx = unit * pixelsPerSecond;
-      while (tickPx < 6)
-      {
-        unit *= 10.0;
-        tickPx = unit * pixelsPerSecond;
-      }
-
-      // start time at left pixel
-      double startSample = ZoomPanController.StartSample;
-      double startTime = startSample / (double)SIG.SamplingRate; // seconds
-
-      // compute first tick >= startTime
-      double firstTickIndex = Math.Ceiling(startTime / unit);
-      double tickTime = firstTickIndex * unit;
-
-      var textFont = this.Font;
-      var textBrush = Brushes.Black;
-
-      // draw ticks across width
-      for (; ; )
-      {
-        double x = (tickTime - startTime) * pixelsPerSecond;
-        if (x > Width) break;
-        if (x >= 0)
-        {
-          int ix = (int)Math.Round(x);
-          // tick height depends on whether it is major tick (multiple of bigger unit)
-          int tickH = rulerHeight / 2;
-          g.DrawLine(Pens.Black, ix, rulerTop + rulerHeight - 1, ix, rulerTop + rulerHeight - 1 - tickH);
-
-          // label
-          string label;
-          if (unit >= 1.0)
-            label = $"{tickTime:0}s";
-          else if (unit >= 0.01)
-            label = $"{tickTime:0.00}s";
-          else
-            label = $"{tickTime * 1000:0}ms";
-
-          var size = g.MeasureString(label, textFont);
-          int tx = ix - (int)(size.Width / 2);
-          int ty = rulerTop + 2;
-          g.DrawString(label, textFont, textBrush, tx, ty);
-        }
-
-        tickTime += unit;
-      }
+      Ruler.Ticks.ForEach( t => t.Draw(g) ) ;
     }
 
     protected override void OnPaintBackground(PaintEventArgs e)
@@ -291,8 +432,8 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseDown(e);
 
-      if ( ZoomPanController == null || mSignal == null )
-        return ;
+      if (ZoomPanController == null || mSignal == null)
+        return;
 
       if (e.Button == MouseButtons.Left)
       {
@@ -307,8 +448,8 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseUp(e);
 
-      if ( ZoomPanController == null || mSignal == null )
-        return ;
+      if (ZoomPanController == null || mSignal == null)
+        return;
 
       if (e.Button == MouseButtons.Left && mIsPanning)
       {
@@ -322,8 +463,8 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseMove(e);
 
-      if ( ZoomPanController == null || mSignal == null )
-        return ;
+      if (ZoomPanController == null || mSignal == null)
+        return;
 
       if (e.Button == MouseButtons.Left && mIsPanning)
       {

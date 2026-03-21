@@ -14,7 +14,7 @@ ExtractPulseSymbols_SplitThreshold=5
 ExtractPulseSymbols_SplitLevelDiff=5
 ExtractPulseSymbols_InsignificantLenThreshold = 882
 ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
-ExtractPulseSymbols_VeryShortThreshold = -1
+ExtractPulseSymbols_VeryShortThreshold = 0.03
 
 ExtractTapCode_SeparatorCountThreshold=5
 ExtractTapCode_MinTapCount=16
