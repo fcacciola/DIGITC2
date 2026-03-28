@@ -1,3 +1,4 @@
 OutputDetails=true
 SamplesFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Input\Samples
+DisableBranching=true
 # SaveReference=true 

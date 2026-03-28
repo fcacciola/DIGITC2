@@ -57,9 +57,11 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          //if ( lPipelineResult.OverallFitness == Fitness.PERFECT )
+          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
+
+          if ( lPipelineResult.OverallFitness >= Fitness.EXCELENT || aSettings.GetBool("DisableBranching") )
           {
-            DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}. Skipping branch-out pipelines.") ;
+            DContext.WriteLine2GUI($"Skipping branch-out pipelines.") ;
             break ;
           }
         }

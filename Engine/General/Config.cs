@@ -141,7 +141,8 @@ public class Params
     return rL;  
   }
 
-  public List<int> GetIntList( string aKey ) => GetNumberList<int>(aKey);
+  public List<int>   GetIntList  ( string aKey ) => GetNumberList<int>  (aKey);
+  public List<float> GetFloatList( string aKey ) => GetNumberList<float>(aKey);
 
   Params( Dictionary<string, string> aMap )  
   {

@@ -18,6 +18,7 @@ using LowPassFilter = NWaves.Filters.Elliptic.LowPassFilter ;
 
 namespace DIGITC2_ENGINE
 {
+
   public class Envelope : WaveFilter
   {
     public class Args 
