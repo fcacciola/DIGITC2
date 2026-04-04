@@ -46,7 +46,7 @@ namespace DIGITC2_ENGINE
     protected override Packet Process ()
     {
       WaveSignal lSignal = WaveInput ;
-      WriteLine2GUI($"Applying Discretization Gate: {mGate}");
+      WriteLine2GUI($"Applying Discretization Gate: Cut Level={mGate.Cut} Output Level={mGate.OutLevel}");
 
       AddBranch("GateCut",$"{(mGate.Cut *  .8)}");
       AddBranch("GateCut",$"{(mGate.Cut * 1.2)}");

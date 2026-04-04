@@ -59,7 +59,7 @@ namespace DIGITC2_ENGINE
 
     public void SavePNG( string aFilename )
     {
-      DContext.WriteLine2GUI($"Saving PNG Image to: [{aFilename}]");
+      DContext.WriteDetailLine($"Saving PNG Image to: [{aFilename}]");
       try
       {
         var lBitmap = ToBitmap();

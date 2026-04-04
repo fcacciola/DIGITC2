@@ -16,10 +16,12 @@ namespace DIGITC2_ENGINE
       mGUI = aGUI ;
     }
 
-    public void Open( string aFile )
+    public void Open( string aLogFile, string aDetailLogFile )
     {
-      mStream = new FileStream(aFile, FileMode.OpenOrCreate, FileAccess.Write );
-      mWriter = new StreamWriter( mStream );
+      mStream       = new FileStream(aLogFile, FileMode.OpenOrCreate, FileAccess.Write );
+      mWriter       = new StreamWriter( mStream );
+      mDetailStream = new FileStream(aDetailLogFile, FileMode.OpenOrCreate, FileAccess.Write );
+      mDetailWriter = new StreamWriter( mDetailStream );
     }
 
     public void Close()
@@ -30,6 +32,13 @@ namespace DIGITC2_ENGINE
       mStream?.Dispose();
       mWriter = null;
       mStream = null;
+
+      mDetailWriter?.Close();
+      mDetailStream?.Close();  
+      mDetailWriter?.Dispose();  
+      mDetailStream?.Dispose();
+      mDetailWriter = null;
+      mDetailStream = null;
     }
     
     public void Write( string aS )
@@ -39,34 +48,43 @@ namespace DIGITC2_ENGINE
       mWriter?.Flush();
     }
 
-    public void WriteLine( string aS )
+    public void WriteDetailLine( string aS )
     {
       string lS = AddIndentation(aS);
-      mWriter?.WriteLine( lS );  
+      mDetailWriter?.WriteLine( lS );  
+      mDetailWriter?.Flush();
+    }
+
+    void DoWriteLine( string aS )
+    {
+      mDetailWriter?.WriteLine( aS );  
+      mDetailWriter?.Flush();
+      mWriter?.WriteLine( aS );  
       mWriter?.Flush();
+    }
+
+    public void WriteLine( string aS )
+    {
+      DoWriteLine( AddIndentation(aS) );
     }
 
     public void WriteErrorLine( string aS )
     {
-      string lS = AddIndentation( $"ERROR: {aS}");
-      mWriter?.WriteLine( lS );  
-      mWriter?.Flush();
+      DoWriteLine( AddIndentation( $"ERROR: {aS}") ) ;
     }
 
     public void WriteLine2GUI( string aS )
     {
       string lS = AddIndentation(aS);
       mGUI?.AddMessage(lS);
-      mWriter?.WriteLine( lS );  
-      mWriter?.Flush();
+      DoWriteLine(lS);
     }
 
     public void WriteError2GUI( string aS )
     {
       string lS = AddIndentation(aS);
       mGUI?.AddErrorMessage(lS);
-      mWriter?.WriteLine( lS );  
-      mWriter?.Flush();
+      DoWriteLine(lS);
     }
 
     public void Indent()
@@ -82,7 +100,6 @@ namespace DIGITC2_ENGINE
     }
 
     string AddIndentation( string aS )  => $"{new String(' ', mIndentation)}{aS}";
-
 
     private bool disposedValue;
 
@@ -108,9 +125,11 @@ namespace DIGITC2_ENGINE
 
     int mIndentation = 0; 
 
-    GUI        mGUI    = null ; 
-    FileStream mStream = null ;
-    TextWriter mWriter = null ; 
+    GUI        mGUI          = null ; 
+    FileStream mStream       = null ;
+    TextWriter mWriter       = null ; 
+    FileStream mDetailStream = null ;
+    TextWriter mDetailWriter = null ; 
   }
 
   public class DContext
@@ -162,9 +181,9 @@ namespace DIGITC2_ENGINE
       mSession.Shutdown();
     }
 
-    void OpenLogger_ ( string aLogFile )
+    void OpenLogger_ ( string aLogFile, string aDetailLogFile )
     {
-      mLogger.Open( aLogFile );
+      mLogger.Open( aLogFile, aDetailLogFile );
     }
 
     void CloseLogger_ ()
@@ -175,6 +194,11 @@ namespace DIGITC2_ENGINE
     void Write_( string aS )
     {
       mLogger.Write( aS );  
+    }
+
+    void WriteDetailLine_( string aS )
+    {
+      mLogger.WriteDetailLine( aS );
     }
 
     void WriteLine_( string aS )
@@ -229,19 +253,20 @@ namespace DIGITC2_ENGINE
 
     static public Session Session => Instance.mSession ;
 
-    static public void   Setup         ( Session aSession )         { Instance.Setup_(aSession) ; } 
-    static public void   OpenLogger    ( string aLogFile )          { Instance.OpenLogger_(aLogFile) ; } 
-    static public void   CloseLogger   ()                           { Instance.CloseLogger_() ; } 
-    static public void   Shutdown      ()                           { Instance.Shutdown_() ; } 
-    static public void   Throw         ( Exception e )              { Instance.Throw_(e);}
-    static public void   Error         ( Exception e )              { Instance.Error_(e.ToString());}
-    static public void   Error         ( string aText )             { Instance.Error_(aText);}
-    static public void   Assert        ( bool aCond, string aText ) { Instance.Assert_(aCond,aText);}
-    static public void   Write         ( string aS )                { Instance.Write_(aS);}
-    static public void   WriteLine     ( string aS )                { Instance.WriteLine_(aS);}
-    static public void   WriteLine2GUI ( string aS )                { Instance.WriteLine2GUI_(aS);}
-    static public void   Indent        ()                           { Instance.Indent_();}
-    static public void   Unindent      ()                           { Instance.Unindent_();}
+    static public void   Setup          ( Session aSession )                       { Instance.Setup_(aSession) ; } 
+    static public void   OpenLogger     ( string aLogFile, string aDetailLogFile ) { Instance.OpenLogger_(aLogFile, aDetailLogFile) ; } 
+    static public void   CloseLogger    ()                                         { Instance.CloseLogger_() ; } 
+    static public void   Shutdown       ()                                         { Instance.Shutdown_() ; } 
+    static public void   Throw          ( Exception e )                            { Instance.Throw_(e);}
+    static public void   Error          ( Exception e )                            { Instance.Error_(e.ToString());}
+    static public void   Error          ( string aText )                           { Instance.Error_(aText);}
+    static public void   Assert         ( bool aCond, string aText )               { Instance.Assert_(aCond,aText);}
+    static public void   Write          ( string aS )                              { Instance.Write_(aS);}
+    static public void   WriteDetailLine( string aS )                              { Instance.WriteDetailLine_(aS);}
+    static public void   WriteLine      ( string aS )                              { Instance.WriteLine_(aS);}
+    static public void   WriteLine2GUI  ( string aS )                              { Instance.WriteLine2GUI_(aS);}
+    static public void   Indent         ()                                         { Instance.Indent_();}
+    static public void   Unindent       ()                                         { Instance.Unindent_();}
 
   }
 }

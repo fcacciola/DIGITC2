@@ -61,18 +61,18 @@ namespace DIGITC2_ENGINE
 
     public class Tap
     {
-      public Tap( double aTime, double aLagFromPrev) 
+      public Tap( double aTime, double aGap) 
       {
-        LagFromPrev   = aLagFromPrev; 
-        Time          = aTime; 
-        IsInternalGap = false ; 
+        Gap        = aGap; 
+        Time       = aTime; 
+        GapIsIntra = false ; 
       }
 
-      public double LagFromPrev ;
+      public double Gap ;
       public double Time ;
-      public bool   IsInternalGap ;
+      public bool   GapIsIntra ;
 
-      public override string ToString() => $"[LagFromPrev: {(LagFromPrev/100)} s | Onset: {Time}s { ( IsInternalGap ? "IG" : "" ) } ]";
+      public override string ToString() => $"[Gap: {(Gap)} s | Time: {Time}s { ( GapIsIntra ? "I" : "X" ) } ]";
     }
 
     // Each TapGroup corresponds to a sequence of closely together Taps.
@@ -94,7 +94,7 @@ namespace DIGITC2_ENGINE
       double lPrevTime = aPrevPulse != null ? PulseOnsetTime(aPrevPulse) : 0 ;  
       double lCurrTime = PulseOnsetTime( aCurrPulse ) ;
 
-      double lLagFromPrev = Math.Ceiling( (lCurrTime - lPrevTime) * 100 ) ;
+      double lLagFromPrev = Math.Ceiling( (lCurrTime - lPrevTime) ) ;
 
       return new Tap( lCurrTime, lLagFromPrev) ;
     }
@@ -115,9 +115,10 @@ namespace DIGITC2_ENGINE
     {
       var lPulses = LexicalInput.GetSymbols<PulseSymbol>() ;
 
-      WriteLine2GUI("Building Taps from Pulses...");
+      WriteLine2GUI("Extracting Tap Code...");
       Indent();
 
+      WriteLine("Getting Raw Taps..");
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count < mMinNumberOfTaps )
       {
@@ -125,26 +126,25 @@ namespace DIGITC2_ENGINE
         return CreateQuitOutput();
       }
 
-      WriteLine("Raw Taps:");
-      lTaps.ForEach( t => WriteLine(t.ToString()));
+      WriteDetailLine("Raw Taps:");
+      lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
+      WriteDetailLine("Classifying Raw Taps...");
       var lTapClassifier = BuildTapClassifier( lTaps );
-
-      WriteLine($"Inter Count Gap Max Duration: {(lTapClassifier.InternalH/100):F2}s");
-
+      WriteLine2GUI($"IntraTap Gap High Bound: {(lTapClassifier.IntraTapGap_HighBound):F2}s");
       lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
 
-      WriteLine("Classified Taps:");
-      lTaps.ForEach( t => DContext.WriteLine(t.ToString()));
+      WriteDetailLine("Classified Taps:");
+      lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
-      WriteLine2GUI("Building Tap Counts:");
+      WriteLine("Building Tap Counts...");
       List<TapCount> lRawCounts = new List<TapCount>();
 
       TapCount lCurrTC = new TapCount() ;
 
       foreach( var lTap in lTaps )
       {
-        if ( !lTap.IsInternalGap )
+        if ( !lTap.GapIsIntra )
         {
           if ( lCurrTC != null && lCurrTC.Taps.Count > 0 )
             lRawCounts.Add(lCurrTC);
@@ -194,7 +194,7 @@ namespace DIGITC2_ENGINE
 
       List<TapCode> lAllCodes = new List<TapCode>();
 
-      WriteLine2GUI($"Bags:{lBags.Count}");
+      WriteLine($"Bag Count:{lBags.Count}");
 
       foreach( var lBag in lBags ) 
       {  
@@ -208,7 +208,10 @@ namespace DIGITC2_ENGINE
           var lLast = lBag.Last(); 
         }
 
-        DContext.Write("Bag: "); lBag.ForEach( g => DContext.Write(g.ToString())); DContext.WriteLine("");
+        WriteDetailLine("Bag:");
+        Indent();
+        lBag.ForEach( g => WriteDetailLine(g.ToString()));
+        Unindent();
       
         List<TapCode> lCodes = new List<TapCode>();
 
@@ -222,7 +225,7 @@ namespace DIGITC2_ENGINE
 
         lCodes.Add( new TapCode(0,0) ) ;
 
-        WriteLine2GUI( $"Code: {string.Join(",", lCodes )}");
+        WriteDetailLine( $"Code: {string.Join(",", lCodes )}");
 
         lAllCodes.AddRange( lCodes ) ;  
       }
@@ -241,17 +244,16 @@ namespace DIGITC2_ENGINE
     {
       public void ClassifyTap( Tap aTap ) 
       {
-        aTap.IsInternalGap = aTap.LagFromPrev <= InternalH ;
+        aTap.GapIsIntra = aTap.Gap <= IntraTapGap_HighBound ;
       }
 
-      public double InternalH ;
+      public double IntraTapGap_HighBound ;
     }
 
     TapClassifier BuildTapClassifier( List<Tap> aTaps ) 
     { 
-      var lLags = aTaps.ConvertAll( t => t.LagFromPrev ).ToArray();
-      var rStats = PulseSymbolStats_TapCodeGaps.Calculate(lLags);
-      return new TapClassifier{ InternalH = MathX.LERP(rStats.IntraCountTypicalSeconds, rStats.IntraCodeTypicalSeconds, 0.35) };
+      var lLags = aTaps.ConvertAll( t => t.Gap ).ToArray();
+      return new TapClassifier{ IntraTapGap_HighBound = PulseSymbolStats_IntraTapCodeGap.Calculate(lLags) };
     } 
     
     public override string Name => this.GetType().Name ;

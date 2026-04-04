@@ -92,10 +92,6 @@ namespace DIGITC2_ENGINE
       return AnalyzeGapDurations( aPulses.CalculateGapDurations() );
     }
 
-    /// <summary>
-    /// Same pipeline but starting from gap durations only (useful for debugging / offline analysis).
-    /// NOTE: Since you don't have events here, "merge" means "drop gaps <= T_merge" and re-fit.
-    /// </summary>
     static double AnalyzeGapDurations( double[] aGapDurations,  int aMaxEmIters = 200, double aEmTol = 1e-6, double aVarFloor = 1e-6 )
     {
       var lLogGaps = LogPositive(aGapDurations) ;
@@ -105,29 +101,28 @@ namespace DIGITC2_ENGINE
       if ( lMergeGmm == null )
         return 0;
 
-      var lTmergeLog = Gmm1DModel.IntersectionLogSpace(lMergeGmm.Components[0], lMergeGmm.Components[1]) ;
-      var rMergeThreshold = Math.Exp(lTmergeLog) ;
+      var lIntraTapThresholdGaussian_Log = lMergeGmm.Components[0];
+
+      double lMean   = Math.Exp(lIntraTapThresholdGaussian_Log.Mean);
+      double lStdDev = Math.Exp(lIntraTapThresholdGaussian_Log.StdDev);
+
+      double rRawMergeThreshold1 = 0.2 * lMean ;
+      double rRawMergeThreshold2 = lMean - 2.0 * lStdDev;
+
+      double rMergeThreshold = Math.Min(rRawMergeThreshold1,rRawMergeThreshold2);
 
       return rMergeThreshold ;
     }
   }
 
-
-  public class PulseSymbolStats_TapCodeGaps : PulseSymbolStats
+  public class PulseSymbolStats_IntraTapCodeGap : PulseSymbolStats
   {
-    public class Result
-    {
-      public double IntraCountTypicalSeconds  ;
-      public double IntraCodeTypicalSeconds   ;
-      public double InterSymbolTypicalSeconds ;
-    }
-
-    public static Result Calculate( double[] aGapDurarions )
+    public static double Calculate( double[] aGapDurarions )
     {
       return AnalyzeGapDurations( aGapDurarions );
     }
 
-    static public Result AnalyzeGapDurations( double[] aGapDurations,
+    static public double AnalyzeGapDurations( double[] aGapDurations,
                                               int      aMaxEmIters = 200,
                                               double   aEmTol = 1e-6,
                                               double   aVarFloor = 1e-6
@@ -136,17 +131,19 @@ namespace DIGITC2_ENGINE
 
       var lLogGaps = LogPositive(aGapDurations) ;
 
-      var lTimingGmm = Gmm1D.Fit(lLogGaps, aK:3, aMaxIter:aMaxEmIters, aTol:aEmTol, aVarFloor:aVarFloor).SortedByMean() ;
+      var lTimingGmm = Gmm1D.Fit(lLogGaps, aK:4, aMaxIter:aMaxEmIters, aTol:aEmTol, aVarFloor:aVarFloor).SortedByMean() ;
 
-      var lTcountLog  = Gmm1DModel.IntersectionLogSpace(lTimingGmm.Components[0], lTimingGmm.Components[1]) ;
-      var lTsymbolLog = Gmm1DModel.IntersectionLogSpace(lTimingGmm.Components[1], lTimingGmm.Components[2]) ;
+      double lIntra_Inter_Intersection = Math.Exp(Gmm1DModel.IntersectionLogSpace(lTimingGmm.Components[0], lTimingGmm.Components[1]) ) ;
 
-      return new Result
-      {
-        IntraCountTypicalSeconds  = Math.Exp(lTimingGmm.Components[0].Mean),
-        IntraCodeTypicalSeconds   = Math.Exp(lTimingGmm.Components[1].Mean),
-        InterSymbolTypicalSeconds = Math.Exp(lTimingGmm.Components[2].Mean),
-      } ;
+      double lRawIntraTapGap0 = Math.Exp(lTimingGmm.Components[0].Mean) ;
+
+      double lRawIntraTapGap1 = lIntra_Inter_Intersection * 0.8 ;
+
+      double lRawIntraTapGap2 = lRawIntraTapGap0 + 2.0 * Math.Exp(lTimingGmm.Components[0].StdDev);
+
+      double rRawIntraTapGap = Math.Min(lRawIntraTapGap1,lRawIntraTapGap2);
+
+      return rRawIntraTapGap ;
     }
   }
 

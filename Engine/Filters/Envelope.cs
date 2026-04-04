@@ -37,7 +37,7 @@ namespace DIGITC2_ENGINE
     {
       var lArgs = new Args{AttackTime=Params.GetFloat("Attack"), ReleaseTime= Params.GetFloat("Release") };
 
-      DContext.WriteLine2GUI($"Following Envelope. AttackTime: {lArgs.AttackTime} ReleaseTime:{lArgs.ReleaseTime}");
+      WriteLine2GUI($"Applying Envelope. AttackTime: {lArgs.AttackTime} ReleaseTime:{lArgs.ReleaseTime}");
 
       var lNewRep = Apply(WaveInput.Rep, lArgs); 
 

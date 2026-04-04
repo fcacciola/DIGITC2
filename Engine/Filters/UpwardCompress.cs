@@ -64,7 +64,7 @@ namespace DIGITC2_ENGINE
       AddBranch("BaseFloor",$"{(lArgs.BaseFloor * .8)}");
       AddBranch("BaseFloor",$"{(lArgs.BaseFloor * 1.2)}");
 
-      DContext.WriteLine2GUI($"UpwardCompress. BaseFloor: {lArgs.BaseFloor} TargetFloor:{lArgs.TargetFloor}");
+      WriteLine2GUI($"Applying Upward Compression. BaseFloor: {lArgs.BaseFloor} TargetFloor:{lArgs.TargetFloor}");
 
       float lGamma = MathF.Log(lArgs.TargetFloor) / MathF.Log(lArgs.BaseFloor);
 

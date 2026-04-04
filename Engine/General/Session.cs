@@ -52,7 +52,7 @@ namespace DIGITC2_ENGINE
     public void SetupLogFile ( string aLogName = null )
     {
       DContext.CloseLogger();
-      DContext.OpenLogger( OutputFile($"{aLogName}.txt") ) ;
+      DContext.OpenLogger( OutputFile($"{aLogName}.txt"), OutputFile($"{aLogName}_detail.txt") ) ;
     }
 
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";

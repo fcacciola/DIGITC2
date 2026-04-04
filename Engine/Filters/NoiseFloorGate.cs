@@ -179,6 +179,14 @@ public static class ExactPercentile
     {
       mOptions = CreateOptions();
 
+      WriteLine2GUI("Applying Noise Floor Gate...");
+      Indent();
+
+      WriteLine2GUI($"EnvelopeAttackTime={mOptions.EnvelopeAttackTime       }");
+      WriteLine2GUI($"EnvelopeReleaseTime={mOptions.EnvelopeReleaseTime      }");
+      WriteLine2GUI($"FloorEstimationTrimRatio ={mOptions.FloorEstimationTrimRatio }");
+      WriteLine2GUI($"FloorEstimationPercentile={mOptions.FloorEstimationPercentile}");
+
       WaveInput.Rep.Sanitize() ;
 
       var lEnvelopeParams = new Envelope.Args{ AttackTime = mOptions.EnvelopeAttackTime, ReleaseTime = mOptions.EnvelopeReleaseTime};
@@ -189,6 +197,8 @@ public static class ExactPercentile
       Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
       var (lFloor,lNewSamples) = EstimateFloor(lEnvelope.Samples);
+
+      WriteLine2GUI($"Floor={lFloor}");
 
       if ( lNewSamples == null )
         lNewSamples = RawApplyGate(lEnvelope.Samples, lFloor);
@@ -204,6 +214,7 @@ public static class ExactPercentile
       var lES = WaveInput.CopyWith(lGated);
       lES.Name = lLabel;
 
+      Unindent();
       return CreateOutput(lES, lLabel);
     }
 

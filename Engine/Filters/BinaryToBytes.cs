@@ -25,6 +25,9 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process()
     {
+      WriteLine2GUI("Converting Bits to Bytes...");
+      Indent();
+
       WriteLine($"{mBitSize} Bits per Byte");
 
       var lBags = LexicalInput.GetSymbols<BitBagSymbol>() ;
@@ -76,10 +79,12 @@ namespace DIGITC2_ENGINE
 
       Score lScore = new Score(Name, lLikelihood, lFitness) ;
 
-      WriteLine($"Good Bytes SNR: {lSNR}");
-      WriteLine($"Score: {lScore}");
-      WriteLine($"Likelihood: {lLikelihood}");
-      WriteLine($"Fitness: {lFitness}");
+      WriteDetailLine($"Good Bytes SNR: {lSNR}");
+      WriteDetailLine($"Score: {lScore}");
+      WriteDetailLine($"Likelihood: {lLikelihood}");
+      WriteDetailLine($"Fitness: {lFitness}");
+
+      Unindent();
 
       return CreateOutput( new LexicalSignal(lByteSymbols), $"{mBitSize}_BitsPerByte", lScore, lLikelihood < mQuitThreshold ) ;
     }

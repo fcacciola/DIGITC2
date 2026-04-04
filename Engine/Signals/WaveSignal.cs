@@ -138,7 +138,7 @@ namespace DIGITC2_ENGINE
 
     public static void SaveTo( this DiscreteSignal aDS, string aFilename )  
     {
-      DContext.WriteLine2GUI($"Saving signal to file: [{aFilename}]");
+      DContext.WriteDetailLine($"Saving signal to file: [{aFilename}]");
 
       try
       {

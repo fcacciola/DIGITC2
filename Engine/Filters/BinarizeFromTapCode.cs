@@ -42,6 +42,9 @@ public class BinarizeFromTapCode : LexicalFilter
 
   protected override Packet Process()
   {
+    WriteLine2GUI("Convertting Tap Code to Bits...");
+    Indent();
+
     var lSymbols = LexicalInput.GetSymbols<TapCodeSymbol>();
 
     var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
@@ -67,14 +70,14 @@ public class BinarizeFromTapCode : LexicalFilter
       }
     }
 
-    WriteLine($"RAW Bags count: {lRawBags.Count}" );
+    WriteDetailLine($"RAW Bags count: {lRawBags.Count}" );
 
     foreach ( var lRawBag in lRawBags )
     {
       if ( lRawBag.Count == 0 ) 
        continue ;
 
-      WriteLine($"RAW Bag: { string.Join(",",lRawBag)}" );
+      WriteDetailLine($"RAW Bag: { string.Join(",",lRawBag)}" );
 
       List<BitSymbol> lBits = new List<BitSymbol> ();
 
@@ -96,13 +99,17 @@ public class BinarizeFromTapCode : LexicalFilter
       
       int lBagLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
 
-      WriteLine($"Known Bits SNR: {lSNR}");
-      WriteLine($"Bag Likelihood: {lBagLikelihood}");
-
       BitBagSymbol lBag = new BitBagSymbol(lBags.Count, lBits, lBagLikelihood);
+
+      WriteLine($"Bits: {lBag.Meaning}");
+      WriteDetailLine($"Known Bits SNR: {lSNR}");
+      WriteDetailLine($"Bag Likelihood: {lBagLikelihood}");
+
 
       lBags.Add(lBag); 
     }
+
+    Unindent();
 
     if ( lBags.Count > mMinCount)
     {
@@ -111,7 +118,6 @@ public class BinarizeFromTapCode : LexicalFilter
     else
     {
       return CreateQuitOutput();
-
     }
   }
 

@@ -63,8 +63,6 @@ namespace DIGITC2_ENGINE
         lPulseA = lPulseB;
       }
 
-      //FilterHelper.DumpValues("GapDurations",mGapDurations);
-
       return rGapDurations;
     }
   }
@@ -152,7 +150,6 @@ namespace DIGITC2_ENGINE
       mStepStart = mPos ;
       mAmplitude = -1 ;
 
-      //DContext.WriteLine($"Creating steps for pulse from {mPulseStart} to {mPulseEnd}");
       for ( int i = mPulseStart; i < mPulseEnd ; ++ i )
       {
         float lV = mSource.Samples[i];
@@ -181,7 +178,6 @@ namespace DIGITC2_ENGINE
     {
       if ( mCurrCount > 0 )
       {
-        //DContext.WriteLine($"  Step of {mAmplitude} from {mStepStart} to {mPos}");
         mSteps.Add( new PulseStep(mAmplitude, mStepStart, mPos ) );
         mStepStart = mPos ;
       }
@@ -208,7 +204,7 @@ namespace DIGITC2_ENGINE
     {
       Options rOptions = new ();
 
-      rOptions.DullThreshold               = Params.GetInt("DullThreshold ");
+      rOptions.MinLevelThreshold           = Params.GetInt("DullThreshold ");
       rOptions.SplitThreshold              = Params.GetInt("SplitThreshold");
       rOptions.SplitLevelDiff              = Params.GetInt("SplitLevelDiff");
       rOptions.InsignificantLenThreshold   = Params.GetInt("InsignificantLenThreshold");
@@ -227,7 +223,7 @@ namespace DIGITC2_ENGINE
       SelectValidPulses();
       SplitPulses();  
       MergeContiguousPulses();
-      RemoveUnfitPulses();
+      RemoveVeryShortPulses();
 
       return CreateOutput( new LexicalSignal(mPulses4), Name, null, false) ;
     }
@@ -242,7 +238,6 @@ namespace DIGITC2_ENGINE
       mPos        = 0 ;
 
       WriteLine2GUI($"Creating pulses for WaveSignal of Length {WaveInput.Samples.Length}");
-      Indent();  
 
       for ( mPos = 0 ; mPos < WaveInput.Samples.Length ; ++ mPos )
       {
@@ -253,7 +248,6 @@ namespace DIGITC2_ENGINE
           if ( mInGap )
           {
             mPulseStart = mPos ;
-            //DContext.WriteLine($"Pulse start at {mPulseStart}");
           }
           mInGap = false ;  
         }
@@ -267,8 +261,6 @@ namespace DIGITC2_ENGINE
       AddPulse();
 
       PulseFilterHelper.PlotPulses(mPulses0, "0_Raw_Pulses");
-
-      Unindent();  
     }
 
     void AddPulse()
@@ -277,20 +269,24 @@ namespace DIGITC2_ENGINE
       {
         var lSteps = PulseStepBuilder.Build(WaveInput, mPulseStart, mPos ) ;
 
-        //DContext.WriteLine($"Creatign new Pulse from {mPulseStart} to {mPos} with {lSteps.Textualize()}");
-
         mPulses0.Add( new PulseSymbol(mPulses0.Count, mPulseStart, mPos, lSteps ) );
       }
     }
 
     void SelectValidPulses()
     {
+      WriteLine2GUI($"Filtering Valid Pulses...");
+      Indent();
+      WriteDetailLine($"Initial Count={mPulses0.Count}");
+      WriteLine2GUI($"Insignificant Len Threshold={mOptions.InsignificantLenThreshold}s");
+      WriteLine2GUI($"Min Level Threshold={mOptions.MinLevelThreshold}");
       foreach( var lPulse in mPulses0 )
       {
-        if ( lPulse.Length > mOptions.InsignificantLenThreshold && lPulse.MaxLevel > mOptions.DullThreshold )
+        if ( lPulse.Length > mOptions.InsignificantLenThreshold && lPulse.MaxLevel > mOptions.MinLevelThreshold )
           mPulses1.Add(lPulse );
       }
-
+      WriteDetailLine($"Final Count={mPulses1.Count}");
+      Unindent();
       PulseFilterHelper.PlotPulses                (mPulses1, "1_Valid_Pulses");
       PulseFilterHelper.PlotPulseDurationHistogram(mPulses1, "1_Valid_Pulses");
     }
@@ -304,7 +300,6 @@ namespace DIGITC2_ENGINE
 
     List<Run> FindRuns( PulseSymbol aPulse )
     {
-      //DContext.WriteLine($"Finding runs");
       List<Run> lRuns = new List<Run>();
 
       int lC = aPulse.Steps.Count ;
@@ -385,8 +380,6 @@ namespace DIGITC2_ENGINE
                 if ( lRunStart < i )
                   lRuns.Add( new Run{ From = lRunStart, To = i, Gap = false} ) ;
 
-                //DContext.WriteLine($"Local minima found at step {i}");
-
                 lRuns.Add( new Run{ From = i, To = k, Gap = true} ) ;
 
                 lRunStart = k ;
@@ -394,20 +387,17 @@ namespace DIGITC2_ENGINE
             }
           }
         }
-        //DContext.Unindent();  
       }
 
       if ( lRunStart < lC )
         lRuns.Add( new Run{ From = lRunStart, To = lC, Gap = false} ) ;
+
 
       return lRuns;
     }
 
     void SplitPulse( PulseSymbol aPulse, List<Run> aRuns )
     {
-      //DContext.WriteLine($"Splittig pulse with {aRuns.Count} runs");
-      //DContext.Indent();  
-
       foreach( var lRun in aRuns ) 
       {
         if ( !lRun.Gap )
@@ -424,18 +414,17 @@ namespace DIGITC2_ENGINE
           mPulses2.Add(lNewPulse);
         }
       }
-      //DContext.Unindent();  
     }
 
     void SplitPulses()
     {
-      WriteLine2GUI("Splitting Pulses");
+      WriteLine2GUI("Splitting Glued Pulses...");
       Indent();  
+      WriteDetailLine($"Initial Count={mPulses1.Count}");
+      WriteLine2GUI($"Split Threshold={mOptions.SplitThreshold}s");
 
       foreach( var lPulse in mPulses1 )
       {
-        //DContext.WriteLine($"Checking  pulse {lPulse}");
-        //DContext.Indent();  
         var lRuns = FindRuns( lPulse );  
         if (  lRuns.Count > 1 )  
         {
@@ -445,12 +434,12 @@ namespace DIGITC2_ENGINE
         {
           mPulses2.Add( lPulse ); 
         }
-        //DContext.Unindent();  
       }
 
       PulseFilterHelper.PlotPulses                (mPulses2, "2_Split_Pulses");
       PulseFilterHelper.PlotPulseDurationHistogram(mPulses2, "2_Split_Pulses");
-      Unindent();  
+      WriteDetailLine($"Final Runs Count={mPulses2.Count}");
+      Unindent();
     }
 
     double FindContiguousPulsesGapDuration()
@@ -459,7 +448,7 @@ namespace DIGITC2_ENGINE
       {
         double rGP = PulseSymbolStats_MergeTheshold.Calculate(mPulses2);
 
-        AddBranch("ContiguousPulsesGapDuration",$"{(rGP *  .75)}");
+        AddBranch("ContiguousPulsesGapDuration",$"{(rGP *  .50)}");
         AddBranch("ContiguousPulsesGapDuration",$"{(rGP * 1.25)}");
 
         return rGP;
@@ -472,10 +461,12 @@ namespace DIGITC2_ENGINE
       if ( mPulses2.Count < 2 )
         return ;
 
-      WriteLine2GUI("Merging Contiguous Pulses");
+      WriteLine2GUI("Merging Contiguous Pulses...");
       Indent();  
+      WriteDetailLine($"Initial Count={mPulses2.Count}");
 
       double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; 
+      WriteLine2GUI($"Contiguous Pulses Gap Duration Threshold={lContiguousPulsesGapDuration}s");
 
       if ( lContiguousPulsesGapDuration > 0 ) 
       {
@@ -489,13 +480,13 @@ namespace DIGITC2_ENGINE
 
           if ( lGap < lContiguousPulsesGapDuration ) 
           {
-            WriteLine($"Merging pulses {lPulseA} and {lPulseB}.");
+            WriteDetailLine($"Merging pulses {lPulseA} and {lPulseB}.");
             var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
             lPulseA = lFilteredPulse;
           }
           else 
           {
-            WriteLine($"Adding pulse {lPulseA} to result.");
+            WriteDetailLine($"Adding pulse {lPulseA} to result.");
             mPulses3.Add(lPulseA);
             lPulseA = lPulseB;
           }
@@ -506,6 +497,7 @@ namespace DIGITC2_ENGINE
         mPulses3 = mPulses2 ;
       }
 
+      WriteDetailLine($"Final Count={mPulses3.Count}");
       PulseFilterHelper.PlotPulses(mPulses3, "3_Contiguous_Pulses_Merged");
       Unindent();  
     }
@@ -542,23 +534,27 @@ namespace DIGITC2_ENGINE
         return mOptions.VeryShortThreshold ;
     }
 
-    void RemoveUnfitPulses()
+    void RemoveVeryShortPulses()
     {
-      WriteLine2GUI("Removing Unfit Pulses");
+      double lVeryShortThreshold = FindVeryShortThreshold();
 
-      double lVeryShortPulses = FindVeryShortThreshold();
+      WriteLine2GUI($"Removing Very Short Pulses...");
+      Indent();
+      WriteLine2GUI($"Very Short Threshold={lVeryShortThreshold}");
+      WriteDetailLine($"Initial Count={mPulses2.Count}");
 
-      mPulses4.AddRange( mPulses3.Where( lPulse => lPulse.Duration >= lVeryShortPulses ) ) ;
+      mPulses4.AddRange( mPulses3.Where( lPulse => lPulse.Duration >= lVeryShortThreshold ) ) ;
 
       PulseFilterHelper.PlotPulses(mPulses4, "4_Final_Pulses");
 
-      WriteLine2GUI($"Final pulses: {mPulses4.Count}");
+      WriteDetailLine($"Final count: {mPulses4.Count}");
+      Unindent();
     }
 
 
     class Options
     {
-      internal int    DullThreshold ;
+      internal int    MinLevelThreshold ;
       internal int    SplitThreshold ;
       internal int    SplitLevelDiff ;
       internal int    InsignificantLenThreshold ;
