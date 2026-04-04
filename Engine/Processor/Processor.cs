@@ -12,11 +12,12 @@ namespace DIGITC2_ENGINE
 
 public class Processor
 {
-  public static Result Process ( string aName, MainPipeline aMainPipeline, Signal aStartSignal )
+  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, Config aConfig, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lResultBuilder = lProcessor.Process( aStartSignal ) ;
-    return lResultBuilder.BuildResult(aName);
+    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal, aConfig  ) ;
+
+    return new SessionResult(lPipelineResults,aName);
   }
 
   public Processor( MainPipeline aMainPipeline )
@@ -24,16 +25,18 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public ResultBuilder Process( Signal aStartSignal )
+  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig )
   {
-    ResultBuilder rResult = new ResultBuilder();
+    var rPipelineResults = new List<PipelineResult>();
 
-    var lStartBucket = OutputBucket.WithoutLogFile(aStartSignal.Name);
-    DContext.Session.PushBucket(lStartBucket);
+    mMainPipeline.Start( aSession, aSettings, aConfig, aStartSignal ) ;
+
+    string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
+
+    const int MAX_PIPELINES = 10 ;
 
     try
     {
-      mMainPipeline.Start(aStartSignal, lStartBucket ) ;
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
@@ -43,14 +46,38 @@ public class Processor
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
-        DContext.Session.GotoBucket(lPipeline.StartBucket);
-        DContext.Session.PushBucket(OutputBucket.WithoutLogFile($"Pipeline_{lPipeline.Level}"));
+        lPipeline.SetupFilters();
 
+        lPipeline.AddSlot(OutputSlot.WithoutLogFile(lPipeline.Name));
+        string lPipelineFolder = lPipeline.OutputBucket.CurrFullOutputFolder; 
+        aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
+        if ( lPipelineResult != null )
+        {
+          lPipelineResult.Folder = lPipelineFolder; 
+          rPipelineResults.Add(lPipelineResult) ; 
 
-        rResult.Add(lPipelineResult) ; 
+          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
+
+          if ( lPipelineResult.OverallFitness >= Fitness.EXCELENT || aSettings.GetBool("DisableBranching") )
+          {
+            DContext.WriteLine2GUI($"Skipping branch-out pipelines.") ;
+            break ;
+          }
+        }
+        else
+        {
+          DContext.Error($"Pipeline {lPipelineIdx} failed. Aborting.") ;
+          break ;
+        }
 
         lPipelineIdx ++ ;
+
+        if ( lPipelineIdx > MAX_PIPELINES )
+        {
+          DContext.Error($"Too many Pipelines. Aborting.") ;
+          break ;
+        }
       }
       while (mPipelines.Count > 0);
 
@@ -61,10 +88,10 @@ public class Processor
       DContext.Error(x);
     }
 
-    DContext.Session.GotoBucket(lStartBucket) ;
+    aSession.SetCurrentOutputFolder(lMainPipelineFolder);
     DContext.CloseLogger();
 
-    return rResult ;  
+    return rPipelineResults ;
   }
 
   public void EnqueuePipeline ( Pipeline aPipeline ) 
@@ -72,14 +99,16 @@ public class Processor
     mPipelines.Enqueue( aPipeline ) ;  
   }
 
-  public void BranchOut ( Pipeline aPipeline, Packet aNewStartPacket )
+  public void BranchOut ( Pipeline aPipeline, Packet aStartPacket, Config aConfig, string aSubName )
   {
-    var lCurrFilterBucket = DContext.Session.CurrentBucket();   
+    var lPrevFilterSlot = aPipeline.OutputBucket.PrevSlot();   
 
-    var lNewPipeline = aPipeline.BranchOut(lCurrFilterBucket, aNewStartPacket ) ;
+    if (  lPrevFilterSlot != null )
+    { 
+      var lNewPipeline = aPipeline.BranchOut(lPrevFilterSlot, aStartPacket.Prev, aConfig, $"{aStartPacket.FilterName}_{aSubName}" ) ;
 
-    EnqueuePipeline( lNewPipeline ) ; 
-
+      EnqueuePipeline( lNewPipeline ) ; 
+    }
   }
 
   readonly MainPipeline    mMainPipeline ;

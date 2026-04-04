@@ -9,72 +9,50 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-  public class GateThresholds
-  {
-    public GateThresholds( params int[] aThresholds ) 
-    { 
-      foreach( int lThreshold in aThresholds ) 
-        Values.Add( lThreshold / 10.0f );
-    }
-
-    public List<float> Values = new List<float>();
-
-    public override string ToString() =>  Values.Textualize();
-  }
-
+   
   public class Discretize : WaveFilter
   {
-    public Discretize( params GateThresholds[] aGTs ) 
+    public Discretize( ) 
     { 
-      foreach( var lGT in aGTs ) 
-        mGates.Add( new Gate($"{lGT.Values.Count}_steps",lGT) ) ;
+    }
+
+    protected override void OnSetup()
+    {
+      mGate = new Gate( Params.GetFloat("GateCut"), Params.GetFloat("GateOutLevel") ) ;
     }
 
     public class Gate
     {
-      public Gate( string aLabel, GateThresholds aThresholds )
+      public Gate( float aCut, float aOutLevel )
       {
-        Label      = aLabel; 
-        Thresholds = aThresholds;
+        Cut      = aCut;
+        OutLevel = aOutLevel;
       }
 
       public float Apply( float aV )
       {
-        for( int i = 0; i < Thresholds.Values.Count ; ++ i )
-        {
-          float lThreshold = Thresholds.Values[i] ; //* Scale ; 
-
-          if ( aV >= lThreshold )
-            return lThreshold; 
-        }
-
+        if ( aV >= Cut )
+          return OutLevel; 
         return 0f; 
       }
 
-      readonly GateThresholds Thresholds ;
+      readonly internal float Cut ;
+      readonly internal float OutLevel ;
 
-      internal float Scale ;
-
-      internal string Label ;
-
-      public override string ToString() => Thresholds.ToString() ;
+      public override string ToString() => $"C_{(int)Cut*100}_O_{(int)OutLevel*100}";
     }
 
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput )
+    protected override Packet Process ()
     {
-      DContext.WriteLine($"Discretizing Input Signal.");
-      DContext.Indent();
-      WaveSignal lSignal = aInput ;
-      foreach ( var lGate in mGates )
-      {
-        DContext.WriteLine($"Applying Discretization Gate: {lGate}");
-        lSignal = Apply( lSignal, lGate ) ;
+      WaveSignal lSignal = WaveInput ;
+      WriteLine2GUI($"Applying Discretization Gate: Cut Level={mGate.Cut} Output Level={mGate.OutLevel}");
 
-      }
-      rOuput.Add( new Packet(Name, aInputPacket, lSignal, $"Discretized.") ) ;
+      AddBranch("GateCut",$"{(mGate.Cut *  .8)}");
+      AddBranch("GateCut",$"{(mGate.Cut * 1.2)}");
 
-      DContext.Unindent();
+      lSignal = Apply( lSignal, mGate ) ;
+      return CreateOutput( lSignal, $"Discretized.") ;
     }
 
     WaveSignal Apply ( WaveSignal aInput, Gate aGate )
@@ -83,8 +61,7 @@ namespace DIGITC2_ENGINE
       
       var rR = aInput.CopyWith(rDiscrete);
 
-      if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"Gated_{aGate.Label}.wav") ) ;
+      Save(rR, $"Discretized.wav") ;
 
       return rR ;
     }
@@ -93,8 +70,6 @@ namespace DIGITC2_ENGINE
     {
       float lMax = aInput.GetPeak();
 
-      aGate.Scale = lMax / 1.0f;
-      
       float[] lSrc = aInput.Samples ;
       int lLen = lSrc.Length ;
 
@@ -106,7 +81,7 @@ namespace DIGITC2_ENGINE
       return new DiscreteSignal(SIG.SamplingRate, rOutput);
     }
 
-    List<Gate> mGates = new List<Gate>() ;
+    Gate mGate = null ;
 
     public override string Name => this.GetType().Name ;
 

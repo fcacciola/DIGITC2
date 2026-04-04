@@ -42,6 +42,11 @@ namespace DIGITC2_ENGINE
       return ( 1.0 - aF ) * aL + aF * aH;
     }
 
+    public static float LERP( float aL, float aH, float aF )  
+    {
+      return ( 1.0f - aF ) * aL + aF * aH;
+    }
+
     /// <summary>
     /// Randomized Linear Interpolation in [aL,aH] by randomly selected
     /// convex parameter (0-1). 
@@ -66,7 +71,8 @@ namespace DIGITC2_ENGINE
 
     public static int SampleIdx( double aTime ) => (int)Math.Ceiling(aTime * SIG.SamplingRate) ;
 
-    public static int Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
+    public static int    Clamp ( int n, int l, int h ) => n < l ? l : n > h ? h : n ;  
+    public static double Clamp ( double n, double l, double h ) => n < l ? l : n > h ? h : n ;  
   }
 
   //public class Textualizer

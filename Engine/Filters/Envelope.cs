@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -19,78 +18,46 @@ using LowPassFilter = NWaves.Filters.Elliptic.LowPassFilter ;
 
 namespace DIGITC2_ENGINE
 {
+
   public class Envelope : WaveFilter
   {
-    public class LowPassFilterParams 
+    public class Args 
     {
-      public LowPassFilterParams( double aFreqInHerz )
-      {
-        FreqInHerz = aFreqInHerz; 
-      }
+      public float AttackTime  = 0.005f;
+      public float ReleaseTime = 0.01f;
 
-      public double FreqInHerz = 1500;
-      public double DeltaPass  = 0.96;
-      public double DeltaStop  = 0.04;
-      public int    Order      = 5;
-    }
-
-    public class Params 
-    {
-      public float FollowerAttackTime  = 0.005f;
-      public float FollowerReleaseTime = 0.01f;
-
-      public override string ToString() => $"A_{(int)(FollowerAttackTime*1000)}_R_{(int)(FollowerReleaseTime*1000)}";
+      public override string ToString() => $"A_{(int)(AttackTime*100000)}_R_{(int)(ReleaseTime*100000)}";
     }
 
     public Envelope() 
     { 
     }
 
-    protected override void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOutput )
+    protected override Packet Process ()
     {
-      DContext.WriteLine("Extracting Envelope from input signal");
-      DContext.Indent();
+      var lArgs = new Args{AttackTime=Params.GetFloat("Attack"), ReleaseTime= Params.GetFloat("Release") };
 
-      if ( DContext.Session.Args.GetBool("Plot") )
-        aInput.SaveTo( DContext.Session.OutputFile( $"Envelope_Input.wav") ) ;
+      WriteLine2GUI($"Applying Envelope. AttackTime: {lArgs.AttackTime} ReleaseTime:{lArgs.ReleaseTime}");
 
-      var lNewRep = Apply(aInput.Rep, mParams) ; 
+      var lNewRep = Apply(WaveInput.Rep, lArgs); 
 
-      var rR = aInput.CopyWith(lNewRep);
+      Save(lNewRep, $"Envelope.wav") ;
 
-      rOutput.Add( new Packet(Name, aInputPacket, rR, "Envelope"));
-      DContext.Unindent();
+      var rR = WaveInput.CopyWith(lNewRep);
+
+      return CreateOutput(rR,"Envelope");
     }
 
-    static LowPassFilter CreateLowPassFilter( LowPassFilterParams aParams ) 
+    public static DiscreteSignal Apply( DiscreteSignal aSignal, Args aArgs )
     {
-      var Freq         = SIG.ToDigitalFrequency(aParams.FreqInHerz) ;
-      var RipplePassDb = NWaves.Utils.Scale.ToDecibel( 1 / aParams.DeltaPass ) ;
-      var AttenuateDB  = NWaves.Utils.Scale.ToDecibel( 1 / aParams.DeltaStop ) ;
+      EnvelopeFollower lEnvelopeFollower = new EnvelopeFollower(SIG.SamplingRate, aArgs.AttackTime, aArgs.ReleaseTime);
 
-      DContext.WriteLine($"Applying Elliptic LowPassFiler. Freq:{aParams.FreqInHerz} Hz RipplePass:{RipplePassDb} Db Attenuate:{AttenuateDB} Db");
+      var rNewRep = lEnvelopeFollower.ApplyTo( aSignal );
 
-      return new LowPassFilter(Freq, aParams.Order, RipplePassDb, AttenuateDB);
+      rNewRep.Sanitize(); 
+
+      return rNewRep ;
     }
-
-    public static DiscreteSignal Apply ( DiscreteSignal aInput, Params aParams = null )
-    {
-      var lParams = aParams ?? new Params() ;
-
-      DContext.WriteLine($"Following Envelope. AttackTime: {lParams.FollowerAttackTime} ReleaseTime:{lParams.FollowerReleaseTime}");
-
-      EnvelopeFollower envelopeFollower = new EnvelopeFollower(SIG.SamplingRate, lParams.FollowerAttackTime, lParams.FollowerReleaseTime);
-
-      var rR = envelopeFollower.ApplyTo( aInput );
-      rR.Sanitize(); 
-
-      if ( DContext.Session.Args.GetBool("Plot") )
-        rR.SaveTo( DContext.Session.OutputFile( $"Envelope.wav") ) ;
-
-      return rR ;
-    }
-
-    Params mParams = new Params();
 
     public override string Name => this.GetType().Name ;
 

@@ -127,8 +127,8 @@ namespace DIGITC2_ENGINE
       return JsonConvert.DeserializeObject<Distribution>( lJson );  
     }
 
-    public IReadOnlyList<Sample> Samples => mSamples.AsReadOnlyList();
-    public IReadOnlyList<double> Values  => mValues .AsReadOnlyList();
+    public IReadOnlyList<Sample> Samples => mSamples.AsReadOnly();
+    public IReadOnlyList<double> Values  => mValues .AsReadOnly();
 
     [JsonProperty]
     List<Sample> mSamples = new List<Sample>() ;

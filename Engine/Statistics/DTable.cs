@@ -127,9 +127,9 @@ namespace DIGITC2_ENGINE
       return  rR ; 
     }
 
-    public IReadOnlyList<DPoint> Points  => mPoints .AsReadOnlyList();
-    public IReadOnlyList<double> XValues => mXValues.AsReadOnlyList();
-    public IReadOnlyList<double> YValues => mYValues.AsReadOnlyList();
+    public IReadOnlyList<DPoint> Points  => mPoints .AsReadOnly();
+    public IReadOnlyList<double> XValues => mXValues.AsReadOnly();
+    public IReadOnlyList<double> YValues => mYValues.AsReadOnly();
 
     void Setup()
     {

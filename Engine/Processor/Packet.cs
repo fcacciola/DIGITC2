@@ -7,8 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-using DocumentFormat.OpenXml.Drawing.Charts;
-
 namespace DIGITC2_ENGINE
 {
   public abstract class PacketData
@@ -18,8 +16,9 @@ namespace DIGITC2_ENGINE
 
   public class Packet 
   {
-    public Packet(string aFilterName, Packet aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, PacketData aData = null )
+    public Packet( Config aConfig, string aFilterName, Packet aPrev, Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, PacketData aData = null )
     {
+      Config     = aConfig ;
       FilterName = aFilterName; 
       Prev       = aPrev ;
       Signal     = aSignal;
@@ -29,10 +28,11 @@ namespace DIGITC2_ENGINE
       Data       = aData;
     }
 
-    static public Packet Quit( string aFilterName, Packet aPrev, string aLabel ) => new Packet(aFilterName, aPrev, null, aLabel, null, true, null );
+    static public Packet Quit( string aFilterName, Packet aPrev, string aLabel ) => new Packet(null, aFilterName, aPrev, null, aLabel, null, true, null );
 
     public T GetData<T>() where T : class => Data as T ;
 
+    public Config     Config       ;
     public string     FilterName   ;
     public Packet     Prev         ;
     public Signal     Signal       ;

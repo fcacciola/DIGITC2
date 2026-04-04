@@ -4,53 +4,114 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using NWaves.Signals;
+
 namespace DIGITC2_ENGINE
 {
   public abstract class Filter 
   {
-    public virtual void Setup() {}
-    public virtual void Cleanup() {}
+    public void Setup( Session aSession, Settings aSettings, Config aConfig ) 
+    { 
+      Session  = aSession;
+      Settings = aSettings; 
+      Config   = aConfig ; 
+      Branches = new List<Config>(); 
 
-    public List<Packet> Apply( Packet aInput ) 
+      OnSetup(); 
+    }
+
+    public void Cleanup() { OnCleanup(); }
+
+    protected virtual void OnSetup  () {}
+    protected virtual void OnCleanup() {}
+
+    public (Packet,List<Config>) Apply( Packet aInput ) 
     {
-      List<Packet> rOutput = new List<Packet>();
+      InputPacket = aInput;
+
+      WriteLine2GUI($"Applying Filter: {Name}");
+      Indent();
+
+      Packet rPacket = null ;
 
       try
       {
-        DoApply(aInput, rOutput);
+        rPacket = DoApply();
       }
       catch ( Exception x )
       {
-        if ( rOutput.Count > 0 ) 
-          rOutput.First().ShouldQuit = true ;
-
         DContext.Error(x);
       }
 
-      return rOutput; 
+      Unindent();
+
+      return (rPacket,Branches); 
     }
 
-    protected abstract void DoApply( Packet aInput, List<Packet> rOutput ) ;
+    protected Packet CreateOutput( Signal aSignal, string aName, Score aScore = null, bool aShouldQuit = false, PacketData aData = null)
+      => new Packet(Config, Name, InputPacket, aSignal, aName, aScore, aShouldQuit, aData) ;
+
+    protected Packet CreateQuitOutput() => new Packet(Config, Name, InputPacket, null, Name, null, true, null) ;
+
+    protected abstract Packet DoApply() ;
 
     public abstract string Name { get; } 
 
+    protected Params Params => Config.GetSection(Name);
+
+    protected void AddNewConfig( string aKey, string aValue )
+    {
+    }
+
+    protected void AddBranch( params string[] aKVList )
+    {
+      Config rNew = Config.Copy();
+      for( int i = 0 ; i < aKVList.Length ; i += 2 ) 
+        rNew.GetSection(Name).Set(aKVList[i], aKVList[i+1]);
+      Branches.Add(rNew) ;
+    }
+
+    protected bool DoOutputDetails => Settings.GetBool("OutputDetails");
+
+    protected void Save( DiscreteSignal aDS, string aName )
+    {
+      if ( DoOutputDetails )
+        aDS.SaveTo( Session.OutputFile( aName ) ) ;
+    }
+
+    protected void Save( WaveSignal aWS, string aName ) => Save(aWS.Rep, aName);  
+
     public override string ToString() => Name ;
+
+    protected void WriteDetailLine( string aLine ) => DContext.WriteDetailLine( aLine ) ;
+    protected void WriteLine      ( string aLine ) => DContext.WriteLine      ( aLine ) ;
+    protected void WriteLine2GUI  ( string aLine ) => DContext.WriteLine2GUI  ( aLine ) ;
+    protected void Indent                       () => DContext.Indent() ;  
+    protected void Unindent                     () => DContext.Unindent() ;  
+
+    protected Session      Session ;
+    protected Settings     Settings ;
+    protected Config       Config ;
+    protected Packet       InputPacket ;
+    protected List<Config> Branches ;
   }
 
   public abstract class WaveFilter : Filter
   {
     protected WaveFilter() : base() {}
 
-    protected override void DoApply( Packet aInput, List<Packet> rOuput )
+    protected override Packet DoApply( )
     {
-      WaveSignal lWaveSignal = aInput.Signal as WaveSignal; 
-      if ( lWaveSignal == null )
+      WaveInput = InputPacket.Signal as WaveSignal; 
+      if ( WaveInput == null )
         throw new ArgumentException("Input Signal must be an Audio Signal.");
 
-      Process(lWaveSignal, aInput, rOuput);
+      return Process();
     }
     
-    protected abstract void Process ( WaveSignal aInput, Packet aInputPacket, List<Packet> rOuput );  
+    protected abstract Packet Process();  
+
+    protected WaveSignal WaveInput ;
 
   }
 
@@ -58,17 +119,18 @@ namespace DIGITC2_ENGINE
   {
     protected LexicalFilter() : base() {}
 
-    protected override void DoApply( Packet aInput, List<Packet> rOuput )
+    protected override Packet DoApply()
     {
-      LexicalSignal lLexicalSignal = aInput.Signal as LexicalSignal; 
-      if ( lLexicalSignal == null )
+      LexicalInput = InputPacket.Signal as LexicalSignal; 
+      if ( LexicalInput == null )
         throw new ArgumentException("Input Signal must be a gated Lexical Signal.");
 
-      Process(lLexicalSignal, aInput, rOuput );
+      return Process();
     }
     
-    protected abstract void Process(LexicalSignal aInput, Packet aInputPacket, List<Packet> rOuput);  
+    protected abstract Packet Process ();  
 
+    protected LexicalSignal LexicalInput ;
   }
 
 

@@ -10,6 +10,80 @@ using System.Threading.Tasks;
 namespace DIGITC2_ENGINE
 {
 
+public class OutputSlot
+{
+  OutputSlot( string aName, string aSubFolder, bool aSetupLogFile )
+  {
+    Name         = aName;
+    SubFolder    = aSubFolder; 
+    SetupLogFile = aSetupLogFile;
+  }
+
+  public static OutputSlot WithLogFile( string aName, string aSubFolderName = null ) => new OutputSlot( aName, aSubFolderName ?? aName, true );
+
+  public static OutputSlot WithoutLogFile( string aName, string aSubFolderName = null ) => new OutputSlot( aName, aSubFolderName ?? aName, false );
+
+  public string Name         { get ; private set ; }
+  public string SubFolder    { get ; private set ; }
+  public bool   SetupLogFile { get ; private set ; }
+
+  public string FullOutputFolder { get ; set ; } = null ;
+
+  public override string ToString() => $"{Name} at {FullOutputFolder ?? SubFolder}";
+
+}
+
+
+public class OutputBucket
+{
+  public OutputBucket( Session aSession )
+  {
+    mSession = aSession ;
+  }
+
+  public void Add( OutputSlot aSlot)
+  {
+    if ( aSlot.FullOutputFolder == null )
+    {
+      string lBaseFolder = CurrSlot()?.FullOutputFolder ?? mSession.RootOutputFolder ;
+
+      aSlot.FullOutputFolder = $"{lBaseFolder}\\{aSlot.SubFolder}";
+    }
+
+    mSlots.Add(aSlot); 
+
+    Activate(aSlot);
+  }
+  
+  public OutputSlot CurrSlot()
+  {
+    return mSlots.LastOrDefault() ;
+  }
+
+  public OutputSlot PrevSlot()
+  {
+    OutputSlot rO = null ;
+    if ( mSlots.Count > 1 )
+      rO = mSlots[mSlots.Count-2] ;
+    return rO ;
+  }
+    
+  public string CurrFullOutputFolder => CurrSlot().FullOutputFolder ;
+
+  public void Activate( OutputSlot aSlot )
+  {
+    mSession.SetCurrentOutputFolder(aSlot.FullOutputFolder);
+
+    if ( aSlot.SetupLogFile )
+      mSession.SetupLogFile(aSlot.Name);
+
+  }
+
+  Session mSession ;
+  List<OutputSlot> mSlots = new List<OutputSlot>();
+}
+
+
 public class PipelineSelection
 {
   public PipelineSelection( string aActivePipelines )
@@ -36,22 +110,23 @@ public class PipelineSelection
 
 public class Pipeline
 {
-  public Pipeline BranchOut( OutputBucket aStartBucket, Packet aNewStartPacket )
+  public Pipeline BranchOut( OutputSlot aStartSlot, Packet aStartPacket, Config aConfig, string aSubName )
   {
-    var lRemainingFilters = mFilters.Skip(mFilterIdx+1).ToList() ;
+    var lRemainingFilters = mFilters.Skip(mFilterIdx).ToList() ;
 
     if ( lRemainingFilters.Count == 0 )
          return null ;
-    else return new Pipeline( aStartBucket, aNewStartPacket, mLevel + 1, lRemainingFilters ) ;
+    else return new Pipeline( Session, Settings, aConfig, $"{Name}_{aSubName}", aStartSlot, aStartPacket, lRemainingFilters ) ;
   }
 
-  public PipelineResultBuilder Process( Processor aProcessor )
+  public PipelineResult Process( Processor aProcessor )
   {
-    PipelineResultBuilder rRB = new PipelineResultBuilder(Name) ;  
+    PipelineResultBuilder rRB = new PipelineResultBuilder(Name, DContext.Session.CurrentOutputFolder) ;  
 
     mFilterIdx = 0  ;
 
     var lPacket = mStartPacket ;
+    lPacket.Config = Config ;
 
     foreach( var lFilter in mFilters )
     {
@@ -63,33 +138,33 @@ public class Pipeline
         
         string lBucketSubFolder = mFilterIdx == 0 ? lFilter.Name : "N" ;
 
-        DContext.Session.PushBucket(OutputBucket.WithLogFile(lFilter.Name, lBucketSubFolder) );
+        AddSlot(OutputSlot.WithLogFile(lFilter.Name, lBucketSubFolder) );
 
-        var lOutput = lFilter.Apply(lPacket);
+        List<Config> lBranches ;
+        (lPacket,lBranches) = lFilter.Apply(lPacket);
 
-        lOutput.ForEach( p => p.OutputFolder = DContext.Session.CurrentOutputFolder );
-
-        if ( lOutput.Count > 0 )
+        if ( lPacket is not null )
         {
-          lPacket = lOutput.First() ; 
+          lPacket.OutputFolder = DContext.Session.CurrentOutputFolder ;
 
-          if ( lPacket != null )
+          rRB.Add( lPacket ) ;
+
+          for( int i = 0 ; i < lBranches.Count ; i++ )
           {
-            rRB.Add( lPacket ) ;
-
-            if ( lPacket.ShouldQuit )
-            {
-              DContext.WriteLine("Filter asked to Quit Processor.");
-              break ;
-            }
+            var lBranch = lBranches[i] ;  
+            string lSN = "_" + (char)('A'+i);
+            aProcessor.BranchOut( this, lPacket, lBranch, lSN) ;
           }
 
-          for ( int i = 1 ; i < lOutput.Count ; i++ ) 
-            aProcessor.BranchOut( this, lOutput[i] ) ; 
+          if ( lPacket.ShouldQuit )
+          {
+            DContext.WriteLine2GUI("Filter asked to Quit Processor.");
+            break ;
+          }
         }
         else
         {
-          DContext.WriteLine("Filter returned NO result. Quitting.");
+          DContext.WriteLine2GUI("Filter returned NO result. Quitting.");
           break ;
         }
       }
@@ -101,46 +176,62 @@ public class Pipeline
       mFilterIdx = mFilterIdx + 1  ;
     }
 
-    return rRB ;  
+    return rRB.BuildResult() ;  
   }
+
+  public Session  Session  { get ; set ; }
+  public Settings Settings { get ; set ; }
+  public Config   Config   { get ; set ; }
 
   public string Name { get ; private set ; }
 
-  public int Level => mLevel ;
+  public override string ToString() => $"{Name} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
 
-  public OutputBucket StartBucket { get ; protected set ; } 
-
-  public override string ToString() => $"{Name} [L={mLevel} FIdx={mFilterIdx} S={mStartPacket.Signal} RFCount={mFilters.Count}]" ;
-
-  protected Pipeline( string aName, OutputBucket aStartBucket )
+  protected Pipeline( string aName )
   { 
     Name = aName;
-
-    StartBucket = aStartBucket ;
   }
 
-  Pipeline( OutputBucket aStartBucket, Packet aPacket, int aLevel, List<Filter> aFilters )
+  Pipeline( Session aSession, Settings aSettings, Config aConfig, string aName, OutputSlot aStartSlot, Packet aPacket, List<Filter> aFilters )
   { 
-    Name         = aPacket.Name ;  
-    StartBucket  = aStartBucket ;
+    Session      = aSession ;
+    Settings     = aSettings ;
+    Config       = aConfig ;
+    Name         = aName ;  
+
+    mOutputBucket = new OutputBucket(Session);
+
+    AddSlot(aStartSlot) ;
 
     mStartPacket = aPacket ;  
-    mLevel       = aLevel ;
     mFilters     = aFilters ;
     mFilterIdx   = 0 ; 
   }
 
-  protected List<Filter> mFilters     = new List<Filter>();
-  protected Packet       mStartPacket = null ;
+  public void SetupFilters( ) 
+  {
+    mFilters.ForEach( filter => filter.Setup( Session, Settings, Config) ) ;
+  }
 
-  int mLevel    = 0 ;
+  public void AddSlot( OutputSlot aSlot )
+  {
+    if ( mOutputBucket != null && aSlot != null )
+      mOutputBucket.Add(aSlot);
+  }
+
+  public OutputBucket OutputBucket => mOutputBucket ;
+
+  protected List<Filter>  mFilters     = new List<Filter>();
+  protected Packet        mStartPacket = null ;
+  protected OutputBucket  mOutputBucket ;
+
   int mFilterIdx = 0 ;  
 
 }
 
 public class MainPipeline : Pipeline
 {
-  public MainPipeline() : base("Main", null )
+  public MainPipeline() : base("Main" )
   { 
   }
 
@@ -157,13 +248,16 @@ public class MainPipeline : Pipeline
     return this ;
   } 
     
-  public void Start( Signal aStartSignal, OutputBucket aStartBucket ) 
+  public void Start( Session aSession, Settings aSettings, Config aConfig, Signal aStartSignal ) 
   {
-    mStartPacket = new Packet(null, null, aStartSignal, "") ;
+    Session  = aSession ;
+    Settings = aSettings ;  
+    Config   = aConfig ;
 
-    StartBucket = aStartBucket ;
+    mStartPacket = new Packet(null, null, null, aStartSignal, "") ;
 
-    mFilters.ForEach( filter => filter.Setup() ) ;
+    mOutputBucket = new OutputBucket(Session);
+    AddSlot( OutputSlot.WithoutLogFile(aSession.Name) );
   }
 
   public void End()

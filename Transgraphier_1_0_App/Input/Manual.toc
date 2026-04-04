@@ -1,0 +1,3 @@
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}What the App Does}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Typical Workflow at a Glance}{2}{section.1.2}%

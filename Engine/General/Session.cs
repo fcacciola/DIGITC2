@@ -9,146 +9,65 @@ using System.Threading.Tasks;
 namespace DIGITC2_ENGINE
 {
 
-  public class OutputBucket
+
+
+  public abstract class GUI
   {
-    OutputBucket( string aName, string aSubFolder, bool aSetupLogFile )
-    {
-      Name         = aName;
-      mSubFolder   = aSubFolder; 
-      SetupLogFile = aSetupLogFile;
-    }
-
-    public static OutputBucket WithLogFile( string aName, string aSubFolderName = null ) => new OutputBucket( aName, aSubFolderName ?? aName, true );
-
-    public static OutputBucket WithoutLogFile( string aName, string aSubFolderName = null ) => new OutputBucket( aName, aSubFolderName ?? aName, false );
-
-    public string FullOutputFolder => mFullOutputFolder;
-
-    public void SetupFullOutputFolder ( string aBaseFolder ) { mFullOutputFolder = $"{aBaseFolder}\\{mSubFolder}" ;}
-
-    public string Name ;
-    public bool   SetupLogFile ;
-
-    public override string ToString() => $"{Name} at {mFullOutputFolder ?? mSubFolder}";
-
-    string mSubFolder  ;
-    string mFullOutputFolder = null ;
+    public abstract void AddMessage     ( string aMsg ) ;
+    public abstract void AddErrorMessage( string aMsg ) ;
   }
 
   public class Session
   {
-    public Session( string aName, Args aArgs, string aBaseFolder )
+    public Session( string aInputFile, string aName, Settings aSettings, GUI aGUI )
     {
-      Name             = aName ;
-      Args             = aArgs;
-      BaseFolder       = aBaseFolder ;
-      InputFolder      = Path.Combine(BaseFolder,"Input") ; 
-      RootOutputFolder = Path.Combine(BaseFolder,"Output") ; 
+      InputFile        = aInputFile ;
+      Name             = aName;
+      Settings         = aSettings;
+      GUI              = aGUI;  
+      InputFolder      = aSettings.GetPath("InputFolder");  
+      RootOutputFolder = aSettings.GetPath("OutputFolder");
+
+      SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
+
     }  
 
     public void Setup()
     {
       Utils.SetupFolder(InputFolder);
       Utils.SetupFolder(RootOutputFolder);
-
-      PushBucket( OutputBucket.WithoutLogFile(Name) );
     }
 
     public void Shutdown()
     {
     }
 
-    public OutputBucket CurrentBucket()
-    {
-      return mBuckets.Count > 0 ? mBuckets.Peek() : null ;
-    }
-
-    public void PushBucket( OutputBucket aBucket)
-    {
-      string lBaseFolder = CurrentBucket()?.FullOutputFolder ?? RootOutputFolder ;
-
-      aBucket.SetupFullOutputFolder(lBaseFolder);
-
-      mBuckets.Push(aBucket); 
-
-      ActivateBucket(aBucket); 
-    }
-
-
-    public void PopBucket()
-    {
-      mBuckets.Pop();
-
-      string lCurrentOutputFolder = CurrentBucket()?.FullOutputFolder ?? RootOutputFolder ;
-
-      SetCurrentOutputFolder(lCurrentOutputFolder);
-    }
-
-    public void GotoBucket ( OutputBucket aBucket )
-    {
-      if ( aBucket.FullOutputFolder == null )
-      {
-        PushBucket( aBucket );
-      }
-      else
-      {
-        if ( CurrentBucket() != aBucket )
-        {
-          RebuildBucketStack(aBucket);
-          ActivateBucket    (aBucket); 
-        }
-      }
-    }
-
-    void RebuildBucketStack ( OutputBucket aBucket )
-    {
-      var lOldStack = mBuckets.ToList ();
-
-      mBuckets.Clear (); 
-
-      foreach( var lBucket in lOldStack )
-      { 
-        mBuckets.Push (lBucket);
-
-        if ( lBucket == aBucket )
-         break ;
-      }
-    }
-
-    void ActivateBucket ( OutputBucket aBucket )
-    {
-      string lCurrentOutputFolder = aBucket.FullOutputFolder ;
-
-      SetCurrentOutputFolder(lCurrentOutputFolder);
-
-      if ( aBucket.SetupLogFile )
-        SetupLogFile(aBucket.Name);
-    }
-
-    void SetCurrentOutputFolder ( string aOutputFolder  )
+    public void SetCurrentOutputFolder ( string aOutputFolder  )
     {
       CurrentOutputFolder = aOutputFolder; 
 
       Utils.SetupFolder(CurrentOutputFolder);
     }
 
-    void SetupLogFile ( string aLogName = null )
+    public void SetupLogFile ( string aLogName = null )
     {
       DContext.CloseLogger();
-      DContext.OpenLogger( OutputFile($"{aLogName}.txt") ) ;
+      DContext.OpenLogger( OutputFile($"{aLogName}.txt"), OutputFile($"{aLogName}_detail.txt") ) ;
     }
 
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
 
     public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
 
-    public string Name ;
-    public Args   Args ;
-    public string BaseFolder ;
-    public string InputFolder ;
-    public string RootOutputFolder ;
-    public string CurrentOutputFolder ;
+    public string   InputFile ;
+    public string   Name ;
+    public Settings Settings ;
+    public GUI      GUI ;
 
-    Stack<OutputBucket> mBuckets = new Stack<OutputBucket>();
+    public string   BaseFolder ;
+    public string   InputFolder ;
+    public string   RootOutputFolder ;
+    public string   CurrentPipelineFolder;
+    public string   CurrentOutputFolder ;
   }
 }
