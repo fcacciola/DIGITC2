@@ -12,22 +12,6 @@ using OxyPlot.Series;
 
 namespace DIGITC2_ENGINE
 {
-  public class Stats 
-  {
-    public Stats() 
-    {
-    } 
-
-    public double Zipf_Likelihood   = 0 ;
-    public double Kurtosis          = 0 ;
-    public double Maximum           = 0 ;
-    public double Minimum           = 0 ;
-    public double Mean              = 0 ;
-    public double Variance          = 0 ;
-    public double StandardDeviation = 0 ;
-    public double Skewness          = 0 ;
-  }
-
   public class Histogram
   {
     class Bucket
@@ -40,16 +24,42 @@ namespace DIGITC2_ENGINE
       public override string ToString() => $"{Sample}:{Count}";
     }
 
-    public Histogram( Distribution aDist ) : this(aDist.Samples)
+    static public Histogram From<SYMBOL>( List<SYMBOL> aSymbols, GetSymbolMeaningAndValue GMV ) where SYMBOL : Symbol
     {
+      return new Histogram( aSymbols.ConvertAll( s => s.ToSample(GMV) ) );
     }
 
-    public Histogram( IEnumerable<Sample> aSamples )
+    public Histogram( List<double> aValues ) : this ( new Distribution(aValues) ) {}
+
+    public Histogram( List<Sample> aSamples ) : this ( new Distribution(aSamples) ) {}
+
+    public Histogram( Distribution aDist ) 
     {
-      foreach( Sample lSample in aSamples )  
+      mDistribution = aDist;
+
+      foreach( Sample lSample in mDistribution.Samples )  
        Add(lSample);
 
       BuildTable();
+    }
+
+    public Gmm Gmm 
+    {
+      get 
+      {
+        if ( mGmm == null ) 
+          mGmm = GmmFitter.Fit(mDistribution.Values);
+        return mGmm ;
+      }
+    }
+
+    public void Plot( string aName )
+    {
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      { 
+        Table.CreatePlot(Plotter.Options.Bars)?.SaveSVG(DContext.Session.OutputFile($"{aName}_Histogram.svg"));
+        Gmm? .CreatePlot()                    ?.SaveSVG(DContext.Session.OutputFile($"{aName}_GMM.svg"));
+      }
     }
 
     void Add( Sample aSample )
@@ -79,6 +89,10 @@ namespace DIGITC2_ENGINE
     Dictionary<string,Bucket> mMap = new Dictionary<string,Bucket>();
 
     public DTable Table = null;
+
+    Distribution mDistribution ;
+    Gmm          mGmm = null;
+
   }
 
 }

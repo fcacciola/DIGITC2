@@ -250,10 +250,35 @@ namespace DIGITC2_ENGINE
       public double IntraTapGap_HighBound ;
     }
 
+    static double CalculIntraTapCodeGap( List<double> aGaps )
+    {
+      Histogram lGapsHistogram = new Histogram(aGaps);
+
+      lGapsHistogram.Plot("Gaps Histogram for Intra-Tap Threahold ");
+
+      var lGmm = lGapsHistogram.Gmm; 
+
+      if ( lGmm.Components.Count < 2)
+        return 0;
+
+      double lIntra_Inter_Intersection = Gmm.Intersection(lGmm.Components[0], lGmm.Components[1]);
+
+      double lMean   = lGmm.Components[0].Mean;
+      double lStdDev = lGmm.Components[0].StdDev; 
+
+      double lRawIntraTapGap0 = lIntra_Inter_Intersection * 0.8;
+
+      double lRawIntraTapGap1 = lMean + lStdDev;
+      
+      double rRawIntraTapGap = Math.Min(lRawIntraTapGap0, lRawIntraTapGap1);
+
+      return rRawIntraTapGap;
+    }
+
     TapClassifier BuildTapClassifier( List<Tap> aTaps ) 
     { 
-      var lLags = aTaps.ConvertAll( t => t.Gap ).ToArray();
-      return new TapClassifier{ IntraTapGap_HighBound = PulseSymbolStats_IntraTapCodeGap.Calculate(lLags) };
+      var lGaps = aTaps.ConvertAll( t => t.Gap );
+      return new TapClassifier{ IntraTapGap_HighBound = CalculIntraTapCodeGap(lGaps) };
     } 
     
     public override string Name => this.GetType().Name ;

@@ -14,7 +14,7 @@ using Series = OxyPlot.Series.Series;
 
 namespace DIGITC2_ENGINE
 {
-  public class Plot
+  public class Plotter
   {
     public class Options
     {
@@ -37,7 +37,7 @@ namespace DIGITC2_ENGINE
       public static Options Bars  => new Options(TypeE.Bars) ;
     }
 
-    public Plot ( Options aOptions = null )  
+    public Plotter ( Options aOptions = null )  
     {
       mOptions = aOptions ?? Options.Default; 
       mPlot = new PlotModel { Title = mOptions.Title, Subtitle = mOptions.Subtitle, PlotAreaBorderThickness = new OxyThickness(0), Background = OxyColor.FromRgb(255,255,255) };
@@ -59,11 +59,25 @@ namespace DIGITC2_ENGINE
 
     public void SavePNG( string aFilename )
     {
-      DContext.WriteDetailLine($"Saving PNG Image to: [{aFilename}]");
+      DContext.WriteDetailLine($"Saving PNG PLOT to: [{aFilename}]");
       try
       {
         var lBitmap = ToBitmap();
         lBitmap?.Save(aFilename);
+      }
+      catch( Exception ex ) 
+      {
+        DContext.Error(ex);
+      }
+    }
+
+    public void SaveSVG( string aFilename )
+    {
+      DContext.WriteDetailLine($"Saving SVG PLOT: [{aFilename}]");
+      try
+      {
+        var lExporter = new OxyPlot.SvgExporter { Width = 2000, Height = 2000 };
+        lExporter.ExportToFile(mPlot,aFilename);
       }
       catch( Exception ex ) 
       {

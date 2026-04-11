@@ -15,15 +15,6 @@ namespace DIGITC2_ENGINE
 
   public class FilterHelper
   {
-    static public void PlotHistogram( string aName, DTable aHistogram, DTable aRankSize, Gmm1DModel aGmm )
-    {
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
-      { 
-        aHistogram?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_Histogram.png"));
-        aRankSize ?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_RankSize.png"));
-        aGmm?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_GMM.png"));
-      }
-    }
 
     static public void DumpValues<T>( string aName, T[] aValues )
     {
@@ -90,22 +81,6 @@ namespace DIGITC2_ENGINE
       DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
       WaveSignal lWave = new WaveSignal(lWaveRep);
       lWave.SaveTo( DContext.Session.OutputFile( aLabel + ".wav") ) ;
-    }
-
-    static public void PlotPulsesHistogram( List<PulseSymbol> aPulses, string aName, GetSymbolMeaningAndValue GMV )
-    {
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
-      {
-        var lSamples = aPulses.ConvertAll( s => s.ToSample(GMV) ) ;
-
-        (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(lSamples) ;  
-
-        var lValues = lSamples.ConvertAll( s => s.Value ).ToArray();
-
-        var lGmm = PulseSymbolStats.FitGaussians(lValues);
-
-        PlotHistogram(aName,lHistogram, lRankSize, lGmm);
-      }
     }
   }
 
@@ -243,8 +218,7 @@ namespace DIGITC2_ENGINE
 
       mPulses0.SetupGapDurations(); 
 
-      PulseFilterHelper.PlotPulses         (mPulses0, "0_Raw_Pulses");
-      PulseFilterHelper.PlotPulsesHistogram(mPulses0, "0_Raw_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
+      PulseFilterHelper.PlotPulses(mPulses0, "0_Raw_Pulses");
 
     }
 
@@ -275,8 +249,7 @@ namespace DIGITC2_ENGINE
 
       mPulses1.SetupGapDurations(); 
 
-      PulseFilterHelper.PlotPulses         (mPulses1, "1_Valid_Pulses");
-      PulseFilterHelper.PlotPulsesHistogram(mPulses1, "1_Valid_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
+      PulseFilterHelper.PlotPulses(mPulses1, "1_Valid_Pulses");
     }
 
     struct Run
@@ -427,22 +400,42 @@ namespace DIGITC2_ENGINE
 
       mPulses2.SetupGapDurations(); 
 
-      PulseFilterHelper.PlotPulses         (mPulses2, "2_Split_Pulses");
-      PulseFilterHelper.PlotPulsesHistogram(mPulses2, "2_Split_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
+      PulseFilterHelper.PlotPulses(mPulses2, "2_Split_Pulses");
       WriteDetailLine($"Final Runs Count={mPulses2.Count}");
       Unindent();
+    }
+
+    double CalculateMergeThreshold()
+    {
+      var lGapHistogram = Histogram.From(mPulses2, PulseSymbol.Gap_MeaningAndValue);
+
+      lGapHistogram.Plot("Gaps_Histogram_For_Merge_Threshold_Calculation"); 
+
+      var lGMM = lGapHistogram.Gmm; 
+
+      var lFirstGaussian = lGMM.Components[0];
+
+      double lMean   = lFirstGaussian.Mean;  
+      double lStdDev = lFirstGaussian.StdDev; 
+                               
+      double rRawMergeThreshold1 = 0.2 * lMean;
+      double rRawMergeThreshold2 = lMean - 2.0 * lStdDev;
+
+      double rMergeThreshold = Math.Max(rRawMergeThreshold1, rRawMergeThreshold2);
+
+      return rMergeThreshold ;
     }
 
     double FindContiguousPulsesGapDuration()
     {
       if ( mOptions.ContiguousPulsesGapDuration == -1 )
       {
-        double rGP = PulseSymbolStats_MergeTheshold.Calculate(mPulses2);
+        double rThreshold = CalculateMergeThreshold();
 
-        AddBranch("ContiguousPulsesGapDuration",$"{(rGP *  .50)}");
-        AddBranch("ContiguousPulsesGapDuration",$"{(rGP * 1.25)}");
+        AddBranch("ContiguousPulsesGapDuration",$"{(rThreshold *  .50)}");
+        AddBranch("ContiguousPulsesGapDuration",$"{(rThreshold * 1.25)}");
 
-        return rGP;
+        return rThreshold;
       }
       else return mOptions.ContiguousPulsesGapDuration ;
     }
@@ -491,8 +484,7 @@ namespace DIGITC2_ENGINE
       mPulses3.SetupGapDurations(); 
 
       WriteDetailLine($"Final Count={mPulses3.Count}");
-      PulseFilterHelper.PlotPulses         (mPulses3, "3_Contiguous_Pulses_Merged");
-      PulseFilterHelper.PlotPulsesHistogram(mPulses3, "3_Contiguous_Pulses_Merged-GAPS", PulseSymbol.Gap_MeaningAndValue);
+      PulseFilterHelper.PlotPulses(mPulses3, "3_Contiguous_Pulses_Merged");
       Unindent();  
     }
 
@@ -502,25 +494,22 @@ namespace DIGITC2_ENGINE
       {
         double rR = 0 ;
 
-        var lDurations = mPulses3.ConvertAll( s => s.ToSample( PulseSymbol.Duration_MeaningAndValue ) ) ;
+        var lDurationHistogram = Histogram.From(mPulses3, PulseSymbol.Duration_MeaningAndValue);
 
-        var lDist = new Distribution( lDurations ) ;
+        lDurationHistogram.Plot("Durartions_Histogram_For_VeryShort_Threshold_Calculation"); 
 
-        var lFullRangeHistogram = new Histogram(lDist).Table ;
+        var lGMM = lDurationHistogram.Gmm; 
 
-        var lXPs = ExtremePointsFinder.Find(lFullRangeHistogram.Points);
-
-        var lRawPeaks1 = lXPs.Where( xp => xp.IsPeak).OrderByDescending( xp => xp.Value.Y ).ToList();
-        var lRawPeaks2 = lRawPeaks1.OrderBy( xp => xp.Value.X.Value ).ToList();
-        var lPeaks = lRawPeaks2.ConvertAll( p => p.Value.X.Value ) ; // These are the peak durations from shorest to largest
-
-        if ( lPeaks.Count >= 2  ) 
+        if ( lGMM.Components.Count < 2 )
         {
-          rR = MathX.LERP(lPeaks[0],lPeaks[1],.3);
-
-          AddBranch("VeryShortThreshold",$"{(rR *   6)}");
-          AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
+          WriteLine2GUI("Not enough components in GMM to calculate Very Short Threshold. Using default value of 0.05s");
+          return 0.005 ;
         }
+
+        rR = Gmm.Intersection(lGMM.Components[0], lGMM.Components[1] ) * .5;
+
+        AddBranch("VeryShortThreshold",$"{(rR *   6)}");
+        AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
 
         return rR;
       }

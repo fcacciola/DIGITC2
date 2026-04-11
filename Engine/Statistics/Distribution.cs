@@ -111,6 +111,7 @@ namespace DIGITC2_ENGINE
       return new Distribution( lSamples );
     }
 
+
     public int Count => Samples.Count ;
 
     public Sample this [int i ]  => Samples[i] ;  

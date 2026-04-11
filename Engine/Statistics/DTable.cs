@@ -67,11 +67,11 @@ namespace DIGITC2_ENGINE
       return rC ; 
     }
 
-    public Plot CreatePlot(Plot.Options aOptions = null)
+    public Plotter CreatePlot(Plotter.Options aOptions = null)
     {
-      Plot rPlot = new Plot(aOptions);
+      Plotter rPlot = new Plotter(aOptions);
 
-      DataPointSeries lSeries = ( aOptions.Type == Plot.Options.TypeE.Lines ? new LineSeries() as DataPointSeries : new LinearBarSeries() as DataPointSeries ) ;
+      DataPointSeries lSeries = ( aOptions.Type == Plotter.Options.TypeE.Lines ? new LineSeries() as DataPointSeries : new LinearBarSeries() as DataPointSeries ) ;
       
       lSeries.Points.AddRange( Points.Select( p => p.ToPlot() ));
           
