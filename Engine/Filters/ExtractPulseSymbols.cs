@@ -15,12 +15,13 @@ namespace DIGITC2_ENGINE
 
   public class FilterHelper
   {
-    static public void PlotHistogram( string aName, DTable aHistogram, DTable aRankSize = null )
+    static public void PlotHistogram( string aName, DTable aHistogram, DTable aRankSize, Gmm1DModel aGmm )
     {
       if ( DContext.Session.Settings.GetBool("OutputDetails") )
       { 
         aHistogram?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_Histogram.png"));
         aRankSize ?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_RankSize.png"));
+        aGmm?.CreatePlot(Plot.Options.Bars)?.SavePNG(DContext.Session.OutputFile($"{aName}_GMM.png"));
       }
     }
 
@@ -45,11 +46,12 @@ namespace DIGITC2_ENGINE
 
   public static class PulseSymbolExtensions
   {
-    static public double[] CalculateGapDurations( this List<PulseSymbol> aPulses )
+    static public void SetupGapDurations( this List<PulseSymbol> aPulses )
     {
       var rGapDurations = new double[aPulses.Count-1];
 
       var lPulseA = aPulses[0];
+      lPulseA.Gap = 0;  
 
       for ( int i = 1; i < aPulses.Count ; i++ )
       { 
@@ -57,22 +59,15 @@ namespace DIGITC2_ENGINE
 
         var lGap = lPulseB.StartTime - lPulseA.EndTime;
 
-        rGapDurations[i-1] = lGap ;
+        lPulseB.Gap = lGap ;
 
         lPulseA = lPulseB;
       }
-
-      return rGapDurations;
     }
   }
 
   public class PulseFilterHelper : FilterHelper
   {
-    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses, GetSymbolMeaningAndValue GMV, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
-    {
-      return GetHistogramAndRankSize( aPulses.ConvertAll( s => s.ToSample(GMV) ), aNormalizeHistogram, aNormalizeRankSize ) ;
-    }
-
     static public (DTable,DTable) GetHistogramAndRankSize( List<Sample> aSamples, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
     {
       var lDist = new Distribution(aSamples) ;
@@ -101,9 +96,15 @@ namespace DIGITC2_ENGINE
     {
       if ( DContext.Session.Settings.GetBool("OutputDetails") )
       {
-        (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses, GMV) ;  
+        var lSamples = aPulses.ConvertAll( s => s.ToSample(GMV) ) ;
 
-        PlotHistogram(aName,lHistogram, lRankSize);
+        (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(lSamples) ;  
+
+        var lValues = lSamples.ConvertAll( s => s.Value ).ToArray();
+
+        var lGmm = PulseSymbolStats.FitGaussians(lValues);
+
+        PlotHistogram(aName,lHistogram, lRankSize, lGmm);
       }
     }
   }
@@ -240,6 +241,8 @@ namespace DIGITC2_ENGINE
 
       AddPulse();
 
+      mPulses0.SetupGapDurations(); 
+
       PulseFilterHelper.PlotPulses         (mPulses0, "0_Raw_Pulses");
       PulseFilterHelper.PlotPulsesHistogram(mPulses0, "0_Raw_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
 
@@ -269,6 +272,9 @@ namespace DIGITC2_ENGINE
       }
       WriteDetailLine($"Final Count={mPulses1.Count}");
       Unindent();
+
+      mPulses1.SetupGapDurations(); 
+
       PulseFilterHelper.PlotPulses         (mPulses1, "1_Valid_Pulses");
       PulseFilterHelper.PlotPulsesHistogram(mPulses1, "1_Valid_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
     }
@@ -419,6 +425,8 @@ namespace DIGITC2_ENGINE
         }
       }
 
+      mPulses2.SetupGapDurations(); 
+
       PulseFilterHelper.PlotPulses         (mPulses2, "2_Split_Pulses");
       PulseFilterHelper.PlotPulsesHistogram(mPulses2, "2_Split_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
       WriteDetailLine($"Final Runs Count={mPulses2.Count}");
@@ -480,6 +488,8 @@ namespace DIGITC2_ENGINE
         mPulses3 = mPulses2 ;
       }
 
+      mPulses3.SetupGapDurations(); 
+
       WriteDetailLine($"Final Count={mPulses3.Count}");
       PulseFilterHelper.PlotPulses         (mPulses3, "3_Contiguous_Pulses_Merged");
       PulseFilterHelper.PlotPulsesHistogram(mPulses3, "3_Contiguous_Pulses_Merged-GAPS", PulseSymbol.Gap_MeaningAndValue);
@@ -528,6 +538,8 @@ namespace DIGITC2_ENGINE
       WriteDetailLine($"Initial Count={mPulses2.Count}");
 
       mPulses4.AddRange( mPulses3.Where( lPulse => lPulse.Duration >= lVeryShortThreshold ) ) ;
+
+      mPulses4.SetupGapDurations(); 
 
       PulseFilterHelper.PlotPulses(mPulses4, "4_Final_Pulses");
 
