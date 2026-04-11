@@ -32,7 +32,7 @@ namespace DIGITC2_ENGINE
     static public double GaussianQuantile( double aMean, double aStdDev, double aP )
       => aMean + aStdDev * NormalQuantile(aP) ;
 
-    // Normal quantile approximation (Acklam-ish).
+   // Normal quantile approximation (Acklam-ish).
     static public double NormalQuantile( double p )
     {
       if( p <= 0 || p >= 1 ) throw new ArgumentOutOfRangeException(nameof(p)) ;
@@ -77,6 +77,7 @@ namespace DIGITC2_ENGINE
              (((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1) ;
     }
 
+
     string            mName ;
     List<PulseSymbol> mPulses ;
     double[]          mGapDurations ;
@@ -92,8 +93,10 @@ namespace DIGITC2_ENGINE
       return AnalyzeGapDurations( aPulses.CalculateGapDurations() );
     }
 
-    static double AnalyzeGapDurations( double[] aGapDurations,  int aMaxEmIters = 200, double aEmTol = 1e-6, double aVarFloor = 1e-6 )
+    static double AnalyzeGapDurations_LOG( double[] aGapDurations,  int aMaxEmIters = 200, double aEmTol = 1e-6, double aVarFloor = 1e-6 )
     {
+      FilterHelper.DumpValues("GapDurations", aGapDurations); 
+
       var lLogGaps = LogPositive(aGapDurations) ;
 
       var lMergeGmm = Gmm1D.Fit(lLogGaps, aK:4, aMaxIter:aMaxEmIters, aTol:aEmTol, aVarFloor:aVarFloor).SortedByMean() ;
@@ -103,13 +106,47 @@ namespace DIGITC2_ENGINE
 
       var lIntraTapThresholdGaussian_Log = lMergeGmm.Components[0];
 
-      double lMean   = Math.Exp(lIntraTapThresholdGaussian_Log.Mean);
-      double lStdDev = Math.Exp(lIntraTapThresholdGaussian_Log.StdDev);
+      double lMean_LogSpace = lIntraTapThresholdGaussian_Log.Mean;
+      double lStdDev_LogSpace = lIntraTapThresholdGaussian_Log.StdDev;
 
-      double rRawMergeThreshold1 = 0.2 * lMean ;
+      // Work in log space
+      double rRawMergeThreshold1_Log = Math.Log(0.2) + lMean_LogSpace;
+      double rRawMergeThreshold2_Log = lMean_LogSpace - 2.0 * lStdDev_LogSpace;
+
+      double rMergeThreshold_Log = Math.Max(rRawMergeThreshold1_Log, rRawMergeThreshold2_Log);
+      double rMergeThreshold = Math.Exp(rMergeThreshold_Log);  // Convert back only at the end
+
+      return rMergeThreshold ;
+    }
+
+    static double AnalyzeGapDurations( double[] aGapDurations,  int aMaxEmIters = 200, double aEmTol = 1e-6, double aVarFloor = 1e-6 )
+    {
+
+      var lLogGaps = LogPositive(aGapDurations) ;
+
+      var lMergeGmm = Gmm1D.Fit(lLogGaps, aK:4, aMaxIter:aMaxEmIters, aTol:aEmTol, aVarFloor:aVarFloor).SortedByMean() ;
+
+      if ( lMergeGmm == null )
+        return 0;
+
+      var lIntraTapThresholdGaussian_Log = lMergeGmm.Components[0];
+
+      double lMean = Math.Exp(lIntraTapThresholdGaussian_Log.Mean);
+      double lStdDev_LogSpace = lIntraTapThresholdGaussian_Log.StdDev;
+
+      // For lognormal, the standard deviation in original space is:
+      double lStdDev = Math.Sqrt((Math.Exp(lStdDev_LogSpace * lStdDev_LogSpace) - 1) * lMean * lMean);
+
+      // Or simpler: use the lognormal formula
+      // σ_original = sqrt(exp(2μ + σ²) * (exp(σ²) - 1))
+      double lStdDev_Alt = Math.Sqrt(Math.Exp(2 * lIntraTapThresholdGaussian_Log.Mean + lStdDev_LogSpace * lStdDev_LogSpace) 
+                                     * (Math.Exp(lStdDev_LogSpace * lStdDev_LogSpace) - 1));
+                               
+                               
+      double rRawMergeThreshold1 = 0.2 * lMean;
       double rRawMergeThreshold2 = lMean - 2.0 * lStdDev;
 
-      double rMergeThreshold = Math.Min(rRawMergeThreshold1,rRawMergeThreshold2);
+      double rMergeThreshold = Math.Max(rRawMergeThreshold1, rRawMergeThreshold2);
 
       return rMergeThreshold ;
     }
@@ -128,22 +165,31 @@ namespace DIGITC2_ENGINE
                                               double   aVarFloor = 1e-6
                                             )
     {
-
       var lLogGaps = LogPositive(aGapDurations) ;
 
       var lTimingGmm = Gmm1D.Fit(lLogGaps, aK:4, aMaxIter:aMaxEmIters, aTol:aEmTol, aVarFloor:aVarFloor).SortedByMean() ;
 
-      double lIntra_Inter_Intersection = Math.Exp(Gmm1DModel.IntersectionLogSpace(lTimingGmm.Components[0], lTimingGmm.Components[1]) ) ;
+      if (lTimingGmm == null || lTimingGmm.K < 2)
+        return 0;
 
-      double lRawIntraTapGap0 = Math.Exp(lTimingGmm.Components[0].Mean) ;
+      // Work in log-space
+      double lIntra_Inter_Intersection_Log = Gmm1DModel.IntersectionLogSpace(lTimingGmm.Components[0], lTimingGmm.Components[1]);
+      double lIntra_Inter_Intersection = Math.Exp(lIntra_Inter_Intersection_Log);
 
-      double lRawIntraTapGap1 = lIntra_Inter_Intersection * 0.8 ;
+      double lMean_LogSpace_0 = lTimingGmm.Components[0].Mean;
+      double lStdDev_LogSpace_0 = lTimingGmm.Components[0].StdDev;
 
-      double lRawIntraTapGap2 = lRawIntraTapGap0 + 2.0 * Math.Exp(lTimingGmm.Components[0].StdDev);
+      double lRawIntraTapGap0 = Math.Exp(lMean_LogSpace_0);
 
-      double rRawIntraTapGap = Math.Min(lRawIntraTapGap1,lRawIntraTapGap2);
+      double lRawIntraTapGap1 = lIntra_Inter_Intersection * 0.8;
 
-      return rRawIntraTapGap ;
+      // Work in log-space: mean + 2*stdev in log-space
+      double lRawIntraTapGap2_Log = lMean_LogSpace_0 + 2.0 * lStdDev_LogSpace_0;
+      double lRawIntraTapGap2 = Math.Exp(lRawIntraTapGap2_Log);
+
+      double rRawIntraTapGap = Math.Min(lRawIntraTapGap1, lRawIntraTapGap2);
+
+      return rRawIntraTapGap;
     }
   }
 

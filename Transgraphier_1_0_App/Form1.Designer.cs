@@ -41,6 +41,8 @@ namespace Transgraphier_1_0_App
       LoadSessionButton = new Button();
       ExportButton = new Button();
       ImportButton = new Button();
+      TimeMeasureLabel = new Label();
+      MeasureTimeButton = new Button();
       HelpButton = new Button();
       statusTextBox = new TextBox();
       statusPanel = new Panel();
@@ -55,6 +57,8 @@ namespace Transgraphier_1_0_App
       // buttonPanel
       // 
       buttonPanel.Controls.Add(HelpButton);
+      buttonPanel.Controls.Add(TimeMeasureLabel);
+      buttonPanel.Controls.Add(MeasureTimeButton);
       buttonPanel.Controls.Add(ImportButton);
       buttonPanel.Controls.Add(ExportButton);
       buttonPanel.Controls.Add(LoadSessionButton);
@@ -170,6 +174,22 @@ namespace Transgraphier_1_0_App
       ImportButton.TabIndex = 2;
       ImportButton.Text = "Import Session";
       ImportButton.Click += Import_Click;
+      // mTitle
+      TimeMeasureLabel.Text = "";
+      TimeMeasureLabel.Dock = DockStyle.Left;
+      TimeMeasureLabel.ForeColor = Color.Black;
+      TimeMeasureLabel.TextAlign = ContentAlignment.MiddleLeft;
+      TimeMeasureLabel.Padding = new Padding(5, 0, 0, 0);
+      TimeMeasureLabel.Size = new Size(250, 30);
+      // 
+      // showButton
+      // 
+      MeasureTimeButton.Dock = DockStyle.Left;
+      MeasureTimeButton.Name = "MeasureTimeButton";
+      MeasureTimeButton.Size = new Size(200, 30);
+      MeasureTimeButton.TabIndex = 2;
+      MeasureTimeButton.Text = "Measure Time";
+      MeasureTimeButton.Click += Measure_Click;
       // 
       // showButton
       // 
@@ -286,6 +306,8 @@ namespace Transgraphier_1_0_App
     private Button LoadSessionButton;
     private Button ExportButton;
     private Button ImportButton;
+    private Label  TimeMeasureLabel;
+    private Button MeasureTimeButton;
     private Button HelpButton;
     private Panel statusPanel;
     private TextBox statusTextBox;

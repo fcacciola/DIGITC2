@@ -7,16 +7,16 @@ NoiseFloorGate_EnvelopeRelease=0.01
 Envelope_Attack=0.005
 Envelope_Release=0.01
 
-UpwardCompress_BaseFloor=0.3
-UpwardCompress_TargetFloor=0.7
+UpwardCompress_BaseFloor=0.2
+UpwardCompress_TargetFloor=0.45
 
-Discretize_GateCut=0.45
+Discretize_GateCut=0.35
 Discretize_GateOutLevel=0.85
 
-ExtractPulseSymbols_DullThreshold=5
-ExtractPulseSymbols_SplitThreshold=5
-ExtractPulseSymbols_SplitLevelDiff=5
-ExtractPulseSymbols_InsignificantLenThreshold = 882
+ExtractPulseSymbols_MinLevelThreshold=5
+ExtractPulseSymbols_SplitValleyThreshold=10
+ExtractPulseSymbols_SplitHillLevelDiff=5
+ExtractPulseSymbols_MinDurationThreshold = 0.015
 ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
 ExtractPulseSymbols_VeryShortThreshold = 0.03
 

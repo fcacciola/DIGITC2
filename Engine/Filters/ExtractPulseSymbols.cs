@@ -51,14 +51,13 @@ namespace DIGITC2_ENGINE
 
       var lPulseA = aPulses[0];
 
-      for ( int i = 1, k = 0; i < aPulses.Count ; i++, k++ )
+      for ( int i = 1; i < aPulses.Count ; i++ )
       { 
         var lPulseB = aPulses[i]; 
 
         var lGap = lPulseB.StartTime - lPulseA.EndTime;
 
-        if ( lGap > 0 )
-          rGapDurations[k] = lGap ;
+        rGapDurations[i-1] = lGap ;
 
         lPulseA = lPulseB;
       }
@@ -69,25 +68,6 @@ namespace DIGITC2_ENGINE
 
   public class PulseFilterHelper : FilterHelper
   {
-    static public PulseSymbol CreateSpecialPulse( PulseSymbol aSource, float aAmplitude )
-    {
-      var lSteps = new List<PulseStep>
-      {
-        new PulseStep(aAmplitude, aSource.Start, aSource.End)
-      };  
-      return new PulseSymbol( aSource.Idx, aSource.Start, aSource.End, lSteps ); 
-    }
-
-    static public PulseSymbol CreateOnePulse( PulseSymbol aSource )
-    {
-      return CreateSpecialPulse(aSource, 0.9f);
-    }
-
-    static public PulseSymbol CreateZeroPulse( PulseSymbol aSource )
-    {
-      return CreateSpecialPulse(aSource, 0.3f);
-    }
-
     static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
     {
       return GetHistogramAndRankSize( aPulses.ConvertAll( s => s.ToSample() ), aNormalizeHistogram, aNormalizeRankSize ) ;
@@ -204,10 +184,10 @@ namespace DIGITC2_ENGINE
     {
       Options rOptions = new ();
 
-      rOptions.MinLevelThreshold           = Params.GetInt("DullThreshold ");
-      rOptions.SplitThreshold              = Params.GetInt("SplitThreshold");
-      rOptions.SplitLevelDiff              = Params.GetInt("SplitLevelDiff");
-      rOptions.InsignificantLenThreshold   = Params.GetInt("InsignificantLenThreshold");
+      rOptions.MinLevelThreshold           = Params.GetInt("MinLevelThreshold");
+      rOptions.SplitValleyThreshold        = Params.GetInt("SplitValleyThreshold");
+      rOptions.SplitHillLevelDiff          = Params.GetInt("SplitHillLevelDiff");
+      rOptions.MinDurationThreshold        = Params.GetDouble("MinDurationThreshold");
       rOptions.ContiguousPulsesGapDuration = Params.GetDouble("ContiguousPulsesGapDuration");
       rOptions.VeryShortThreshold          = Params.GetDouble("VeryShortThreshold");
 
@@ -278,11 +258,11 @@ namespace DIGITC2_ENGINE
       WriteLine2GUI($"Filtering Valid Pulses...");
       Indent();
       WriteDetailLine($"Initial Count={mPulses0.Count}");
-      WriteLine2GUI($"Insignificant Len Threshold={mOptions.InsignificantLenThreshold}s");
-      WriteLine2GUI($"Min Level Threshold={mOptions.MinLevelThreshold}");
+      WriteLine2GUI($"Min Duration Threshold={mOptions.MinDurationThreshold}s");
+      WriteLine2GUI($"Miin Level Threshold={mOptions.MinLevelThreshold}%");
       foreach( var lPulse in mPulses0 )
       {
-        if ( lPulse.Length > mOptions.InsignificantLenThreshold && lPulse.MaxLevel > mOptions.MinLevelThreshold )
+        if ( lPulse.Duration > mOptions.MinDurationThreshold && lPulse.MaxLevel > mOptions.MinLevelThreshold )
           mPulses1.Add(lPulse );
       }
       WriteDetailLine($"Final Count={mPulses1.Count}");
@@ -316,8 +296,8 @@ namespace DIGITC2_ENGINE
 
         if ( i > 0 && i < lL )
         {
-          bool lDullEnough  = lStep.Level < mOptions.SplitThreshold ;
-          if ( lDullEnough )
+          bool lValley  = lStep.Level < mOptions.SplitValleyThreshold ;
+          if ( lValley )
           {
             bool lFromPeak = false ;
 
@@ -330,7 +310,7 @@ namespace DIGITC2_ENGINE
               if ( lPrevLevel >= lCurrLevel)
               {
                 lDiff += lPrevLevel - lCurrLevel ;
-                if ( lDiff >= mOptions.SplitLevelDiff )
+                if ( lDiff >= mOptions.SplitHillLevelDiff )
                 {
                   lFromPeak = true ;  
                   break ;
@@ -361,7 +341,7 @@ namespace DIGITC2_ENGINE
                 if ( lNextLevel >= lCurrLevel)
                 {
                   lDiff += lNextLevel - lCurrLevel ;
-                  if ( lDiff >= mOptions.SplitLevelDiff )
+                  if ( lDiff >= mOptions.SplitHillLevelDiff )
                   {
                     lToPeak = true ;  
                     break ;
@@ -421,7 +401,8 @@ namespace DIGITC2_ENGINE
       WriteLine2GUI("Splitting Glued Pulses...");
       Indent();  
       WriteDetailLine($"Initial Count={mPulses1.Count}");
-      WriteLine2GUI($"Split Threshold={mOptions.SplitThreshold}s");
+      WriteLine2GUI($"Split Valley Threshold={mOptions.SplitValleyThreshold}%");
+      WriteLine2GUI($"Split Hill Level Diff={mOptions.SplitHillLevelDiff}%");
 
       foreach( var lPulse in mPulses1 )
       {
@@ -540,7 +521,7 @@ namespace DIGITC2_ENGINE
 
       WriteLine2GUI($"Removing Very Short Pulses...");
       Indent();
-      WriteLine2GUI($"Very Short Threshold={lVeryShortThreshold}");
+      WriteLine2GUI($"Very Short Threshold={lVeryShortThreshold}s");
       WriteDetailLine($"Initial Count={mPulses2.Count}");
 
       mPulses4.AddRange( mPulses3.Where( lPulse => lPulse.Duration >= lVeryShortThreshold ) ) ;
@@ -555,9 +536,9 @@ namespace DIGITC2_ENGINE
     class Options
     {
       internal int    MinLevelThreshold ;
-      internal int    SplitThreshold ;
-      internal int    SplitLevelDiff ;
-      internal int    InsignificantLenThreshold ;
+      internal int    SplitValleyThreshold ;
+      internal int    SplitHillLevelDiff ;
+      internal double MinDurationThreshold ;
       internal double ContiguousPulsesGapDuration = -1 ;
       internal double VeryShortThreshold = -1 ;
     }

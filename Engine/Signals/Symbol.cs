@@ -94,7 +94,7 @@ namespace DIGITC2_ENGINE
       MaxAmplitude = Steps.Select( p => p.Amplitude ).Max() ;
     }
 
-    public int    Length => End - Start ;
+    int Length => End - Start ;
 
     public double StartTime => (double)Start  / (double)SIG.SamplingRate;
     public double EndTime   => (double)End    / (double)SIG.SamplingRate;

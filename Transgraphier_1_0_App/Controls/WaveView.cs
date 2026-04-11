@@ -202,9 +202,9 @@ namespace Transgraphier_1_0_App
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public ZoomPanController ZoomPanController
+    public WaveViewController WaveViewController
     {
-      get => mWavePanel.ZoomPanController; set => mWavePanel.ZoomPanController = value;
+      get => mWavePanel.WaveViewController; set => mWavePanel.WaveViewController = value;
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -275,7 +275,7 @@ namespace Transgraphier_1_0_App
       ResumeLayout(false);
     }
 
-    public ZoomPanController ZoomPanController = null;
+    public WaveViewController WaveViewController = null;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public DiscreteSignal Signal
@@ -289,20 +289,22 @@ namespace Transgraphier_1_0_App
 
     bool mIncludeRuler;
 
-    Point[] Poly = null;
-    Ruler Ruler = null ;
+    Ruler mRuler = null ;
+
+    Bitmap mRender = null ;
 
     public void InvalidateRender()
     {
-      Poly = null;
+      mRender?.Dispose(); 
+      mRender = null;
       Invalidate();
     }
 
-    Point[] GetPoly()
+    Bitmap GetRender()
     {
-      if (Poly == null)
+      if (mRender == null)
         CacheRender();
-      return Poly;
+      return mRender;
     }
 
     public int RulerH = 0;
@@ -320,8 +322,8 @@ namespace Transgraphier_1_0_App
       if (signal == null || signal.Length == 0)
         return;
 
-      var samplesPerPixel = ZoomPanController.SamplesPerPixel;
-      var startSample = (int)Math.Floor(ZoomPanController.StartSample);
+      var samplesPerPixel = WaveViewController.SamplesPerPixel;
+      var startSample = (int)Math.Floor(WaveViewController.StartSample);
       var visibleSamples = (int)Math.Ceiling(Width * samplesPerPixel);
       var endSample = Math.Min(signal.Length - 1, startSample + visibleSamples);
 
@@ -357,7 +359,8 @@ namespace Transgraphier_1_0_App
         lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
       }
 
-      Poly = lPoly.ToArray();
+      if ( lPoly.Count == 0 )
+        return;
 
       if ( mIncludeRuler )
       {
@@ -366,12 +369,12 @@ namespace Transgraphier_1_0_App
         int rulerHeight = RulerH;
 
         // start time at left pixel
-        double startTime = ZoomPanController.StartSample / (double)SIG.SamplingRate; // seconds
+        double startTime = WaveViewController.StartSample / (double)SIG.SamplingRate; // seconds
 
         // compute pixels per second
-        double pixelsPerSecond = SIG.SamplingRate / ZoomPanController.SamplesPerPixel;
+        double pixelsPerSecond = SIG.SamplingRate / WaveViewController.SamplesPerPixel;
 
-        Ruler = WaveformRuler.GetRulerTicks(
+        mRuler = WaveformRuler.GetRulerTicks(
             textFont       : this.Font,
             rulerTop       : rulerTop,
             rulerHeight    : rulerHeight,
@@ -381,35 +384,51 @@ namespace Transgraphier_1_0_App
             minSpacingPx:    80
         );
       }
+
+      mRender = new Bitmap(Width, Height);
+
+      using (var g = Graphics.FromImage(mRender))
+      {
+        // background
+        g.FillRectangle(Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
+  
+        // center line
+        g.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
+  
+        g.DrawLines(Pens.Blue, lPoly.ToArray());
+  
+        if ( mIncludeRuler )
+          DrawTimeRuler(g);
+      }
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
       base.OnPaint(e);
 
-      // background
-      e.Graphics.FillRectangle(Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
+      var lRender = GetRender();  
+      if ( lRender == null)
+        return; 
 
-      // center line
-      e.Graphics.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
+      Bitmap lCopy = null ;
 
-      //var ty = CenterY - (int)Math.Ceiling(+0.85 * WaveHalfH);
-      //var by = CenterY - (int)Math.Ceiling(-0.85 * WaveHalfH);
-      //e.Graphics.DrawLine(Pens.Red, new Point(0, ty), new Point(Width, ty));
-      //e.Graphics.DrawLine(Pens.Blue, new Point(0, by), new Point(Width, by));
+      // Draw selection overlay if measurement tool is active
+      if (WaveViewController.MeasureTimeTool != null && WaveViewController.MeasureTimeTool.IsActive && WaveViewController.MeasureTimeTool.SelectionStartX >= 0)
+      {
+        lCopy = new Bitmap(lRender); 
+        using ( var g = Graphics.FromImage(lCopy))
+          DrawSelectionOverlay(g);
+        lRender = lCopy;  
+      }
 
-      var lPoly = GetPoly();
-      if (lPoly != null)
-        e.Graphics.DrawLines(Pens.Blue, lPoly.ToArray());
+      e.Graphics.DrawImageUnscaled(lRender, 0, 0);
 
-      // Draw time ruler at bottom
-      if (mIncludeRuler)
-        DrawTimeRuler(e.Graphics);
+      lCopy?.Dispose();
     }
 
     void DrawTimeRuler(Graphics g)
     {
-      if (ZoomPanController == null || Ruler == null )
+      if (WaveViewController == null || mRuler == null )
         return;
 
       // Ruler area
@@ -423,28 +442,62 @@ namespace Transgraphier_1_0_App
       // top separator line
       g.DrawLine(Pens.Black, 0, rulerTop, Width, rulerTop);
 
-      Ruler.Ticks.ForEach( t => t.Draw(g) ) ;
+      mRuler.Ticks.ForEach( t => t.Draw(g) ) ;
+    }
+
+    void DrawSelectionOverlay(Graphics g)
+    {
+      if (WaveViewController.MeasureTimeTool.SelectionStartX < 0 || WaveViewController.MeasureTimeTool.SelectionEndX < 0)
+        return;
+
+      int startX = Math.Min(WaveViewController.MeasureTimeTool.SelectionStartX, WaveViewController.MeasureTimeTool.SelectionEndX);
+      int endX   = Math.Max(WaveViewController.MeasureTimeTool.SelectionStartX, WaveViewController.MeasureTimeTool.SelectionEndX);
+
+      // Draw semi-transparent overlay
+      using (Brush brush = new SolidBrush(Color.FromArgb(100, 0, 150, 255)))
+      {
+        g.FillRectangle(brush, startX, 0, endX - startX, BottomY);
+      }
+
+      // Draw selection borders
+      using (Pen pen = new Pen(Color.Blue, 2))
+      {
+        g.DrawLine(pen, startX, 0, startX, BottomY);
+        g.DrawLine(pen, endX  , 0, endX  , BottomY);
+      }
     }
 
     protected override void OnPaintBackground(PaintEventArgs e)
     {
-      e.Graphics.Clear(Color.White);
+      //e.Graphics.Clear(Color.White);
     }
 
     Point mLastMousePos;
     bool mIsPanning = false;
+    
+
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
       base.OnMouseDown(e);
 
-      if (ZoomPanController == null || mSignal == null)
+      if (WaveViewController == null || mSignal == null)
         return;
 
       if (e.Button == MouseButtons.Left)
       {
-        mLastMousePos = e.Location;
-        mIsPanning = true;
+        if (WaveViewController.MeasureTimeTool != null && WaveViewController.MeasureTimeTool.IsActive)
+        {
+          // Start selection for measurement tool
+          WaveViewController.MeasureTimeTool.SelectionStartX = e.X;
+          WaveViewController.MeasureTimeTool.SelectionEndX   = e.X;
+        }
+        else
+        {
+          // Start panning
+          mLastMousePos = e.Location;
+          mIsPanning = true;
+        }
 
         this.Capture = true;
       }
@@ -454,12 +507,21 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseUp(e);
 
-      if (ZoomPanController == null || mSignal == null)
+      if (WaveViewController == null || mSignal == null)
         return;
 
-      if (e.Button == MouseButtons.Left && mIsPanning)
+      if (e.Button == MouseButtons.Left)
       {
-        mIsPanning = false;
+        if (WaveViewController.MeasureTimeTool != null && WaveViewController.MeasureTimeTool.IsActive)
+        {
+          // End selection - update the measurement tool with sample positions
+          WaveViewController.MeasureTimeTool.SelectionEndX = e.X;
+          UpdateMeasurementSelection();
+        }
+        else if (mIsPanning)
+        {
+          mIsPanning = false;
+        }
 
         this.Capture = false;
       }
@@ -469,47 +531,71 @@ namespace Transgraphier_1_0_App
     {
       base.OnMouseMove(e);
 
-      if (ZoomPanController == null || mSignal == null)
+      if (WaveViewController == null || mSignal == null)
         return;
 
-      if (e.Button == MouseButtons.Left && mIsPanning)
+      if (e.Button == MouseButtons.Left && WaveViewController.MeasureTimeTool.SelectionStartX >= 0 && WaveViewController.MeasureTimeTool != null && WaveViewController.MeasureTimeTool.IsActive)
+      {
+        // Update selection end while dragging
+        WaveViewController.MeasureTimeTool.SelectionEndX = e.X;
+        WaveViewController.Invalidate();
+      }
+      else if (e.Button == MouseButtons.Left && mIsPanning)
       {
         var p = e.Location;
 
         var dx = p.X - mLastMousePos.X;
 
         // translate dx pixels into sample offset change
-        var sampleDelta = -dx * ZoomPanController.SamplesPerPixel;
+        var sampleDelta = -dx * WaveViewController.SamplesPerPixel;
 
-        ZoomPanController.UpdateSS(MathX.Clamp(ZoomPanController.StartSample + sampleDelta, 0, Signal.Length));
+        WaveViewController.UpdateSS(MathX.Clamp(WaveViewController.StartSample + sampleDelta, 0, Signal.Length));
 
         mLastMousePos = p;
       }
+    }
+
+    private void UpdateMeasurementSelection()
+    {
+      if (WaveViewController.MeasureTimeTool == null || mSignal == null)
+        return;
+
+      // Convert pixel coordinates to sample coordinates
+      int startX = Math.Min(WaveViewController.MeasureTimeTool.SelectionStartX, WaveViewController.MeasureTimeTool.SelectionEndX);
+      int endX   = Math.Max(WaveViewController.MeasureTimeTool.SelectionStartX, WaveViewController.MeasureTimeTool.SelectionEndX);
+
+      double startSample = WaveViewController.StartSample + (startX * WaveViewController.SamplesPerPixel);
+      double endSample   = WaveViewController.StartSample + (endX   * WaveViewController.SamplesPerPixel);
+
+      WaveViewController.MeasureTimeTool.SelectionStartSample = (int)Math.Round(startSample);
+      WaveViewController.MeasureTimeTool.SelectionEndSample   = (int)Math.Round(endSample);
+
+      WaveViewController.Invalidate();
     }
 
     protected override void OnMouseWheel(MouseEventArgs e)
     {
       base.OnMouseWheel(e);
 
-      if (ZoomPanController == null || mSignal == null)
+      if (WaveViewController == null || mSignal == null)
         return;
 
-      var lOldSPP = ZoomPanController.SamplesPerPixel;
+      var lOldSPP = WaveViewController.SamplesPerPixel;
 
       var zoomFactor = Math.Pow(1.0015, e.Delta * ((ModifierKeys & Keys.Control) != 0 ? 2.5 : 1.0));
 
-      double lNewSamplesPerPixel = MathX.Clamp(lOldSPP / zoomFactor, ZoomPanController.MinSamplesPerPixel, ZoomPanController.MaxSamplesPerPixel);
+      double lNewSamplesPerPixel = MathX.Clamp(lOldSPP / zoomFactor, WaveViewController.MinSamplesPerPixel, WaveViewController.MaxSamplesPerPixel);
 
       // keep sample under mouse fixed when zooming
       var pos = e.Location;
 
-      var lInitialSampleUnderCursor = ZoomPanController.StartSample + (pos.X * lOldSPP) - (lOldSPP / 2.0);
+      var lInitialSampleUnderCursor = WaveViewController.StartSample + (pos.X * lOldSPP) - (lOldSPP / 2.0);
 
       var lNewSampleUnderCursor = (pos.X * lNewSamplesPerPixel) - (lNewSamplesPerPixel / 2.0);
 
       var lNewStartSample = MathX.Clamp(lInitialSampleUnderCursor - lNewSampleUnderCursor, 0, mSignal.Length);
 
-      ZoomPanController.Update(lNewSamplesPerPixel, lNewStartSample);
+      WaveViewController.Update(lNewSamplesPerPixel, lNewStartSample);
 
     }
 

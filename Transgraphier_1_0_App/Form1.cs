@@ -23,7 +23,7 @@ namespace Transgraphier_1_0_App
     Form1 mMainWindow; 
   }
 
-  public class ZoomPanController
+  public class WaveViewController
   {
     public double    MinSamplesPerPixel { get ; set ; }  
     public double    MaxSamplesPerPixel { get ; set ; }
@@ -31,6 +31,8 @@ namespace Transgraphier_1_0_App
     
     public double    SamplesPerPixel    { get ; private set ; }
     public double    StartSample        { get ; private set ; }
+
+    public MeasureTimeTool MeasureTimeTool { get; set; } = null;
 
     public void UpdateSPP( double aSamplePerPixel )
     {
@@ -87,6 +89,7 @@ namespace Transgraphier_1_0_App
     string        mSessionFolder = null ; 
     MainWindowGUI mMWGUI     = null; 
     WaveViews     mWaveViews = new WaveViews();
+    MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
 
     public Form1()
     {
@@ -115,7 +118,23 @@ namespace Transgraphier_1_0_App
       AddGeneralMessage($"Input WAV Samples Folder: {mSettings.GetPath("SamplesFolder") ?? InputFolder}.");
 
       if ( File.Exists($"{OutputFolder}\\LastSession.txt") )
-        LoadLastSessionButton.Enabled = true; 
+        LoadLastSessionButton.Enabled = true;
+
+      // Setup measurement tool callback
+      mMeasureTimeTool.OnSelectionChangedCallback = (tool) =>
+      {
+        UpdateTimeMeasureLabel();
+      };
+    }
+
+    private void UpdateTimeMeasureLabel()
+    {
+      if (mMeasureTimeTool.HasSelection && mInputWave.Signal != null)
+      {
+        string formattedTime = mMeasureTimeTool.GetFormattedDuration(SIG.SamplingRate);
+        
+        this.TimeMeasureLabel.Text = formattedTime;
+      }
     }
 
     static string InputFolder  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varanormal\\Transgraphier\\Input");
@@ -127,14 +146,15 @@ namespace Transgraphier_1_0_App
     {
       var availableWidth = Math.Max(1.0, mInputWave.Width);
 
-      var lZPC = new ZoomPanController(){ MinSamplesPerPixel = 2.0
+      var lZPC = new WaveViewController(){ MinSamplesPerPixel = 2.0
                                         , MaxSamplesPerPixel = aSignal.Length / availableWidth
                                         , WaveViews = mWaveViews  
       };
           
       lZPC.Update(lZPC.MaxSamplesPerPixel,0 ) ; // Zoom out the entire signal
 
-      mInputWave.ZoomPanController = lZPC; 
+      mInputWave.WaveViewController = lZPC; 
+      mInputWave.WaveViewController.MeasureTimeTool = mMeasureTimeTool; 
     }
 
     Config LoadConfig()
@@ -519,7 +539,7 @@ namespace Transgraphier_1_0_App
 
           var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
 
-          lWaveView.ZoomPanController = mInputWave.ZoomPanController ; 
+          lWaveView.WaveViewController = mInputWave.WaveViewController ; 
 
           lWaveView.Signal = lResultSignal;
 
@@ -695,7 +715,20 @@ namespace Transgraphier_1_0_App
 
     private void Import_Click(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
+    }
+
+    private void Measure_Click(object sender, EventArgs e)
+    {
+      ClearMeasurementDisplay();
+
+      // Toggle measurement tool on/off
+      mMeasureTimeTool.IsActive = !mMeasureTimeTool.IsActive;
+      mMeasureTimeTool.Reset();
+    }
+
+    private void ClearMeasurementDisplay()
+    {
+      this.TimeMeasureLabel.Text = "";
     }
 
     private void Export_Click(object sender, EventArgs e)
