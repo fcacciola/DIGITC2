@@ -74,7 +74,7 @@ namespace DIGITC2_ENGINE
           lWords.Add( new WordSymbol(lWords.Count, lWord ) );
       }
   
-      WriteLine2GUI($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.Meaning) ) }" ) ;
+      WriteLine2GUI($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.ToString()) ) }" ) ;
 
       return CreateOutput( new LexicalSignal(lWords), Name) ;
     }

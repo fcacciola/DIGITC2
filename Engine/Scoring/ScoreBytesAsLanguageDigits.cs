@@ -66,13 +66,13 @@ namespace DIGITC2_ENGINE
       mReference = new DTable(lDPs);
     }
 
-    string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).Meaning;
+    string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).ToString();
 
     protected override Packet Process ()
     {
       TokenSeparators lFilterSeparators = new TokenSeparators();
 
-      var lBytes = LexicalInput.Symbols.Where( s => ! lFilterSeparators.IsSeparator(s) ).GetValues();
+      var lBytes = LexicalInput.Symbols.Where( s => ! lFilterSeparators.IsSeparator(s) ).GetValues( ByteSymbol.MeaningAndValue );
 
       // Validate any byte that is used as a letter (wright 1 for all of these)
       double lCorrelation = mReference.ComputeCorrelation(lBytes, (dp,x) => 1.0 ) ;  

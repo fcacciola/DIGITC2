@@ -69,7 +69,7 @@ namespace DIGITC2_ENGINE
         lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte, lByteLikelihood ) ) ;
       }
 
-      WriteLine($"Bytes: {string.Join(", ", lByteSymbols.ConvertAll( b => b.Meaning) ) }" ) ;
+      WriteLine($"Bytes: {string.Join(", ", lByteSymbols.ConvertAll( b => b.ToString()) ) }" ) ;
 
       double lSNR = lStrength / (double)lByteSymbols.Count ;
       

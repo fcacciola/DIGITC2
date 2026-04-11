@@ -101,7 +101,7 @@ public class BinarizeFromTapCode : LexicalFilter
 
       BitBagSymbol lBag = new BitBagSymbol(lBags.Count, lBits, lBagLikelihood);
 
-      WriteLine($"Bits: {lBag.Meaning}");
+      WriteLine($"Bits: {lBag}");
       WriteDetailLine($"Known Bits SNR: {lSNR}");
       WriteDetailLine($"Bag Likelihood: {lBagLikelihood}");
 

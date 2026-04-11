@@ -68,9 +68,9 @@ namespace DIGITC2_ENGINE
 
   public class PulseFilterHelper : FilterHelper
   {
-    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
+    static public (DTable,DTable) GetHistogramAndRankSize( List<PulseSymbol> aPulses, GetSymbolMeaningAndValue GMV, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
     {
-      return GetHistogramAndRankSize( aPulses.ConvertAll( s => s.ToSample() ), aNormalizeHistogram, aNormalizeRankSize ) ;
+      return GetHistogramAndRankSize( aPulses.ConvertAll( s => s.ToSample(GMV) ), aNormalizeHistogram, aNormalizeRankSize ) ;
     }
 
     static public (DTable,DTable) GetHistogramAndRankSize( List<Sample> aSamples, bool aNormalizeHistogram = false, bool aNormalizeRankSize = true )
@@ -97,11 +97,11 @@ namespace DIGITC2_ENGINE
       lWave.SaveTo( DContext.Session.OutputFile( aLabel + ".wav") ) ;
     }
 
-    static public void PlotPulseDurationHistogram( List<PulseSymbol> aPulses, string aName )
+    static public void PlotPulsesHistogram( List<PulseSymbol> aPulses, string aName, GetSymbolMeaningAndValue GMV )
     {
       if ( DContext.Session.Settings.GetBool("OutputDetails") )
       {
-        (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses) ;  
+        (DTable lHistogram, DTable lRankSize) = GetHistogramAndRankSize(aPulses, GMV) ;  
 
         PlotHistogram(aName,lHistogram, lRankSize);
       }
@@ -240,7 +240,9 @@ namespace DIGITC2_ENGINE
 
       AddPulse();
 
-      PulseFilterHelper.PlotPulses(mPulses0, "0_Raw_Pulses");
+      PulseFilterHelper.PlotPulses         (mPulses0, "0_Raw_Pulses");
+      PulseFilterHelper.PlotPulsesHistogram(mPulses0, "0_Raw_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
+
     }
 
     void AddPulse()
@@ -267,8 +269,8 @@ namespace DIGITC2_ENGINE
       }
       WriteDetailLine($"Final Count={mPulses1.Count}");
       Unindent();
-      PulseFilterHelper.PlotPulses                (mPulses1, "1_Valid_Pulses");
-      PulseFilterHelper.PlotPulseDurationHistogram(mPulses1, "1_Valid_Pulses");
+      PulseFilterHelper.PlotPulses         (mPulses1, "1_Valid_Pulses");
+      PulseFilterHelper.PlotPulsesHistogram(mPulses1, "1_Valid_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
     }
 
     struct Run
@@ -417,8 +419,8 @@ namespace DIGITC2_ENGINE
         }
       }
 
-      PulseFilterHelper.PlotPulses                (mPulses2, "2_Split_Pulses");
-      PulseFilterHelper.PlotPulseDurationHistogram(mPulses2, "2_Split_Pulses");
+      PulseFilterHelper.PlotPulses         (mPulses2, "2_Split_Pulses");
+      PulseFilterHelper.PlotPulsesHistogram(mPulses2, "2_Split_Pulses-GAPS", PulseSymbol.Gap_MeaningAndValue);
       WriteDetailLine($"Final Runs Count={mPulses2.Count}");
       Unindent();
     }
@@ -479,7 +481,8 @@ namespace DIGITC2_ENGINE
       }
 
       WriteDetailLine($"Final Count={mPulses3.Count}");
-      PulseFilterHelper.PlotPulses(mPulses3, "3_Contiguous_Pulses_Merged");
+      PulseFilterHelper.PlotPulses         (mPulses3, "3_Contiguous_Pulses_Merged");
+      PulseFilterHelper.PlotPulsesHistogram(mPulses3, "3_Contiguous_Pulses_Merged-GAPS", PulseSymbol.Gap_MeaningAndValue);
       Unindent();  
     }
 
@@ -489,7 +492,7 @@ namespace DIGITC2_ENGINE
       {
         double rR = 0 ;
 
-        var lDurations = mPulses3.ConvertAll( s => s.ToSample() ) ;
+        var lDurations = mPulses3.ConvertAll( s => s.ToSample( PulseSymbol.Duration_MeaningAndValue ) ) ;
 
         var lDist = new Distribution( lDurations ) ;
 

@@ -28,10 +28,6 @@ namespace DIGITC2_ENGINE
     public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
 
     public Symbol this[int aIdx] => Symbols[aIdx];
-
-    public override Distribution GetDistribution() => new Distribution( Symbols.ConvertAll( s => s.ToSample() ) ) ;
-
-    public Distribution GetDistribution( Func<Symbol, Sample> ToSampleF ) => new Distribution( Symbols.ConvertAll( s => ToSampleF(s) ) ) ;
   }
 
 

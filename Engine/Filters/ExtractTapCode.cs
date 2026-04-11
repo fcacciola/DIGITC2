@@ -34,9 +34,9 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new TapCodeSymbol( Idx, Code ); }  
 
-    public override string Meaning => Code.ToString() ;
+    public override string ToString() => Code.ToString() ;
 
-    public override double Value => double.Parse($"{Code.Row}.{Code.Col}") ;
+    public double Value => double.Parse($"{Code.Row}.{Code.Col}") ;
 
     public TapCode Code ;
 

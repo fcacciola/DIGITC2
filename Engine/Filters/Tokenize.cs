@@ -75,7 +75,7 @@ namespace DIGITC2_ENGINE
         lTokens.Add( new ArraySymbol(lTokens.Count,lCurrToken) ); 
       }
 
-      WriteLine2GUI($"Tokens:{Environment.NewLine}{string.Join(Environment.NewLine, lTokens.ConvertAll( b => b.Meaning) ) }" ) ;
+      WriteLine2GUI($"Tokens:{Environment.NewLine}{string.Join(Environment.NewLine, lTokens.ConvertAll( b => b.ToString()) ) }" ) ;
 
       return CreateOutput( new LexicalSignal(lTokens), lSeparators.Label ) ;
     }

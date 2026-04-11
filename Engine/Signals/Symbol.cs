@@ -9,6 +9,8 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
+  public delegate (string,double) GetSymbolMeaningAndValue( Symbol aSymbol );
+
   public abstract class Symbol 
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
@@ -16,8 +18,8 @@ namespace DIGITC2_ENGINE
     public abstract Symbol Copy();
 
     public abstract string Type   { get; }
-    public abstract string Meaning{ get; }
-    public abstract double Value  { get; }
+    //public abstract string Meaning{ get; }
+    //public abstract double Value  { get; }
 
     public int Idx ;
 
@@ -34,20 +36,24 @@ namespace DIGITC2_ENGINE
       {
         if (aRHS is null)
              return false;
-        else return aLHS.Meaning == aRHS.Meaning ; 
+        else return aLHS.ToString() == aRHS.ToString() ; 
       }
     }
 
-    public override int GetHashCode() => Meaning.GetHashCode();
+    public override int GetHashCode() => ToString().GetHashCode();
 
     public override bool Equals( object aRHS) => Equals( this, aRHS as Symbol ); 
 
     public static bool operator ==(Symbol lhs, Symbol rhs) => Equals(lhs,rhs) ;
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
 
-    public override string ToString() => Meaning ;
+//    public override string ToString() => Meaning ;
 
-    public virtual Sample ToSample() => new Sample( new SymbolSampleSource(this, Meaning), Value)  ;
+    public virtual Sample ToSample( GetSymbolMeaningAndValue GMV ) 
+    {
+      var (lMeaning,lValue) = GMV(this);
+      return new Sample( new SymbolSampleSource(this, lMeaning), lValue)  ; 
+    }
   }
 
   public class PulseStep
@@ -100,11 +106,13 @@ namespace DIGITC2_ENGINE
     public double EndTime   => (double)End    / (double)SIG.SamplingRate;
     public double Duration  => (double)Length / (double)SIG.SamplingRate;
 
+    public double Gap = 0 ;
+
     public override string Type => "Pulse" ;
 
-    public override string Meaning => $"[{Duration:F4} ({StartTime:F4}->{EndTime:F4}]" ;
+    public override string ToString() => $"[Gap:{Gap:F4} Duration:{Duration:F4} ({StartTime:F4}->{EndTime:F4}]" ;
 
-    public override double Value => MaxAmplitude ;
+//    public override double Value => MaxAmplitude ;
 
     public override Symbol Copy()
     { 
@@ -139,7 +147,8 @@ namespace DIGITC2_ENGINE
       return rMerged;
     }
 
-    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, $"{Duration:F2}"), Duration)  ;
+    public static (string,double) Duration_MeaningAndValue( Symbol aSymbol) => ($"{(aSymbol as PulseSymbol).Duration:F2}", (aSymbol as PulseSymbol).Duration);
+    public static (string,double) Gap_MeaningAndValue     ( Symbol aSymbol) => ($"{(aSymbol as PulseSymbol).Gap:F2}"     , (aSymbol as PulseSymbol).Gap);
 
     public int             MaxLevel => (int)(MaxAmplitude*100) ;
 
@@ -157,9 +166,11 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, View?.Copy()  as PulseSymbol ); }  
 
-    public override string Meaning => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
+    public override string ToString() => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
 
-    public override double Value => One.GetValueOrDefault(false) ? 1.0 : 0.0 ;
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ( (aSymbol as BitSymbol).ToString(), (aSymbol as BitSymbol).Value);
+
+    public double Value => One.GetValueOrDefault(false) ? 1.0 : 0.0 ;
 
     public bool? One ;
 
@@ -176,9 +187,11 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new BitBagSymbol( Idx, Bits.ConvertAll( b => b.Copy() as BitSymbol), Likelihood ) ; }  
 
-    public override string Meaning => string.Join("|", Bits.ConvertAll( s => s.Meaning ) );
+    public override string ToString() => string.Join("|", Bits.ConvertAll( s => s.ToString() ) );
     
-    public override double Value => Bits.Count;
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as BitBagSymbol).ToString(), (aSymbol as BitBagSymbol).Value);
+
+    public double Value => Bits.Count;
 
     public List<BitSymbol> Bits ;
 
@@ -193,9 +206,11 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood ); }  
 
-    public override string Meaning => $"[{Byte.ToString():x}]" ;
+    public override string ToString() => $"[{Byte.ToString():x}]" ;
 
-    public override double Value => Convert.ToDouble(Byte);
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as ByteSymbol).ToString(), (aSymbol as ByteSymbol).Value);
+
+    public double Value => Convert.ToDouble(Byte);
 
     public double Likelihood ;
 
@@ -210,17 +225,17 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new ArraySymbol( Idx, Symbols.ConvertAll( s => s.Copy() ) ); }  
 
-    public override string Meaning => string.Join("|", Symbols.ConvertAll( s => s.Meaning ) );
+    public override string ToString() => string.Join("|", Symbols.ConvertAll( s => s.ToString() ) );
     
     public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
     
-    public override double Value => Symbols.Count ;
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ($"{(aSymbol as ArraySymbol).Symbols.Count}", (aSymbol as ArraySymbol).Value);
+
+    public double Value => Symbols.Count ;
 
     public List<Symbol> Symbols ;
 
     public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
-
-    public override Sample ToSample() => new Sample( new SymbolSampleSource(this,  $"{Symbols.Count}"), Symbols.Count) ;
 
   }
 
@@ -232,15 +247,15 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new WordSymbol( Idx, Word ); }  
 
-    public override string Meaning => $"[{Word}]" ;
+    public override string ToString() => $"[{Word}]" ;
 
     public int UpperBound => Math.Max(Word.Length,DContext.Session.Settings.GetInt("MaxWordLength")) ;
 
-    public override double Value => Word.Length ;
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as WordSymbol).Word, (aSymbol as WordSymbol).Idx);
+
+    public double Value => Word.Length ;
 
     public string Word ;
-
-    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, Word), Idx) ;
   }
 
   public class TextSymbol : Symbol
@@ -251,23 +266,26 @@ namespace DIGITC2_ENGINE
 
     public override Symbol Copy() { return new WordSymbol( Idx, Text ); }  
 
-    public override string Meaning => Text ;
+    public override string ToString() => Text ;
 
-    public override double Value => Text.Length ;
+    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as TextSymbol).Text, (aSymbol as TextSymbol).Idx);
+
+    public double Value => Text.Length ;
 
     public string Text ;
-
-    public override Sample ToSample() => new Sample( new SymbolSampleSource(this, Text), Idx) ;
   }
 
 
   public static class SymbolExtensions
   {
-    public static List<double> GetValues( this IEnumerable<Symbol> aSymbols )
+    public static List<double> GetValues( this IEnumerable<Symbol> aSymbols, GetSymbolMeaningAndValue aGMV )
     {
       List<double> rValues = new List<double>();
       foreach( Symbol lSymbol in aSymbols) 
-        rValues.Add( lSymbol.Value ) ;
+      {
+        var (lM,lValue) = aGMV(lSymbol);
+        rValues.Add( lValue ) ;
+      }
       return rValues ;
     }
   }

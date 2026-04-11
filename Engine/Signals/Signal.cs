@@ -41,8 +41,6 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => Name;
     
-    public abstract Distribution GetDistribution() ;
-
     public string Name = "";
 
     public string Origin = "";

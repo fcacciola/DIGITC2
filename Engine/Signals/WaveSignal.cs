@@ -49,14 +49,6 @@ namespace DIGITC2_ENGINE
 
     public float ComputeMax() => Rep.Samples.Max();
 
-    public override Distribution GetDistribution()
-    {
-      List<Sample> lSamples = new List<Sample>();
-      for (int i = 0; i < Samples.Length; ++i)
-        lSamples.Add( new Sample( new WaveValueSampleSource(i), Samples[i]) ) ;
-      return new Distribution(lSamples);
-    }
-
     public void SaveTo( Stream aStream   ) => Rep.SaveTo(aStream);
     public void SaveTo( string aFilename ) => Rep.SaveTo(aFilename);
 
