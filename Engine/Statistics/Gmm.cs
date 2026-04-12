@@ -10,6 +10,40 @@ using OxyPlot.Series;
 
 namespace DIGITC2_ENGINE
 {
+  public class CorrelationCalculator
+  { 
+    public CorrelationCalculator( List<double> aData ) { mData = aData ; }
+
+    double FindX( double aX )
+    {
+      return mData.Find( d => d == aX );
+    }
+
+    double ComputeWeight( double aX, Func<double,double,double> aWeightFunction = null )
+    {
+      var lMatch = FindX( aX );
+      return lMatch != null ? ( aWeightFunction != null ? aWeightFunction(lMatch,aX) : 1.0 ) : 0.0 ; 
+    }
+
+    double ComputeWeight ( IEnumerable<double> aXs, Func<double,double,double> aWeightFunction = null )
+    {
+      double lW = 0 ;
+      foreach( var aX in aXs ) 
+        lW += ComputeWeight( aX, aWeightFunction );
+      return lW ;
+    }
+
+    public double Calculate( IList<double> aXs, Func<double,double,double> aWeightFunction = null ) 
+    { 
+      double lW = ComputeWeight( aXs, aWeightFunction  ); 
+      double rC = lW / (double)aXs.Count;
+      return rC ; 
+    }
+
+    List<double> mData ;
+
+  }
+
   public class GmmComponent
   {
     public readonly double Weight;    // pi
@@ -83,6 +117,15 @@ namespace DIGITC2_ENGINE
 
       return rPlot;
     }
+
+    public void Plot( string aName )
+    {
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      { 
+        CreatePlot()?.SaveSVG(DContext.Session.OutputFile($"{aName}_GMM.svg"));
+      }
+    }
+
 
     /// <summary>
     /// Computes the intersection point of two weighted Gaussian PDFs in log space.

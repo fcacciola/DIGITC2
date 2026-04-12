@@ -62,76 +62,76 @@ namespace DIGITC2_ENGINE
   }
 
 
-  public class ZipfDistribtionEstimator
-  {
-    public ZipfDistribtionEstimator( Distribution aSamples )
-    {
-      Samples = aSamples ;
+  //public class ZipfDistribtionEstimator
+  //{
+  //  public ZipfDistribtionEstimator( Distribution aSamples )
+  //  {
+  //    Samples = aSamples ;
 
-      Likelihood = Calculate_LMZ();
-    }
+  //    Likelihood = Calculate_LMZ();
+  //  }
 
-    public double Likelihood = 0 ;
+  //  public double Likelihood = 0 ;
 
-    public static double Score ( Distribution aRankSize ) 
-    { 
-      ZipfDistribtionEstimator  lE = new ZipfDistribtionEstimator ( aRankSize );
-      return lE.Likelihood ;
-    }
+  //  public static double Score ( Distribution aRankSize ) 
+  //  { 
+  //    ZipfDistribtionEstimator  lE = new ZipfDistribtionEstimator ( aRankSize );
+  //    return lE.Likelihood ;
+  //  }
 
-    double Calculate_LMZ()
-    {
-      double lZ1 = Calculate_Z1();
-      double lZ2 = Calculate_Z2();
+  //  double Calculate_LMZ()
+  //  {
+  //    double lZ1 = Calculate_Z1();
+  //    double lZ2 = Calculate_Z2();
 
-      double lZ1_Squared = Square(lZ1);
-      double lZ2_Squared = Square(lZ2);
+  //    double lZ1_Squared = Square(lZ1);
+  //    double lZ2_Squared = Square(lZ2);
 
-      double lT0 = lZ1_Squared ;
-      double lT1 = 6.0 * lZ1 * lZ2 ;
-      double lT2 = 12.0 * lZ2_Squared ;
+  //    double lT0 = lZ1_Squared ;
+  //    double lT1 = 6.0 * lZ1 * lZ2 ;
+  //    double lT2 = 12.0 * lZ2_Squared ;
 
-      double lT = lT0 + lT1 + lT2 ;
+  //    double lT = lT0 + lT1 + lT2 ;
 
-      double n = Samples.Count ;
-      double rLMZ = 4 * lT * n;
+  //    double n = Samples.Count ;
+  //    double rLMZ = 4 * lT * n;
 
-      return rLMZ ;
-    }
+  //    return rLMZ ;
+  //  }
 
-    double Calculate_Z1()
-    {
-      double n  = Samples.Count ;
-      double Xn = Samples.Values.Last();
+  //  double Calculate_Z1()
+  //  {
+  //    double n  = Samples.Count ;
+  //    double Xn = Samples.Values.Last();
 
-      double lSum = 0 ; Samples.Values.Select( Xi => lSum += Math.Log( Xi  / Xn ) );
+  //    double lSum = 0 ; Samples.Values.Select( Xi => lSum += Math.Log( Xi  / Xn ) );
 
-      double lSumN = lSum / n ;
+  //    double lSumN = lSum / n ;
 
-      double z1 = 1 - lSumN ;
+  //    double z1 = 1 - lSumN ;
 
-      return z1 ;
-    }
+  //    return z1 ;
+  //  }
 
-    double Calculate_Z2()
-    {
-      double n  = Samples.Count ;
-      double Xn = Samples.Values.Last();
+  //  double Calculate_Z2()
+  //  {
+  //    double n  = Samples.Count ;
+  //    double Xn = Samples.Values.Last();
 
-      double lSum = 0 ; Samples.Values.Select( Xi => lSum += Xn / Xi  );
+  //    double lSum = 0 ; Samples.Values.Select( Xi => lSum += Xn / Xi  );
 
-      double lSumN = lSum / n ;
+  //    double lSumN = lSum / n ;
 
-      double z2 = 0.5 - lSumN ;
+  //    double z2 = 0.5 - lSumN ;
 
-      return z2 ;
+  //    return z2 ;
 
-    }
+  //  }
 
-    static double Square( double n ) => n * n ;
+  //  static double Square( double n ) => n * n ;
 
-    Distribution Samples ;
-  }
+  //  Distribution Samples ;
+  //}
 
   //public class StatisticalScore : Score
   //{

@@ -17,9 +17,7 @@ namespace DIGITC2_ENGINE
 
     public abstract Symbol Copy();
 
-    public abstract string Type   { get; }
-    //public abstract string Meaning{ get; }
-    //public abstract double Value  { get; }
+    public abstract string Type{ get; }
 
     public int Idx ;
 
@@ -47,13 +45,6 @@ namespace DIGITC2_ENGINE
     public static bool operator ==(Symbol lhs, Symbol rhs) => Equals(lhs,rhs) ;
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
 
-//    public override string ToString() => Meaning ;
-
-    public virtual Sample ToSample( GetSymbolMeaningAndValue GMV ) 
-    {
-      var (lMeaning,lValue) = GMV(this);
-      return new Sample( new SymbolSampleSource(this, lMeaning), lValue)  ; 
-    }
   }
 
   public class PulseStep
@@ -112,8 +103,6 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => $"[Gap:{Gap:F4} Duration:{Duration:F4} ({StartTime:F4}->{EndTime:F4}]" ;
 
-//    public override double Value => MaxAmplitude ;
-
     public override Symbol Copy()
     { 
       var lStepsCopy = new List<PulseStep>() ;  
@@ -147,9 +136,6 @@ namespace DIGITC2_ENGINE
       return rMerged;
     }
 
-    public static (string,double) Duration_MeaningAndValue( Symbol aSymbol) => ($"{(aSymbol as PulseSymbol).Duration:F2}", (aSymbol as PulseSymbol).Duration);
-    public static (string,double) Gap_MeaningAndValue     ( Symbol aSymbol) => ($"{(aSymbol as PulseSymbol).Gap:F2}"     , (aSymbol as PulseSymbol).Gap);
-
     public int             MaxLevel => (int)(MaxAmplitude*100) ;
 
     public float           MaxAmplitude ;
@@ -167,8 +153,6 @@ namespace DIGITC2_ENGINE
     public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, View?.Copy()  as PulseSymbol ); }  
 
     public override string ToString() => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
-
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ( (aSymbol as BitSymbol).ToString(), (aSymbol as BitSymbol).Value);
 
     public double Value => One.GetValueOrDefault(false) ? 1.0 : 0.0 ;
 
@@ -189,8 +173,6 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => string.Join("|", Bits.ConvertAll( s => s.ToString() ) );
     
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as BitBagSymbol).ToString(), (aSymbol as BitBagSymbol).Value);
-
     public double Value => Bits.Count;
 
     public List<BitSymbol> Bits ;
@@ -207,8 +189,6 @@ namespace DIGITC2_ENGINE
     public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood ); }  
 
     public override string ToString() => $"[{Byte.ToString():x}]" ;
-
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as ByteSymbol).ToString(), (aSymbol as ByteSymbol).Value);
 
     public double Value => Convert.ToDouble(Byte);
 
@@ -229,8 +209,6 @@ namespace DIGITC2_ENGINE
     
     public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
     
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ($"{(aSymbol as ArraySymbol).Symbols.Count}", (aSymbol as ArraySymbol).Value);
-
     public double Value => Symbols.Count ;
 
     public List<Symbol> Symbols ;
@@ -251,9 +229,7 @@ namespace DIGITC2_ENGINE
 
     public int UpperBound => Math.Max(Word.Length,DContext.Session.Settings.GetInt("MaxWordLength")) ;
 
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as WordSymbol).Word, (aSymbol as WordSymbol).Idx);
-
-    public double Value => Word.Length ;
+    public double Length => Word.Length ;
 
     public string Word ;
   }
@@ -268,25 +244,8 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => Text ;
 
-    public static (string,double) MeaningAndValue( Symbol aSymbol ) => ((aSymbol as TextSymbol).Text, (aSymbol as TextSymbol).Idx);
-
-    public double Value => Text.Length ;
+    public double Length => Text.Length ;
 
     public string Text ;
-  }
-
-
-  public static class SymbolExtensions
-  {
-    public static List<double> GetValues( this IEnumerable<Symbol> aSymbols, GetSymbolMeaningAndValue aGMV )
-    {
-      List<double> rValues = new List<double>();
-      foreach( Symbol lSymbol in aSymbols) 
-      {
-        var (lM,lValue) = aGMV(lSymbol);
-        rValues.Add( lValue ) ;
-      }
-      return rValues ;
-    }
   }
 }

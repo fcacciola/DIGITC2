@@ -22,7 +22,7 @@ namespace DIGITC2_ENGINE
 
     protected override void OnSetup()
     {
-      FillReferenceDistribution();
+      FillCC();
 
       mQuitThreshold = Params.GetInt("QuitThreshold");
       mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
@@ -55,25 +55,27 @@ namespace DIGITC2_ENGINE
         [20] = 0.01   // Exceptionally long words (mostly technical or specialized terms)
     };
 
-    void FillReferenceDistribution()
+    void FillCC()
     {
-      List<DPoint> lDPs = new List<DPoint>();
+      List<double> lData = new List<double>();
 
       double lMax = WordLengthFrequencyDict.Values.Max();  
 
       foreach( var lKV in WordLengthFrequencyDict )
       {
-        lDPs.Add( new DPoint( new Sample(null, Convert.ToDouble( (byte)(lKV.Key))), lKV.Value / lMax) );
+        lData.Add( lKV.Value / lMax) ;
       }
 
-      mReference = new DTable(lDPs);
+      mCC = new CorrelationCalculator(lData);
     }
 
     protected override Packet Process ()
     {
-      var lTokenLengths = LexicalInput.Symbols.GetValues(WordSymbol.MeaningAndValue);
+      var lWordSymbols = LexicalInput.GetSymbols<WordSymbol>() ;
+     
+      var lLenghts = lWordSymbols.ConvertAll( bs => bs.Length ) ;
 
-      double lCorrelation = mReference.ComputeCorrelation(lTokenLengths, (dp,x) => dp.Y ) ;  
+      double lCorrelation = mCC.Calculate(lLenghts) ;  
 
       WriteLine($"Correlation: {lCorrelation}");
 
@@ -88,8 +90,8 @@ namespace DIGITC2_ENGINE
 
     public override string Name => this.GetType().Name ;
 
-    int        mQuitThreshold;
-    FitnessMap mFitnessMap ;
-    DTable     mReference = null ;
+    int                   mQuitThreshold;
+    FitnessMap            mFitnessMap ;
+    CorrelationCalculator mCC = null ;
   }
 }

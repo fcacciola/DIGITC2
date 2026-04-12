@@ -252,11 +252,9 @@ namespace DIGITC2_ENGINE
 
     static double CalculIntraTapCodeGap( List<double> aGaps )
     {
-      Histogram lGapsHistogram = new Histogram(aGaps);
+      var lGmm = GmmFitter.Fit(aGaps);
 
-      lGapsHistogram.Plot("Gaps Histogram for Intra-Tap Threahold ");
-
-      var lGmm = lGapsHistogram.Gmm; 
+      lGmm.Plot("Gaps Histogram for Intra-Tap Threahold ");
 
       if ( lGmm.Components.Count < 2)
         return 0;

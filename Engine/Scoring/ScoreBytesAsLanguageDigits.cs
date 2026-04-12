@@ -17,13 +17,6 @@ using NWaves.Signals;
 namespace DIGITC2_ENGINE
 {
 
-  public class XCorrelation
-  {
-    public XCorrelation( DTable aReference ) { mReference = aReference ; }
-
-    DTable mReference ;
-  }
-
   public class ScoreBytesAsLanguageDigits : LexicalFilter
   {
     public ScoreBytesAsLanguageDigits() : base() 
@@ -32,7 +25,7 @@ namespace DIGITC2_ENGINE
 
     protected override void OnSetup()
     {
-      FillReferenceDistribution();
+      FillCC();
 
       mQuitThreshold = Params.GetInt("QuitThreshold");
       mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
@@ -52,30 +45,29 @@ namespace DIGITC2_ENGINE
         ['0'] = 0.96, ['1'] = 1.72, ['2'] = 0.84, ['3'] = 0.54, ['4'] = 0.47, ['5'] = 0.41, ['6'] = 0.39, ['7'] = 0.36, ['8'] = 0.34, ['9'] = 0.32
     };
 
-    void FillReferenceDistribution()
+    void FillCC()
     {
-      List<DPoint> lDPs = new List<DPoint>();
+      List<double> lData = new List<double>();
 
       double lMax = EnglishBytesDistribution.Values.Max();  
 
       foreach( var lKV in EnglishBytesDistribution )
       {
-        lDPs.Add( new DPoint( new Sample(null, Convert.ToDouble( (byte)(lKV.Key))), lKV.Value / lMax) );
+        lData.Add( lKV.Value / lMax) ;
       }
 
-      mReference = new DTable(lDPs);
+      mCC = new CorrelationCalculator(lData);
     }
-
-    string CreateFakeKey( double i ) => new ByteSymbol(-1,(byte)i).ToString();
 
     protected override Packet Process ()
     {
       TokenSeparators lFilterSeparators = new TokenSeparators();
 
-      var lBytes = LexicalInput.Symbols.Where( s => ! lFilterSeparators.IsSeparator(s) ).GetValues( ByteSymbol.MeaningAndValue );
+      var lBytesSymbols = LexicalInput.GetSymbols<ByteSymbol>() ;
+     
+      var lBytes = lBytesSymbols.ConvertAll( bs => bs.Value ) ;
 
-      // Validate any byte that is used as a letter (wright 1 for all of these)
-      double lCorrelation = mReference.ComputeCorrelation(lBytes, (dp,x) => 1.0 ) ;  
+      double lCorrelation = mCC.Calculate(lBytes) ;  
 
       DContext.WriteLine($"Correlation: {lCorrelation}");
 
@@ -93,7 +85,7 @@ namespace DIGITC2_ENGINE
 
     int        mQuitThreshold;
     FitnessMap mFitnessMap ;
-    DTable     mReference = null ;
+    CorrelationCalculator mCC ;
   }
 
 }
