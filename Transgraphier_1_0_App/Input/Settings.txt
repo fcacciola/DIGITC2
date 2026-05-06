@@ -1,4 +1,5 @@
 OutputDetails=true
 SamplesFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Input\Samples
-DisableBranching=true
+DisableBranching=false
+MaxBranches=4
 # SaveReference=true 

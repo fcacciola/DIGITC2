@@ -16,12 +16,12 @@ namespace DIGITC2_ENGINE
   public class FilterHelper
   {
 
-    static public void DumpValues<T>( string aName, T[] aValues )
+    static public void DumpValues<T>( string aName, List<T> aValues )
     {
       try
       {
-        string[] lAsStrings = new string[aValues.Length];
-        for( int i = 0 ; i <  aValues.Length ; i++ ) 
+        string[] lAsStrings = new string[aValues.Count];
+        for( int i = 0 ; i <  aValues.Count ; i++ ) 
           lAsStrings[i] = $"{aValues[i]}";
 
         var lCSV = string.Join(" , ", lAsStrings ) ;
@@ -58,7 +58,7 @@ namespace DIGITC2_ENGINE
 
     static public List<double> Gaps( this List<PulseSymbol> aPulses )
     {
-      return aPulses.Select( p => p.Gap ).ToList();
+      return aPulses.Select( p => p.Gap ).Skip(1).ToList();
     }
 
     static public List<double> Durations( this List<PulseSymbol> aPulses )
@@ -374,47 +374,76 @@ namespace DIGITC2_ENGINE
 
     void SplitPulses()
     {
-      WriteLine2GUI("Splitting Glued Pulses...");
-      Indent();  
-      WriteDetailLine($"Initial Count={mPulses1.Count}");
-      WriteLine2GUI($"Split Valley Threshold={mOptions.SplitValleyThreshold}%");
-      WriteLine2GUI($"Split Hill Level Diff={mOptions.SplitHillLevelDiff}%");
+mPulses2 = mPulses1;  
 
-      foreach( var lPulse in mPulses1 )
-      {
-        var lRuns = FindRuns( lPulse );  
-        if (  lRuns.Count > 1 )  
-        {
-          SplitPulse(lPulse,lRuns);
-        }
-        else
-        {
-          mPulses2.Add( lPulse ); 
-        }
-      }
+      //WriteLine2GUI("Splitting Glued Pulses...");
+      //Indent();
+      //WriteDetailLine($"Initial Count={mPulses1.Count}");
+      //WriteLine2GUI($"Split Valley Threshold={mOptions.SplitValleyThreshold}%");
+      //WriteLine2GUI($"Split Hill Level Diff={mOptions.SplitHillLevelDiff}%");
 
-      mPulses2.SetupGapDurations(); 
+      //foreach (var lPulse in mPulses1)
+      //{
+      //  var lRuns = FindRuns(lPulse);
+      //  if (lRuns.Count > 1)
+      //  {
+      //    SplitPulse(lPulse, lRuns);
+      //  }
+      //  else
+      //  {
+      //    mPulses2.Add(lPulse);
+      //  }
+      //}
 
-      mPulses2.Plot("2_Split_Pulses");
+      //mPulses2.SetupGapDurations();
 
-      WriteDetailLine($"Final Runs Count={mPulses2.Count}");
-      Unindent();
+      //mPulses2.Plot("2_Split_Pulses");
+
+      //WriteDetailLine($"Final Runs Count={mPulses2.Count}");
+      //Unindent();
     }
 
     double CalculateMergeThreshold()
     {
-      var lGMM = GmmFitter.Fit(mPulses2.Gaps());
+      var lGaps = mPulses2.Gaps();
+      FilterHelper.DumpValues("Pulses2_Gaps",lGaps);
+      var lGMM = GmmFitter.Fit(lGaps);
+
+      double rMergeThreshold = 0.0; 
+
+      if ( lGMM != null)
+      {
+        const double MIN_SPLIT_SPREAD = 0.0001; 
+
+        // Less than 3 components there are NO splits.
+        if ( lGMM.Components.Count == 3)
+        {
+          if ( lGMM.Components[0].StdDev > MIN_SPLIT_SPREAD )
+          {
+            double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
+
+            double lK0_2_Sigma = lGMM.Components[0].N_Sigma(2);
+
+            rMergeThreshold = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
+
+            double lMergeThreshold2 = lGMM.Intersection(0,1) ;
+
+            AddBranch("ContiguousPulsesGapDuration",$"{(lMergeThreshold2)}");
+            AddBranch("ContiguousPulsesGapDuration",$"{(0.01)}");
+          } 
+        }
+        else if ( lGMM.Components.Count >= 4)
+        {
+          if ( lGMM.Components[0].StdDev > MIN_SPLIT_SPREAD )
+            rMergeThreshold = Gmm.Intersection(lGMM.Components[0], lGMM.Components[1] ) ;
+        }
+      }
+      else
+      {
+        WriteLine("Not enough components in GMM to calculate Merge Threshold.");
+      }
+
       lGMM.Plot("Gaps_Histogram_For_Merge_Threshold_Calculation"); 
-
-      var lFirstGaussian = lGMM.Components[0];
-
-      double lMean   = lFirstGaussian.Mean;  
-      double lStdDev = lFirstGaussian.StdDev; 
-                               
-      double rRawMergeThreshold1 = 0.2 * lMean;
-      double rRawMergeThreshold2 = lMean - 2.0 * lStdDev;
-
-      double rMergeThreshold = Math.Max(rRawMergeThreshold1, rRawMergeThreshold2);
 
       return rMergeThreshold ;
     }
@@ -422,15 +451,9 @@ namespace DIGITC2_ENGINE
     double FindContiguousPulsesGapDuration()
     {
       if ( mOptions.ContiguousPulsesGapDuration == -1 )
-      {
-        double rThreshold = CalculateMergeThreshold();
+        return CalculateMergeThreshold();
 
-        AddBranch("ContiguousPulsesGapDuration",$"{(rThreshold *  .50)}");
-        AddBranch("ContiguousPulsesGapDuration",$"{(rThreshold * 1.25)}");
-
-        return rThreshold;
-      }
-      else return mOptions.ContiguousPulsesGapDuration ;
+      return mOptions.ContiguousPulsesGapDuration ;
     }
 
     void MergeContiguousPulses()

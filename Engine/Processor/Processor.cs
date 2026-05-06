@@ -33,14 +33,14 @@ public class Processor
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 
-    const int MAX_PIPELINES = 10 ;
-
     try
     {
 
       mPipelines.Enqueue( mMainPipeline ) ;  
 
       int lPipelineIdx = 0 ;
+
+      int lGoodPipelinesCount = 0;
 
       do
       {
@@ -58,12 +58,6 @@ public class Processor
           rPipelineResults.Add(lPipelineResult) ; 
 
           DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
-
-          if ( lPipelineResult.OverallFitness >= Fitness.EXCELENT || aSettings.GetBool("DisableBranching") )
-          {
-            DContext.WriteLine2GUI($"Skipping branch-out pipelines.") ;
-            break ;
-          }
         }
         else
         {
@@ -71,9 +65,18 @@ public class Processor
           break ;
         }
 
-        lPipelineIdx ++ ;
+        if ( aSettings.GetBool("DisableBranching") )
+        {
+          DContext.WriteLine2GUI($"Skipping branch-out pipelines.") ;
+          break ;
+        }
 
-        if ( lPipelineIdx > MAX_PIPELINES )
+        if ( lPipelineResult.OverallFitness >= Fitness.EXCELENT)
+          lGoodPipelinesCount += 1 ;
+
+        lPipelineIdx += 1 ;
+
+        if ( lGoodPipelinesCount > aSettings.GetInt("MaxGoodBranches") || lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
         {
           DContext.Error($"Too many Pipelines. Aborting.") ;
           break ;

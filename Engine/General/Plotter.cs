@@ -21,20 +21,14 @@ namespace DIGITC2_ENGINE
       public string Title = "Plot";
       public string Subtitle = "" ;
 
-      public int    BitmapWidth = 2000 ;
-      public int    BitmapHeight = 2000 ;
-      public double BitmapResolution = 96 ;
-
-      public static Options Default = new Options(TypeE.Lines) ;
+      public static Options Default = new Options{Type=TypeE.Lines} ;
 
       public enum TypeE { Lines, Bars }
 
       public TypeE Type = TypeE.Lines ;
 
-      public Options( TypeE aType ) { Type = aType ; }  
-
-      public static Options Lines => new Options(TypeE.Lines) ;
-      public static Options Bars  => new Options(TypeE.Bars) ;
+      public static Options Lines => new Options{Type=TypeE.Lines} ;
+      public static Options Bars  => new Options{Type=TypeE.Bars} ;
     }
 
     public Plotter ( Options aOptions = null )  
@@ -52,14 +46,14 @@ namespace DIGITC2_ENGINE
 
     public Bitmap ToBitmap()
     {
-      var lExporter = new PngExporter { Width = mOptions.BitmapWidth, Height = mOptions.BitmapHeight, Resolution = mOptions.BitmapResolution };
+      var lExporter = new PngExporter { Width = 3000, Height = 1500, Resolution = 96 };
       var rBitmap = lExporter.ExportToBitmap(mPlot);
       return rBitmap;
     }
 
     public void SavePNG( string aFilename )
     {
-      DContext.WriteDetailLine($"Saving PNG PLOT to: [{aFilename}]");
+      DContext.WriteDetailLine($"Saving PNG Image to: [{aFilename}]");
       try
       {
         var lBitmap = ToBitmap();
@@ -76,7 +70,7 @@ namespace DIGITC2_ENGINE
       DContext.WriteDetailLine($"Saving SVG PLOT: [{aFilename}]");
       try
       {
-        var lExporter = new OxyPlot.SvgExporter { Width = 2000, Height = 2000 };
+        var lExporter = new OxyPlot.SvgExporter { Width = 1000, Height = 500 };
         lExporter.ExportToFile(mPlot,aFilename);
       }
       catch( Exception ex ) 

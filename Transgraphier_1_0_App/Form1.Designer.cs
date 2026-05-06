@@ -286,7 +286,7 @@ namespace Transgraphier_1_0_App
       Controls.Add(resultsPanel);
       Controls.Add(buttonPanel);
       Name = "Form1";
-      Text = "Transgraphier 1.0";
+      Text = "Transgraphier 1.5";
       WindowState = FormWindowState.Maximized;
       buttonPanel.ResumeLayout(false);
       ResumeLayout(false);

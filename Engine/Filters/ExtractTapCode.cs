@@ -48,15 +48,16 @@ namespace DIGITC2_ENGINE
     { 
     }
 
-    protected override void OnSetup() 
-    { 
-      mSeparatorCountThreshold = Params.GetInt("SeparatorCountThreshold");
-      mMinNumberOfTaps         = Params.GetInt("MinTapCount");
-    }
-
-    double Interval( double aET, double aST )
+    Options CreateOptions()
     {
-      return Math.Ceiling( ( aET - aST  ) * 10 );  
+      Options rOptions = new ();
+
+      rOptions.SeparatorCountThreshold = Params.GetInt("SeparatorCountThreshold");
+      rOptions.MinNumberOfTaps         = Params.GetInt("MinTapCount");
+      rOptions.IntraCountGap           = Params.GetDouble("IntraCountGap");
+
+      return rOptions;
+
     }
 
     public class Tap
@@ -87,32 +88,70 @@ namespace DIGITC2_ENGINE
 
     }
 
-    double PulseOnsetTime( PulseSymbol aPulse ) => ( aPulse.StartTime + aPulse.EndTime ) / 2.0 ;
+    double PulseOnsetTime( PulseSymbol aPulse ) => aPulse.StartTime ; //+ aPulse.EndTime ) / 2.0 ;
 
-    Tap TapFromPulse( PulseSymbol aCurrPulse, PulseSymbol aPrevPulse = null ) 
+    Tap TapFromPulse( PulseSymbol aCurrPulse ) 
     {
-      double lPrevTime = aPrevPulse != null ? PulseOnsetTime(aPrevPulse) : 0 ;  
       double lCurrTime = PulseOnsetTime( aCurrPulse ) ;
 
-      double lLagFromPrev = Math.Ceiling( (lCurrTime - lPrevTime) ) ;
-
-      return new Tap( lCurrTime, lLagFromPrev) ;
+      return new Tap( lCurrTime, aCurrPulse.Gap) ;
     }
 
     List<Tap> GetTaps( List<PulseSymbol> aPulses )
     {
       List<Tap> rTaps = new List<Tap> ();
-      if ( aPulses.Count >= mMinNumberOfTaps )
+      if ( aPulses.Count >= mOptions.MinNumberOfTaps )
       {
-        rTaps.Add( TapFromPulse( aPulses[0] ) ) ;
-        for( int i = 1 ; i < aPulses.Count; ++ i )
-          rTaps.Add( TapFromPulse(aPulses[i], aPulses[i-1]) ) ;
+        for( int i = 0 ; i < aPulses.Count; ++ i )
+          rTaps.Add( TapFromPulse(aPulses[i]) ) ;
       }
       return rTaps ; 
     }
 
+    double ComputeIntraCountGap( List<double> aGaps )
+    {
+      if ( mOptions.IntraCountGap == -1 )
+      {
+        FilterHelper.DumpValues("Pulses_Gaps",aGaps);
+        var lGMM = GmmFitter.Fit(aGaps);
+
+        double rIntraCountGap = 0.0; 
+
+        if ( lGMM != null && lGMM.Components.Count > 1 )
+        {
+          double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
+
+          double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
+
+         rIntraCountGap = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
+
+          double lIntraTapCode2 = lGMM.Intersection(0,1) ;
+          AddBranch("IntraCountGap",$"{(lIntraTapCode2)}");
+
+          if ( lGMM.Components.Count > 2 )
+          {
+            double lIntraTapCode3 = lGMM.Intersection(1,2) ;
+
+            AddBranch("IntraCountGap",$"{(lIntraTapCode3)}");
+          }
+        }
+        else
+        {
+          WriteLine("Not enough components in GMM to calculate Intra Tap Gap.");
+        }
+
+        lGMM?.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
+
+        return rIntraCountGap ;
+      }
+
+      return mOptions.IntraCountGap ;
+    }
+
     protected override Packet Process ()
     {
+      mOptions = CreateOptions(); 
+
       var lPulses = LexicalInput.GetSymbols<PulseSymbol>() ;
 
       WriteLine2GUI("Extracting Tap Code...");
@@ -120,7 +159,7 @@ namespace DIGITC2_ENGINE
 
       WriteLine("Getting Raw Taps..");
       var lTaps = GetTaps(lPulses);
-      if ( lTaps.Count < mMinNumberOfTaps )
+      if ( lTaps.Count < mOptions.MinNumberOfTaps )
       {
         WriteLine2GUI("Not enough Taps. Quitting.");
         return CreateQuitOutput();
@@ -130,9 +169,14 @@ namespace DIGITC2_ENGINE
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
       WriteDetailLine("Classifying Raw Taps...");
-      var lTapClassifier = BuildTapClassifier( lTaps );
-      WriteLine2GUI($"IntraTap Gap High Bound: {(lTapClassifier.IntraTapGap_HighBound):F2}s");
-      lTaps.ForEach( t => lTapClassifier.ClassifyTap(t));
+      double lIntraTapGap_HighBound = ComputeIntraCountGap( lTaps.ConvertAll( t => t.Gap ).Skip(1).ToList() );
+      if ( lIntraTapGap_HighBound == 0 )
+      {
+        return CreateQuitOutput();
+      }
+
+      WriteLine2GUI($"IntraTap Gap High Bound: {lIntraTapGap_HighBound:F2}s");
+      lTaps.ForEach( t => t.GapIsIntra = t.Gap <= lIntraTapGap_HighBound );
 
       WriteDetailLine("Classified Taps:");
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
@@ -156,7 +200,7 @@ namespace DIGITC2_ENGINE
       if ( lCurrTC != null && lCurrTC.Taps.Count > 0 )
         lRawCounts.Add(lCurrTC);
 
-      if ( lRawCounts.Count <  2 * mMinNumberOfTaps )
+      if ( lRawCounts.Count <  2 * mOptions.MinNumberOfTaps )
       {
         WriteLine("Not enough Taps. Quitting.") ;
         return CreateQuitOutput();
@@ -181,7 +225,7 @@ namespace DIGITC2_ENGINE
       {  
         // A new Bag is created when, eiter a separator Count is found or we alrady have 16 counts
         // for the 8 bits of a byte
-        if ( lRawCount.Count >= mSeparatorCountThreshold || lCurrBag.Count >= 16 )
+        if ( lRawCount.Count >= mOptions.SeparatorCountThreshold || lCurrBag.Count >= 16 )
         {
           lCurrBag = new List<TapCount>();
           lBags.Add( lCurrBag );  
@@ -237,52 +281,17 @@ namespace DIGITC2_ENGINE
 
       return CreateOutput( new LexicalSignal(lSymbols), "TapCodes") ;
     }
-
-
-
-    public class TapClassifier
-    {
-      public void ClassifyTap( Tap aTap ) 
-      {
-        aTap.GapIsIntra = aTap.Gap <= IntraTapGap_HighBound ;
-      }
-
-      public double IntraTapGap_HighBound ;
-    }
-
-    static double CalculIntraTapCodeGap( List<double> aGaps )
-    {
-      var lGmm = GmmFitter.Fit(aGaps);
-
-      lGmm.Plot("Gaps Histogram for Intra-Tap Threahold ");
-
-      if ( lGmm.Components.Count < 2)
-        return 0;
-
-      double lIntra_Inter_Intersection = Gmm.Intersection(lGmm.Components[0], lGmm.Components[1]);
-
-      double lMean   = lGmm.Components[0].Mean;
-      double lStdDev = lGmm.Components[0].StdDev; 
-
-      double lRawIntraTapGap0 = lIntra_Inter_Intersection * 0.8;
-
-      double lRawIntraTapGap1 = lMean + lStdDev;
-      
-      double rRawIntraTapGap = Math.Min(lRawIntraTapGap0, lRawIntraTapGap1);
-
-      return rRawIntraTapGap;
-    }
-
-    TapClassifier BuildTapClassifier( List<Tap> aTaps ) 
-    { 
-      var lGaps = aTaps.ConvertAll( t => t.Gap );
-      return new TapClassifier{ IntraTapGap_HighBound = CalculIntraTapCodeGap(lGaps) };
-    } 
-    
+   
     public override string Name => this.GetType().Name ;
 
-    int mSeparatorCountThreshold ;
-    int mMinNumberOfTaps ;
+    class Options
+    {
+      internal int    SeparatorCountThreshold ;
+      internal int    MinNumberOfTaps ;
+      internal double IntraCountGap = -1 ;
+    }
+
+    Options mOptions ;
 
   }
 

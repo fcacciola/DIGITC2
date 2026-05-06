@@ -71,9 +71,9 @@ namespace DIGITC2_ENGINE
 
     protected override Packet Process ()
     {
-      var lWordSymbols = LexicalInput.GetSymbols<WordSymbol>() ;
+      var lTokens = LexicalInput.GetSymbols<ArraySymbol>() ;
      
-      var lLenghts = lWordSymbols.ConvertAll( bs => bs.Length ) ;
+      var lLenghts = lTokens.ConvertAll( bs => bs.Value ) ;
 
       double lCorrelation = mCC.Calculate(lLenghts) ;  
 
