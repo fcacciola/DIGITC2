@@ -29,7 +29,6 @@ namespace DIGITC2_ENGINE
       RootOutputFolder = aSettings.GetPath("OutputFolder");
 
       SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
-
     }  
 
     public void Setup()
@@ -58,6 +57,10 @@ namespace DIGITC2_ENGINE
     public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
 
     public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
+
+    public string PrevOutputFile( string aFilename ) => $"{ComputePrevOutputFolder()}/{aFilename}";
+
+    string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
 
     public string   InputFile ;
     public string   Name ;

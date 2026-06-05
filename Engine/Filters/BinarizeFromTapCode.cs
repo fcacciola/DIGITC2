@@ -16,7 +16,7 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
-public class BinarizeFromTapCode : LexicalFilter
+public class BinarizeFromTapCode : FileLexicalFilter
 {
   public BinarizeFromTapCode() 
   { 
@@ -45,9 +45,11 @@ public class BinarizeFromTapCode : LexicalFilter
     WriteLine2GUI("Convertting Tap Code to Bits...");
     Indent();
 
-    var lSymbols = LexicalInput.GetSymbols<TapCodeSymbol>();
+    var lTapCodeSignal = FileInput.LoadLexicalSignal<TapCodeSymbol>();
+    
+    var lSymbols = lTapCodeSignal.GetSymbols<TapCodeSymbol>();
 
-    var lCodes   = lSymbols.ConvertAll( s => s.Code ) ;
+    var lCodes = lSymbols.ConvertAll( s => s.Code ) ;
 
     List<BitBagSymbol> lBags = new List<BitBagSymbol> ();
 

@@ -1,5 +1,7 @@
 ﻿
 
+using DIGITC2_ENGINE;
+
 namespace Transgraphier_1_0_App
 {
   partial class Form1
@@ -82,7 +84,7 @@ namespace Transgraphier_1_0_App
       loadEVPButton.Name = "loadButton";
       loadEVPButton.Size = new Size(100, 30);
       loadEVPButton.TabIndex = 0;
-      loadEVPButton.Text = "Load EVP";
+      loadEVPButton.Text = "Load File";
       loadEVPButton.Click += LoadEVP_Click;
 
       // mTitle
@@ -113,7 +115,7 @@ namespace Transgraphier_1_0_App
       processButton.Name = "processButton";
       processButton.Size = new Size(150, 30);
       processButton.TabIndex = 1;
-      processButton.Text = "Process";
+      processButton.Text = "RUN";
       processButton.Click += Process_Click;
       processButton.Enabled = false;
       // 
@@ -315,5 +317,6 @@ namespace Transgraphier_1_0_App
     private RichTextBox resultsTextBox;
     private RichTextBox logTextBox;
     private WaveView mInputWave;
+    private FileSignal mInputLexicalSignal;
   }
 }

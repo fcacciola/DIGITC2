@@ -9,6 +9,7 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
+  
   public class LexicalSignal : Signal 
   {
     public LexicalSignal( IEnumerable<Symbol> aSymbols )
@@ -30,5 +31,43 @@ namespace DIGITC2_ENGINE
     public Symbol this[int aIdx] => Symbols[aIdx];
   }
 
+  public class FileSignal : Signal
+  {
+    public FileSignal( string aFilename) : base()
+    {
+      mFilename = aFilename;
+    }
+
+    public LexicalSignal LoadLexicalSignal<SYM>() 
+    {
+      if ( File.Exists(mFilename) )
+      {
+        List<SYM> rSymbols = new List<SYM>();
+        string[] lLines = File.ReadAllLines(mFilename);
+        foreach (string line in lLines) 
+        {
+          try
+          {
+            SYM lSym = (SYM)Activator.CreateInstance(typeof(SYM), new object[] { rSymbols.Count, line });
+            rSymbols.Add(lSym);
+          }
+          catch (Exception )
+          {
+          } 
+        }
+
+        if (  rSymbols.Count > 0 )
+          return new LexicalSignal(rSymbols.Cast<Symbol>());
+      }
+      return null ;
+    }
+
+    public override Signal Copy()
+    {
+      return new FileSignal(mFilename);
+    }
+
+    string mFilename ;
+  }
 
 }

@@ -73,6 +73,8 @@ namespace DIGITC2_ENGINE
       Name            = aName;
     }
 
+    public string LastFilterOutputFolder => PipelineResults.Count > 0 ? PipelineResults.Last().FilterSequence.Last().OutputFolder : null;
+
     public void Save()
     {
       if (  PipelineResults.Count > 0 ) 

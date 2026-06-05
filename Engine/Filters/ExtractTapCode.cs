@@ -20,6 +20,16 @@ namespace DIGITC2_ENGINE
   {
     public TapCode( int aR, int aC ) {  Row = aR ; Col = aC ; }
 
+    public TapCode ( string aCode)
+    {
+      var lParts = aCode.TrimStart('(').TrimEnd(')').Split(',');
+      if (lParts.Length == 2)
+      {
+        Row = int.Parse(lParts[0]);
+        Col = int.Parse(lParts[1]);
+      }
+    }
+
     public readonly int Row ;  
     public readonly int Col ;
 
@@ -29,6 +39,8 @@ namespace DIGITC2_ENGINE
   public class TapCodeSymbol : Symbol
   {
     public TapCodeSymbol( int aIdx, TapCode aCode ) : base(aIdx) { Code = aCode; }
+
+    public TapCodeSymbol( int aIdx, string aCode ) : base(aIdx) { Code = new TapCode(aCode); }
 
     public override string Type => "TapCode" ;
 
@@ -277,11 +289,16 @@ namespace DIGITC2_ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      Unindent(); 
+      string lTapCodeFile = Session.OutputFile("TapCode.txt");
 
-      return CreateOutput( new LexicalSignal(lSymbols), "TapCodes") ;
+      File.WriteAllLines(lTapCodeFile, lSymbols.ConvertAll(c => c.ToString()));
+
+      Unindent();
+
+
+      return CreateOutput( new FileSignal(lTapCodeFile), "TapCodes") ;
     }
-   
+
     public override string Name => this.GetType().Name ;
 
     class Options

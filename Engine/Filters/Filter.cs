@@ -123,7 +123,7 @@ namespace DIGITC2_ENGINE
     {
       LexicalInput = InputPacket.Signal as LexicalSignal; 
       if ( LexicalInput == null )
-        throw new ArgumentException("Input Signal must be a gated Lexical Signal.");
+        throw new ArgumentException("Input Signal must be a Lexical Signal.");
 
       return Process();
     }
@@ -131,6 +131,25 @@ namespace DIGITC2_ENGINE
     protected abstract Packet Process ();  
 
     protected LexicalSignal LexicalInput ;
+  }
+
+  public abstract class FileLexicalFilter : Filter
+  {
+    protected FileLexicalFilter() : base() {}
+
+    protected override Packet DoApply()
+    {
+      FileInput = InputPacket.Signal as FileSignal; 
+
+      if ( FileInput == null )
+        throw new ArgumentException("Input Signal must be a File Signal.");
+
+      return Process();
+    }
+    
+    protected abstract Packet Process ();  
+
+    protected FileSignal FileInput ;
   }
 
 

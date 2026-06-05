@@ -178,19 +178,27 @@ namespace Transgraphier_1_0_App
       {
         mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
 
-        var lInputSignal = SignalLoader.LoadSignal(mInputFile);
-
-        SetupZoomPanController(lInputSignal);
-        mInputWave.Signal = lInputSignal;
-        mInputWave.Title = mSessionName ;
         mWaveViews.Clear();
-        mWaveViews.Add( mInputWave );
+
+        if ( Path.GetExtension(mInputFile) == ".txt" )
+        {
+          mInputLexicalSignal = new FileSignal(mInputFile);
+        }
+        else
+        {
+          var lInputSignal = SignalLoader.LoadSignal(mInputFile);
+
+          SetupZoomPanController(lInputSignal);
+          mInputWave.Signal = lInputSignal;
+          mInputWave.Title = mSessionName ;
+          mWaveViews.Add( mInputWave );
+        }
 
         AddGeneralMessage($"Input Signal loaded: {mInputFile}");
 
         this.sessionName.Text = mSessionName;
         this.sessionName.Enabled = true;
-        this.processButton .Enabled = true; 
+        this.processButton.Enabled = true; 
       }
       catch (Exception ex)
       {
@@ -205,8 +213,8 @@ namespace Transgraphier_1_0_App
 
       OpenFileDialog openFileDialog = new OpenFileDialog();
       openFileDialog.InitialDirectory = lSamplesFolder;
-      openFileDialog.Filter = "Wave Files (*.wav)|*.wav";
-      openFileDialog.Title = "Select a Wave File";
+      openFileDialog.Filter = "Wave Files (*.wav)|*.wav|Lexical Text Files (*.txt)|*.txt";
+      openFileDialog.Title = "Select a File";
       openFileDialog.CheckFileExists = true;
 
       if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -253,13 +261,13 @@ namespace Transgraphier_1_0_App
 
     }
 
-    void ProcessSession()
+    void RUN()
     {
       Clear();
 
-      if ( mInputWave.Signal == null)
+      if ( mInputWave?.Signal == null && mInputLexicalSignal == null )
       {
-        AddErrorMessage( "You must load an AUDIO file first.");
+        AddErrorMessage( "You must load an AUDIO or LEXICAL file first.");
         return;
       }
 
@@ -274,11 +282,22 @@ namespace Transgraphier_1_0_App
 
         AddGeneralMessage( $"Processing started. Session Folder: {mSessionFolder}. ");
 
-        var lSignal = new WaveSignal(mInputWave.Signal) ;
+        MainPipeline lPipeline = null;
+        Signal       lStartSignal = null;
 
-        var lPipeline = PipelineFactory.FromAudioToBits_ByTapCode().Then( PipelineFactory.FromBits() ) ;
+        if ( mInputWave?.Signal != null )
+        {
+          lStartSignal = new WaveSignal(mInputWave.Signal) ;
 
-        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lSignal);
+          lPipeline = PipelineFactory.FromAudioToTapCode().Then(PipelineFactory.FromTapCode()) ;
+        }
+        else
+        {
+          lStartSignal = mInputLexicalSignal;
+          lPipeline = PipelineFactory.FromTapCode() ;
+        }
+
+        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lStartSignal);
 
         string lInputCopy = $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav";
         if ( ! File.Exists(lInputCopy) )
@@ -295,12 +314,9 @@ namespace Transgraphier_1_0_App
 
         lResult.Save()  ;
 
-        AddGeneralMessage("Processing finished.");
+        AddGeneralMessage("...finished.");
 
         File.WriteAllText( $"{OutputFolder}\\LastSession.txt", mSessionName );
-
-        this.ExportButton.Enabled = true;
-        this.LoadLastSessionButton.Enabled = true;
 
         LoadSession();
       }
@@ -661,7 +677,7 @@ namespace Transgraphier_1_0_App
 
     private void Process_Click(object sender, EventArgs e)
     {
-      ProcessSession();
+      RUN();
     }
 
     private void LoadLastSession_Click(object sender, EventArgs e)
