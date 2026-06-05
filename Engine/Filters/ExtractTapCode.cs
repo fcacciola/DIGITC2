@@ -15,25 +15,86 @@ using NWaves.Signals;
 
 namespace DIGITC2_ENGINE
 {
- 
-  public class TapCode
+  public class Tap
   {
-    public TapCode( int aR, int aC ) {  Row = aR ; Col = aC ; }
-
-    public TapCode ( string aCode)
+    public Tap( PulseSymbol aSource, double aTime, double aGap) 
     {
-      var lParts = aCode.TrimStart('(').TrimEnd(')').Split(',');
-      if (lParts.Length == 2)
+      Source     = aSource;
+      Gap        = aGap; 
+      Time       = aTime; 
+      GapIsIntra = false ; 
+    }
+
+    public enum TapType { Row, Col, Separator };
+
+    public void DumpSample(List<float> aSamples, TapType aType )
+    {
+      int lC = aSamples.Count ;
+      for( int i = lC ; i < Source.Start ; i++ )
+        aSamples.Add(0);
+
+      float lEffectveAmplitude = aType == TapType.Separator ? .95f : ( aType == TapType.Row ? 0.65f : - 0.65f );
+
+      foreach ( var lStep in Source.Steps )
       {
-        Row = int.Parse(lParts[0]);
-        Col = int.Parse(lParts[1]);
+        for( int i = 0; i < lStep.Length; i++ ) 
+        {
+          aSamples.Add( lEffectveAmplitude );
+          if ( aType == TapType.Separator )
+            lEffectveAmplitude = - lEffectveAmplitude ;
+        }
       }
     }
 
-    public readonly int Row ;  
-    public readonly int Col ;
+    public PulseSymbol Source ;
+    public double      Gap ;
+    public double      Time ;
+    public bool        GapIsIntra ;
 
-    public override string ToString() => $"({Row},{Col})";
+    public override string ToString() => $"[Gap: {(Gap)} s | Time: {Time}s { ( GapIsIntra ? "I" : "X" ) } ]";
+  }
+
+  // Each TapGroup corresponds to a sequence of closely together Taps.
+  // The number of elements in each group is THE TAP COUNT
+  public class TapCount
+  {
+    public List<Tap> Taps = new List<Tap>();
+
+    public int Count => Taps.Count;
+
+    public override string ToString() => $"[{Count}]";
+  }
+ 
+  public class TapCode
+  {
+    public TapCode( TapCount aR, TapCount aC ) {  Row = aR ; Col = aC ; R = aR.Count ; C = aC.Count ; }
+
+    public TapCode( TapCount aR ) {  Row = aR ; Col = null ; R = 0 ; C = 0 ; }
+
+    public TapCode ( int aR, int aC ) { Row = null; Col = null; R = aR; C = aC; }
+
+    public TapCode ( string aCode )
+    {
+      Row = null ; 
+      Col = null ;
+
+      var lParts = aCode.TrimStart('(').TrimEnd(')').Split(',');
+      if (lParts.Length == 2)
+      {
+        R = int.Parse(lParts[0]);
+        C = int.Parse(lParts[1]);
+      }
+    }
+
+    public readonly TapCount Row ;  
+    public readonly TapCount Col ;
+
+    public readonly int R ;
+    public readonly int C ;
+
+    public bool IsSeparator => R == 0 && C == 0;
+
+    public override string ToString() => $"({R},{C})";
   }
 
   public class TapCodeSymbol : Symbol
@@ -48,10 +109,22 @@ namespace DIGITC2_ENGINE
 
     public override string ToString() => Code.ToString() ;
 
-    public double Value => double.Parse($"{Code.Row}.{Code.Col}") ;
+    public double Value => double.Parse($"{Code.R}.{Code.C}") ;
 
     public TapCode Code ;
 
+    public void DumpSamples( List<float> aSamples )
+    {
+      if ( ! Code.IsSeparator )
+      {
+        Code.Row?.Taps.ForEach(t => t.DumpSample(aSamples, Tap.TapType.Row));
+        Code.Col?.Taps.ForEach(t => t.DumpSample(aSamples, Tap.TapType.Col));
+      }
+      else
+      { 
+        Code.Row?.Taps.ForEach(t => t.DumpSample(aSamples, Tap.TapType.Separator));
+      }
+    }
   }
 
   public class ExtractTapCode : LexicalFilter
@@ -72,41 +145,13 @@ namespace DIGITC2_ENGINE
 
     }
 
-    public class Tap
-    {
-      public Tap( double aTime, double aGap) 
-      {
-        Gap        = aGap; 
-        Time       = aTime; 
-        GapIsIntra = false ; 
-      }
-
-      public double Gap ;
-      public double Time ;
-      public bool   GapIsIntra ;
-
-      public override string ToString() => $"[Gap: {(Gap)} s | Time: {Time}s { ( GapIsIntra ? "I" : "X" ) } ]";
-    }
-
-    // Each TapGroup corresponds to a sequence of closely together Taps.
-    // The number of elements in each group is THE TAP COUNT
-    public class TapCount
-    {
-      public List<Tap> Taps = new List<Tap>();
-
-      public int Count => Taps.Count;
-
-      public override string ToString() => $"[{Count}]";
-
-    }
-
     double PulseOnsetTime( PulseSymbol aPulse ) => aPulse.StartTime ; //+ aPulse.EndTime ) / 2.0 ;
 
     Tap TapFromPulse( PulseSymbol aCurrPulse ) 
     {
       double lCurrTime = PulseOnsetTime( aCurrPulse ) ;
 
-      return new Tap( lCurrTime, aCurrPulse.Gap) ;
+      return new Tap( aCurrPulse, lCurrTime, aCurrPulse.Gap) ;
     }
 
     List<Tap> GetTaps( List<PulseSymbol> aPulses )
@@ -239,6 +284,7 @@ namespace DIGITC2_ENGINE
         // for the 8 bits of a byte
         if ( lRawCount.Count >= mOptions.SeparatorCountThreshold || lCurrBag.Count >= 16 )
         {
+          lCurrBag.Add(lRawCount);
           lCurrBag = new List<TapCount>();
           lBags.Add( lCurrBag );  
         }
@@ -257,29 +303,29 @@ namespace DIGITC2_ENGINE
         if ( lBag.Count == 0 )
           continue ;
 
-        // Make sure there is an EVEN number of counts in the Bag
-        if ( ! MathX.IsEven(lBag.Count ) )
-        {
-          lBag.Add(lBag.Last());
-          var lLast = lBag.Last(); 
-        }
-
         WriteDetailLine("Bag:");
         Indent();
         lBag.ForEach( g => WriteDetailLine(g.ToString()));
         Unindent();
-      
+
         List<TapCode> lCodes = new List<TapCode>();
 
         for ( int i = 0 ;  i < lBag.Count ; i += 2 )
         {
-          int lRow = lBag[i  ].Count ;
-          int lCol = lBag[i+1].Count ;
+          var lRow = lBag[i  ] ;
 
-          lCodes.Add( new TapCode(lRow,lCol) ) ;
+          if ( i + 1 <  lBag.Count )
+          {
+            var lCol = lBag[i+1] ;
+
+            lCodes.Add( new TapCode(lRow,lCol) ) ;
+          }
+          else
+          {
+            lCodes.Add( new TapCode(lRow) ) ;
+          }
         }
 
-        lCodes.Add( new TapCode(0,0) ) ;
 
         WriteDetailLine( $"Code: {string.Join(",", lCodes )}");
 
@@ -289,6 +335,8 @@ namespace DIGITC2_ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
+      Plot(lSymbols, "TapCode_ColorCoded");
+
       string lTapCodeFile = Session.OutputFile("TapCode.txt");
 
       File.WriteAllLines(lTapCodeFile, lSymbols.ConvertAll(c => c.ToString()));
@@ -297,6 +345,15 @@ namespace DIGITC2_ENGINE
 
 
       return CreateOutput( new FileSignal(lTapCodeFile), "TapCodes") ;
+    }
+
+    void Plot( List<TapCodeSymbol> aPulses, string aLabel )
+    {
+      List<float> lSamples = new List<float> ();
+      aPulses.ForEach( s => s.DumpSamples(lSamples ) );
+      DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
+      WaveSignal lWave = new WaveSignal(lWaveRep);
+      lWave.SaveTo( DContext.Session.OutputFile( aLabel + ".wav") ) ;
     }
 
     public override string Name => this.GetType().Name ;

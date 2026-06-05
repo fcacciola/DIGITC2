@@ -51,7 +51,7 @@ namespace Transgraphier_1_0_App
       resultsTextBox = new RichTextBox();
       logTextBox = new RichTextBox();
       resultsPanel = new Panel();
-      mInputWave = new WaveView(true);
+      mInputWave = new WaveView(true, false);
       buttonPanel.SuspendLayout();
       SuspendLayout();
 

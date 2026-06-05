@@ -60,7 +60,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     foreach( var lCode in lCodes )
     {
-      bool lIsSeparator = ( lCode.Row == 0 && lCode.Col == 0 ) || lCurrRawBag.Count >= 8 ;
+      bool lIsSeparator = lCode.IsSeparator || lCurrRawBag.Count >= 8 ;
       if ( lIsSeparator )
       {
         lCurrRawBag = new List<string>();  

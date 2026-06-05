@@ -187,6 +187,7 @@ namespace Transgraphier_1_0_App
     private Label mTitle;
     private WavePanel mWavePanel;
     private bool mIncludeRuler;
+    private bool mColorCoded;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string Title
@@ -213,9 +214,10 @@ namespace Transgraphier_1_0_App
       get => mWavePanel.Signal; set => mWavePanel.Signal = value;
     }
 
-    public WaveView(bool aIncludeRuler)
+    public WaveView(bool aIncludeRuler, bool aColorCoded)
     {
       mIncludeRuler = aIncludeRuler;
+      mColorCoded = aColorCoded;
       InitializeComponent();
     }
 
@@ -228,7 +230,7 @@ namespace Transgraphier_1_0_App
     private void InitializeComponent()
     {
       mTitle = new Label();
-      mWavePanel = new WavePanel(mIncludeRuler);
+      mWavePanel = new WavePanel(mIncludeRuler, mColorCoded);
 
       SuspendLayout();
 
@@ -261,9 +263,10 @@ namespace Transgraphier_1_0_App
 
   public class WavePanel : Control
   {
-    public WavePanel(bool aIncludeRuler)
+    public WavePanel(bool aIncludeRuler, bool aColorCoded)
     {
       mIncludeRuler = aIncludeRuler;
+      mColorCoded = aColorCoded;
       RulerH = mIncludeRuler ? 40 : 0;
       InitializeComponent();
     }
@@ -288,7 +291,7 @@ namespace Transgraphier_1_0_App
     }
 
     bool mIncludeRuler;
-
+    bool mColorCoded;
     Ruler mRuler = null ;
 
     Bitmap mRender = null ;
@@ -303,7 +306,9 @@ namespace Transgraphier_1_0_App
     Bitmap GetRender()
     {
       if (mRender == null)
+      {
         CacheRender();
+      }
       return mRender;
     }
 
@@ -329,7 +334,10 @@ namespace Transgraphier_1_0_App
 
       // For each horizontal pixel compute min and max sample in that pixel column
 
-      var lPoly = new List<Point>();
+      var lRedPoly   = new List<Point>();
+      var lBluePoly  = new List<Point>();
+      var lBlackPoly = new List<Point>();
+      var lGrayPoly  = new List<Point>();
 
       // Aggregate min/max per pixel
       for (int px = 0; px < Width; px++)
@@ -355,11 +363,23 @@ namespace Transgraphier_1_0_App
             lMax = v;
         }
 
-        lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
-        lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
+        if ( mColorCoded )
+        {
+          var lPoly = mColorCoded ? ( lMin != lMax ? lGrayPoly : ( lMax > .8 ? lBlackPoly : lMax > .5 ? lBluePoly : lRedPoly ) ) : lBluePoly;  
+
+          lPoly.Add(new Point(px, CenterY));
+          lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
+          lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
+          lPoly.Add(new Point(px, CenterY));
+        }
+        else
+        {
+          lBluePoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
+          lBluePoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMax * WaveHalfH)));
+        }
       }
 
-      if ( lPoly.Count == 0 )
+      if ( lRedPoly.Count == 0 && lBluePoly.Count == 0 && lBlackPoly.Count == 0 )
         return;
 
       if ( mIncludeRuler )
@@ -395,12 +415,16 @@ namespace Transgraphier_1_0_App
         // center line
         g.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
   
-        g.DrawLines(Pens.Blue, lPoly.ToArray());
+        if ( lRedPoly  .Count > 0 ) g.DrawLines(Pens.Red     , lRedPoly  .ToArray());
+        if ( lBluePoly .Count > 0 ) g.DrawLines(Pens.Blue    , lBluePoly .ToArray());
+        if ( lBlackPoly.Count > 0 ) g.DrawLines(Pens.Black   , lBlackPoly.ToArray());
+        if ( lGrayPoly .Count > 0 ) g.DrawLines(Pens.DarkGray, lGrayPoly .ToArray());
   
         if ( mIncludeRuler )
           DrawTimeRuler(g);
       }
     }
+
 
     protected override void OnPaint(PaintEventArgs e)
     {

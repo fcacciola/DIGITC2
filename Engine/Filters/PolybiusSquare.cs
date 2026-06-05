@@ -111,8 +111,8 @@ public class PolybiusSquare
 
   public string Decode( TapCode aCode )
   {
-    int lRow = ( aCode.Row % Size ) - 1 ; // Tap counts start at 1, not 0
-    int lCol = ( aCode.Col % Size ) - 1 ;
+    int lRow = ( aCode.R % Size ) - 1 ; // Tap counts start at 1, not 0
+    int lCol = ( aCode.C % Size ) - 1 ;
     int lIdx = (lRow*Size)+lCol ;
 
     return lIdx >= 0 && lIdx <= Alphabet.Count ? Alphabet[(lRow*Size)+lCol] : "?";

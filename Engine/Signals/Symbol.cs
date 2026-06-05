@@ -58,10 +58,10 @@ namespace DIGITC2_ENGINE
 
     public PulseStep Copy() {  return new PulseStep( Amplitude, Start, End ); }  
 
-    public void DumpSamples( List<float> aSamples )
+    public void DumpSamples( List<float> aSamples)
     {
       for( int i = 0; i < Length; i++ ) 
-        aSamples.Add(Amplitude);
+        aSamples.Add( Amplitude );
     }
 
     public static PulseStep Merge( PulseStep aA,  PulseStep aB )  

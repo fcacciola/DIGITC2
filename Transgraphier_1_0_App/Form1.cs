@@ -546,8 +546,10 @@ namespace Transgraphier_1_0_App
         {
           string lWaveFilename = Path.GetFileNameWithoutExtension(lWaveResult);
 
+          bool lColorCoded = lWaveFilename.Contains("ColorCoded") ;
+
           // Create WaveFormView for this file
-          WaveView lWaveView = new WaveView(false);
+          WaveView lWaveView = new WaveView(false, lColorCoded);
           lWaveView.Location = new Point(0, currentY);
           lWaveView.Width = scrollPanel.Width;
           lWaveView.Height = 150;
