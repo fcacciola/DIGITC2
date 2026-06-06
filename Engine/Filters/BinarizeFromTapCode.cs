@@ -40,6 +40,23 @@ public class BinarizeFromTapCode : FileLexicalFilter
     mQuitThreshold = Params.GetInt("QuitThreshold");
   }
 
+  public class DecodedTapCode
+  {
+    public DecodedTapCode (TapCodeSymbol aSymbol, PolybiusSquare aPolybiusSquare )
+    {
+      Symbol = aSymbol;
+      if ( IsSeparator)
+           DecodedValue = " ";
+      else DecodedValue = aPolybiusSquare.Decode(aSymbol.Code);
+    }
+
+    public bool IsSeparator => Symbol.Code.IsSeparator;
+
+    public TapCodeSymbol Symbol { get; }
+
+    public string DecodedValue { get; }
+  }
+
   protected override Packet Process()
   {
     WriteLine2GUI("Convertting Tap Code to Bits...");
@@ -49,73 +66,74 @@ public class BinarizeFromTapCode : FileLexicalFilter
     
     var lSymbols = lTapCodeSignal.GetSymbols<TapCodeSymbol>();
 
-    var lCodes = lSymbols.ConvertAll( s => s.Code ) ;
+    var lDecodedList = lSymbols.ConvertAll( s => new DecodedTapCode(s, mPolybiusSquare) );
 
-    List<BitBagSymbol> lBags = new List<BitBagSymbol> ();
+    List<BitBagSymbol> lBitBags = new List<BitBagSymbol> ();
 
-    List< List<string> > lRawBags = new List<List<string>> ();  
+    List< List<DecodedTapCode> > lRawDecodedBags = new List<List<DecodedTapCode>> ();  
 
-    List<string> lCurrRawBag = new List<string>();  
-    lRawBags.Add(lCurrRawBag);
+    List<DecodedTapCode> lCurrRawDecodedBag = new List<DecodedTapCode>();  
 
-    foreach( var lCode in lCodes )
+    lRawDecodedBags.Add(lCurrRawDecodedBag);
+
+    foreach( var lDecoded in lDecodedList)
     {
-      bool lIsSeparator = lCode.IsSeparator || lCurrRawBag.Count >= 8 ;
+      bool lIsSeparator = lDecoded.IsSeparator || lCurrRawDecodedBag.Count >= 8 ;
       if ( lIsSeparator )
       {
-        lCurrRawBag = new List<string>();  
-        lRawBags.Add(lCurrRawBag);
+        lCurrRawDecodedBag = new List<DecodedTapCode>();  
+        lRawDecodedBags.Add(lCurrRawDecodedBag);
       }
       else
       {
-        lCurrRawBag.Add(mPolybiusSquare.Decode(lCode));
+        lCurrRawDecodedBag.Add(lDecoded);
       }
     }
 
-    WriteDetailLine($"RAW Bags count: {lRawBags.Count}" );
+    WriteDetailLine($"RAW Decoded Bags count: {lRawDecodedBags.Count}" );
 
-    foreach ( var lRawBag in lRawBags )
+    foreach ( var lRawDecodedBag in lRawDecodedBags )
     {
-      if ( lRawBag.Count == 0 ) 
+      if ( lRawDecodedBag.Count == 0 ) 
        continue ;
 
-      WriteDetailLine($"RAW Bag: { string.Join(",",lRawBag)}" );
+      WriteDetailLine($"RAW Bag: { string.Join(",",lRawDecodedBag)}" );
 
       List<BitSymbol> lBits = new List<BitSymbol> ();
 
       double lStrength = 0 ;
 
-      foreach( var lRawBit in lRawBag )
+      foreach( var lRawDecodedTapCode in lRawDecodedBag )
       {
-        if ( lRawBit != "?" )
+        if ( lRawDecodedTapCode.DecodedValue != "?" )
         {
-          bool lOne = lRawBit[0]=='1';
-          double lBitLikelihood = mPolybiusSquare.HasExtendedBitSymbols ? ( lRawBit.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
+          bool lOne = lRawDecodedTapCode.DecodedValue[0]=='1';
+          double lBitLikelihood = mPolybiusSquare.HasExtendedBitSymbols ? ( lRawDecodedTapCode.DecodedValue.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
           lStrength += lBitLikelihood ;
-          lBits.Add( new BitSymbol(lBits.Count, lOne, lBitLikelihood)) ;
+          lBits.Add( new BitSymbol(lBits.Count, lOne, lBitLikelihood, lRawDecodedTapCode.Symbol.SamplePos)) ;
         }
-        else lBits.Add( new BitSymbol(lBits.Count, null, 0)) ;
+        else lBits.Add( new BitSymbol(lBits.Count, null, 0, lRawDecodedTapCode.Symbol.SamplePos)) ;
       }
 
-      double lSNR = lStrength / (double)lRawBag.Count ;
+      double lSNR = lStrength / (double)lRawDecodedBag.Count ;
       
       int lBagLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
 
-      BitBagSymbol lBag = new BitBagSymbol(lBags.Count, lBits, lBagLikelihood);
+      BitBagSymbol lBag = new BitBagSymbol(lBitBags.Count, lBits, lBagLikelihood);
 
       WriteLine($"Bits: {lBag}");
       WriteDetailLine($"Known Bits SNR: {lSNR}");
       WriteDetailLine($"Bag Likelihood: {lBagLikelihood}");
 
 
-      lBags.Add(lBag); 
+      lBitBags.Add(lBag); 
     }
 
     Unindent();
 
-    if ( lBags.Count > mMinCount)
+    if ( lBitBags.Count > mMinCount)
     {
-      return CreateOutput( new LexicalSignal(lBags), mPolybiusSquare.Name ) ;
+      return CreateOutput( new LexicalSignal(lBitBags), mPolybiusSquare.Name ) ;
     }
     else
     {

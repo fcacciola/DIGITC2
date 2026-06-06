@@ -51,7 +51,9 @@ namespace DIGITC2_ENGINE
 
       StringBuilder lSB = new StringBuilder ();
 
-      foreach( var lToken in LexicalInput.GetSymbols<ArraySymbol>() )
+      List<TimelineEntry> lTMEntries = new List<TimelineEntry>();
+
+      foreach ( var lToken in LexicalInput.GetSymbols<ArraySymbol>() )
       {
         lSB.Clear();
 
@@ -65,15 +67,21 @@ namespace DIGITC2_ENGINE
           if ( ! lOptions.Validator.IsValid( lDigit ) )
             lDigit = lOptions.Fallback ;
 
-          lSB.Append( lDigit );
+          var lTME = new TimelineEntry(lByteSymbol.SamplePos, lDigit);
+          lTMEntries.Add(lTME);
 
+          lSB.Append( lDigit );
         }
 
         string lWord = lSB.ToString();
         if ( ! string.IsNullOrEmpty( lWord ) )
-          lWords.Add( new WordSymbol(lWords.Count, lWord ) );
+          lWords.Add( new WordSymbol(lWords.Count, lWord, lToken.SamplePos ) );
       }
   
+      var lTimeline = new Timeline(lTMEntries);
+
+      lTimeline.Save(Session.OutputFile($"Timeline.json"));
+
       WriteLine2GUI($"Words:{Environment.NewLine}{string.Join(Environment.NewLine, lWords.ConvertAll( b => b.ToString()) ) }" ) ;
 
       return CreateOutput( new LexicalSignal(lWords), Name) ;

@@ -99,15 +99,30 @@ namespace DIGITC2_ENGINE
 
   public class TapCodeSymbol : Symbol
   {
-    public TapCodeSymbol( int aIdx, TapCode aCode ) : base(aIdx) { Code = aCode; }
+    public TapCodeSymbol( int aIdx, TapCode aCode ) : base(aIdx) { Code = aCode; SetupSamplePos(); }
 
-    public TapCodeSymbol( int aIdx, string aCode ) : base(aIdx) { Code = new TapCode(aCode); }
+    public TapCodeSymbol( int aIdx, TapCode aCode, int aSamplePos ) : base(aIdx) { Code = aCode; SamplePos = aSamplePos ; }
+
+    public TapCodeSymbol(int aIdx, string aStr) : base(aIdx) 
+    {
+      if ( aStr.Contains(':') )
+      {
+        var lParts = aStr.Split(':');
+        Code = new TapCode(lParts[0]);
+        SamplePos = (int)SIG.SamplesForTime(double.Parse(lParts[1]));
+      }
+      else
+      {
+        Code = new TapCode(aStr);
+        SamplePos = 0;
+      }
+    }
 
     public override string Type => "TapCode" ;
 
-    public override Symbol Copy() { return new TapCodeSymbol( Idx, Code ); }  
+    public override Symbol Copy() { return new TapCodeSymbol( Idx, Code, SamplePos ); }  
 
-    public override string ToString() => Code.ToString() ;
+    public override string ToString() => $"{Code.ToString()}:{SIG.TimeForSample(SamplePos)}";
 
     public double Value => double.Parse($"{Code.R}.{Code.C}") ;
 
@@ -124,6 +139,14 @@ namespace DIGITC2_ENGINE
       { 
         Code.Row?.Taps.ForEach(t => t.DumpSample(aSamples, Tap.TapType.Separator));
       }
+    }
+
+    void SetupSamplePos()
+    {
+      if (Code.Row != null && Code.Row.Taps.Count > 0)
+        SamplePos = Code.Row.Taps.Last().Source.SamplePos;
+      else
+        SamplePos = 0;
     }
   }
 

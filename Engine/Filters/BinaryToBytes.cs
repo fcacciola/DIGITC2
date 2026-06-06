@@ -66,7 +66,7 @@ namespace DIGITC2_ENGINE
 
         var lByte = ToByte_MSB_Last(lBitValues);
 
-        lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte, lByteLikelihood ) ) ;
+        lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte, lByteLikelihood, lBag.SamplePos ) ) ;
       }
 
       WriteLine($"Bytes: {string.Join(", ", lByteSymbols.ConvertAll( b => b.ToString()) ) }" ) ;

@@ -62,7 +62,7 @@ namespace DIGITC2_ENGINE
       mSymbols.Clear(); 
       foreach( bool lBit in mBits )
       {
-        BitSymbol lBS = new BitSymbol(mSymbols.Count(),lBit,1.0,null); 
+        BitSymbol lBS = new BitSymbol(mSymbols.Count(),lBit,1.0,0); 
         mSymbols.Add(lBS);
 
       }

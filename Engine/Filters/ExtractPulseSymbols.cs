@@ -248,7 +248,7 @@ namespace DIGITC2_ENGINE
 
       CurrPulses.SetupGapDurations(); 
 
-      CurrPulses.Plot("Initial_Pulses");
+      CurrPulses.Plot("0_Initial_Pulses");
     }
 
     double CalculateMergeThreshold()
@@ -347,7 +347,7 @@ namespace DIGITC2_ENGINE
 
       WriteDetailLine($"Final Count={CurrPulses.Count}");
 
-      CurrPulses.Plot("Merged_Pulses");
+      CurrPulses.Plot("1_Merged_Pulses");
       Unindent();  
     }
 
@@ -394,7 +394,7 @@ namespace DIGITC2_ENGINE
 
       CurrPulses.SetupGapDurations(); 
 
-      CurrPulses.Plot("Final_Pulses");
+      CurrPulses.Plot("2_Final_Pulses");
 
       WriteDetailLine($"Final count: {CurrPulses.Count}");
       Unindent();

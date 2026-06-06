@@ -23,7 +23,11 @@ namespace DIGITC2_ENGINE
 
     static public double ToNormalizedDigitalFrequency(double aFrequencyInHerz) => aFrequencyInHerz /  SamplingRate ;
 
-    static public int SamplesForTime( double aMiliseconds ) => (int)Math.Ceiling(SamplingRate * aMiliseconds / 1000 ) ;
+    static public int SamplesForTime_InMilliseconds( double aMiliseconds ) => (int)Math.Ceiling(SamplingRate * aMiliseconds / 1000 ) ;
+
+    static public int SamplesForTime( double aSeconds ) => (int)Math.Ceiling(SamplingRate * aSeconds ) ;
+
+    static public double TimeForSample( int aSample ) => (double)aSample / SamplingRate ;
   }
 
   public class WaveSignal : Signal

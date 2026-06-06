@@ -20,6 +20,7 @@ namespace DIGITC2_ENGINE
     public abstract string Type{ get; }
 
     public int Idx ;
+    public int SamplePos ;
 
     public static bool Equals( Symbol aLHS, Symbol aRHS)
     {
@@ -83,8 +84,9 @@ namespace DIGITC2_ENGINE
   {
     public PulseSymbol( int aIdx, int aStart, int aEnd, IEnumerable<PulseStep> aSteps ) : base(aIdx)
     {
-      Start = aStart;
-      End   = aEnd;
+      SamplePos = (aStart + aEnd) / 2;
+      Start     = aStart;
+      End       = aEnd;
 
       Steps.AddRange(aSteps) ; 
 
@@ -133,6 +135,7 @@ namespace DIGITC2_ENGINE
 
       var rMerged = new PulseSymbol(aA.Idx, aA.Start, aB.End, lMergedSteps);
 
+
       return rMerged;
     }
 
@@ -146,11 +149,11 @@ namespace DIGITC2_ENGINE
 
   public class BitSymbol : Symbol
   {
-    public BitSymbol( int aIdx, bool? aOne, double aLikelihood, PulseSymbol aView = null ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; View = aView ; }
+    public BitSymbol( int aIdx, bool? aOne, double aLikelihood, int aSamplePos ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; SamplePos = aSamplePos ; }
 
     public override string Type => "Bit" ;
 
-    public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, View?.Copy()  as PulseSymbol ); }  
+    public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, SamplePos ); }  
 
     public override string ToString() => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
 
@@ -159,13 +162,16 @@ namespace DIGITC2_ENGINE
     public bool? One ;
 
     public double Likelihood ;
-
-    public PulseSymbol View ;
   }
 
   public class BitBagSymbol : Symbol
   {
-    public BitBagSymbol( int aIdx, List<BitSymbol> aBits, double aLikelihood ) : base(aIdx) { Bits = aBits; Likelihood = aLikelihood ; }
+    public BitBagSymbol( int aIdx, List<BitSymbol> aBits, double aLikelihood ) : base(aIdx) 
+    { 
+      Bits = aBits; 
+      Likelihood = aLikelihood ;
+      SamplePos = Bits[ Bits.Count / 2].SamplePos ;
+    }
 
     public override string Type => "BitList" ;
 
@@ -182,11 +188,11 @@ namespace DIGITC2_ENGINE
 
   public class ByteSymbol : Symbol
   {
-    public ByteSymbol( int aIdx, byte aByte, double aLikelihood = 1.0) : base(aIdx) { Byte = aByte ; Likelihood = aLikelihood ; }
+    public ByteSymbol( int aIdx, byte aByte, double aLikelihood = 1.0, int aSamplePos = 0) : base(aIdx) { Byte = aByte ; Likelihood = aLikelihood ; SamplePos = aSamplePos ; }
 
     public override string Type => "Byte" ;
 
-    public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood ); }  
+    public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood, SamplePos ); }  
 
     public override string ToString() => $"[{Byte.ToString():x}]" ;
 
@@ -199,7 +205,11 @@ namespace DIGITC2_ENGINE
 
   public class ArraySymbol : Symbol
   {
-    public ArraySymbol( int aIdx, List<Symbol> aSymbols ) : base(aIdx) { Symbols = aSymbols ; }
+    public ArraySymbol( int aIdx, List<Symbol> aSymbols ) : base(aIdx) 
+    { 
+      Symbols = aSymbols ;
+      SamplePos = Symbols[Symbols.Count / 2].SamplePos;
+    }
 
     public override string Type => "Token" ;
 
@@ -219,11 +229,11 @@ namespace DIGITC2_ENGINE
 
   public class WordSymbol : Symbol
   {
-    public WordSymbol( int aIdx, string aWord ) : base(aIdx) { Word = aWord ; }
+    public WordSymbol( int aIdx, string aWord, int aSamplePos = 0 ) : base(aIdx) { Word = aWord ; SamplePos = aSamplePos ; }
 
     public override string Type => "Word" ;
 
-    public override Symbol Copy() { return new WordSymbol( Idx, Word ); }  
+    public override Symbol Copy() { return new WordSymbol( Idx, Word, SamplePos ); }  
 
     public override string ToString() => $"[{Word}]" ;
 
@@ -236,11 +246,11 @@ namespace DIGITC2_ENGINE
 
   public class TextSymbol : Symbol
   {
-    public TextSymbol( int aIdx, string aText ) : base(aIdx) { Text = aText ; }
+    public TextSymbol( int aIdx, string aText, int aSamplePos = 0 ) : base(aIdx) { Text = aText ; SamplePos = aSamplePos ; }
 
     public override string Type => "Text" ;
 
-    public override Symbol Copy() { return new WordSymbol( Idx, Text ); }  
+    public override Symbol Copy() { return new TextSymbol( Idx, Text, SamplePos ); }  
 
     public override string ToString() => Text ;
 

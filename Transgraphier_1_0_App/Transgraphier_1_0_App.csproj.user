@@ -10,5 +10,8 @@
     <Compile Update="Controls\LexicalView.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\TimelineView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

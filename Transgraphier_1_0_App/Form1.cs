@@ -23,14 +23,15 @@ namespace Transgraphier_1_0_App
     Form1 mMainWindow; 
   }
 
-  public class WaveViewController
+  public class ViewController
   {
-    public double    MinSamplesPerPixel { get ; set ; }  
-    public double    MaxSamplesPerPixel { get ; set ; }
-    public WaveViews WaveViews          { get ; set ; }
-    
-    public double    SamplesPerPixel    { get ; private set ; }
-    public double    StartSample        { get ; private set ; }
+    public double MinSamplesPerPixel { get ; set ; }  
+    public double MaxSamplesPerPixel { get ; set ; }
+    public int    Length             { get ; set ; }
+    public double SamplesPerPixel    { get ; private set ; }
+    public double PanStartSample     { get ; private set ; }
+
+    public ControlledViews Views          { get ; set ; }
 
     public MeasureTimeTool MeasureTimeTool { get; set; } = null;
 
@@ -40,42 +41,42 @@ namespace Transgraphier_1_0_App
       Invalidate();
     }
 
-    public void UpdateSS( double aStartSample)
+    public void UpdateSS( double aPanStartSample)
     {
-      StartSample = aStartSample ;
+      PanStartSample = aPanStartSample ;
       Invalidate();
     }
 
-    public void Update( double aSamplePerPixel, double aStartSample)
+    public void Update( double aSamplePerPixel, double aPanStartSample)
     {
       SamplesPerPixel = aSamplePerPixel ;
-      StartSample     = aStartSample ;
+      PanStartSample  = aPanStartSample ;
       Invalidate();
     }
 
     public void Invalidate()
     {
-      WaveViews.Invalidate();
+      Views.Invalidate();
     }
 
   }
 
 
-  public class WaveViews
+  public class ControlledViews
   {
-    public WaveViews()
+    public ControlledViews()
     {
     }
 
     public void Clear() { mViews.Clear(); } 
 
-    public void Add( WaveView aView) { mViews.Add( aView ); }
+    public void Add( ControlledView aView) { mViews.Add( aView ); }
 
     public void Invalidate() { mViews.ForEach(v => v.InvalidateRender()); }
 
     public int Count => mViews.Count;
 
-    List<WaveView> mViews = new List<WaveView>();
+    List<ControlledView> mViews = new List<ControlledView>();
   }
 
   public partial class Form1 : Form
@@ -88,7 +89,7 @@ namespace Transgraphier_1_0_App
     string        mSessionName = null ;
     string        mSessionFolder = null ; 
     MainWindowGUI mMWGUI     = null; 
-    WaveViews     mWaveViews = new WaveViews();
+    ControlledViews     mControlledViews = new ControlledViews();
     MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
 
     public Form1()
@@ -146,15 +147,15 @@ namespace Transgraphier_1_0_App
     {
       var availableWidth = Math.Max(1.0, mInputWave.Width);
 
-      var lZPC = new WaveViewController(){ MinSamplesPerPixel = 2.0
+      var lZPC = new ViewController(){ MinSamplesPerPixel = 2.0
                                         , MaxSamplesPerPixel = aSignal.Length / availableWidth
-                                        , WaveViews = mWaveViews  
+                                        , Views = mControlledViews  
       };
           
       lZPC.Update(lZPC.MaxSamplesPerPixel,0 ) ; // Zoom out the entire signal
-
-      mInputWave.WaveViewController = lZPC; 
-      mInputWave.WaveViewController.MeasureTimeTool = mMeasureTimeTool; 
+      lZPC.Length = aSignal.Length;
+      mInputWave.ViewController = lZPC; 
+      mInputWave.ViewController.MeasureTimeTool = mMeasureTimeTool; 
     }
 
     Config LoadConfig()
@@ -178,7 +179,7 @@ namespace Transgraphier_1_0_App
       {
         mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
 
-        mWaveViews.Clear();
+        mControlledViews.Clear();
 
         if ( Path.GetExtension(mInputFile) == ".txt" )
         {
@@ -191,7 +192,7 @@ namespace Transgraphier_1_0_App
           SetupZoomPanController(lInputSignal);
           mInputWave.Signal = lInputSignal;
           mInputWave.Title = mSessionName ;
-          mWaveViews.Add( mInputWave );
+          mControlledViews.Add( mInputWave );
         }
 
         AddGeneralMessage($"Input Signal loaded: {mInputFile}");
@@ -364,6 +365,7 @@ namespace Transgraphier_1_0_App
       public List<string> WaveResultFileNames { get ; set ; } = new List<string>();
       public List<string> Summary             { get ; set ; } = new List<string>();
       public string       Message             { get ; set ; }
+      public string       TimelineFileName    { get ; set ; } 
 
       public bool IsEmpty => string.IsNullOrEmpty(TextResultFileName) && WaveResultFileNames.Count == 0 && Summary.Count == 0 && string.IsNullOrEmpty(Message);  
     }
@@ -478,8 +480,9 @@ namespace Transgraphier_1_0_App
 
       foreach (var lFolder in aPipelineOutcome.Folders )
       {
-        string lMessageFile = $"{lFolder}\\Message.txt";
-        string lResultFile = $"{lFolder}\\Result.txt"; 
+        string lMessageFile  = $"{lFolder}\\Message.txt";
+        string lResultFile   = $"{lFolder}\\Result.txt"; 
+        string lTimelineFile = $"{lFolder}\\Timeline.json";
 
         var lFilterOutcome = new FilterOutcome();
 
@@ -502,6 +505,9 @@ namespace Transgraphier_1_0_App
 
         lFilterOutcome.WaveResultFileNames.AddRange( Directory.GetFiles(lFolder, "*.wav") ) ;
 
+        if ( File.Exists(lTimelineFile))
+          lFilterOutcome.TimelineFileName = lTimelineFile;
+
         if ( ! lFilterOutcome.IsEmpty )
           lFilterOutcomes.Add( lFilterOutcome ); 
 
@@ -516,6 +522,63 @@ namespace Transgraphier_1_0_App
 
         lFilterOutcome.Summary.ForEach( s => AddGeneralMessage(s) ) ;
 
+        lFilterOutcome.WaveResultFileNames.Sort();
+
+        foreach( var lWaveResult in lFilterOutcome.WaveResultFileNames)
+        {
+          string lWaveFilename = Path.GetFileNameWithoutExtension(lWaveResult);
+
+          if ( lWaveFilename.Contains('_') )
+            lWaveFilename = lWaveFilename.Split('_')[1];
+
+          bool lColorCoded = lWaveFilename.Contains("ColorCoded") ;
+
+          // Create WaveFormView for this file
+          WaveView lWaveView = new WaveView(false, lColorCoded);
+          lWaveView.Location = new Point(0, currentY);
+          lWaveView.Width = scrollPanel.Width;
+          lWaveView.Height = 150;
+          lWaveView.Title = lWaveFilename;
+
+          var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
+
+          lWaveView.ViewController = mInputWave.ViewController ; 
+
+          lWaveView.Signal = lResultSignal;
+
+          // Add waveform view to content panel
+          contentPanel.Controls.Add(lWaveView);
+          currentY += lWaveView.Height;
+
+          mControlledViews.Add(lWaveView);
+        }
+      } 
+
+      var lTlFile = lFilterOutcomes.Select(fo => fo.TimelineFileName).FirstOrDefault(tf => !string.IsNullOrEmpty(tf));
+      if (!string.IsNullOrEmpty(lTlFile))
+      {
+        try
+        {
+          var lTimeline = Timeline.Load(lTlFile);
+          TimelineView lTimelineView = new TimelineView();
+          lTimelineView.Location = new Point(0, currentY);
+          lTimelineView.Width = scrollPanel.Width;
+          lTimelineView.Height = 150;
+          lTimelineView.Title = "Timeline";
+          lTimelineView.Timeline = lTimeline;
+          lTimelineView.ViewController = mInputWave.ViewController;
+          mControlledViews.Add(lTimelineView);
+          contentPanel.Controls.Add(lTimelineView);
+          currentY += lTimelineView.Height;
+        }
+        catch (Exception ex)
+        {
+          AddErrorMessage($"Error loading timeline from {lTlFile}: {ex.Message}");
+        }
+      }
+
+      foreach ( var lFilterOutcome in lFilterOutcomes )
+      {
         string lTextResult = lFilterOutcome.TextResultFileName;
 
         // Create LexicalView for this file
@@ -541,39 +604,12 @@ namespace Transgraphier_1_0_App
         // Add lexical view to content panel
         contentPanel.Controls.Add(lLexicalView);
         currentY += lLexicalView.Height;
-
-        foreach( var lWaveResult in lFilterOutcome.WaveResultFileNames)
-        {
-          string lWaveFilename = Path.GetFileNameWithoutExtension(lWaveResult);
-
-          bool lColorCoded = lWaveFilename.Contains("ColorCoded") ;
-
-          // Create WaveFormView for this file
-          WaveView lWaveView = new WaveView(false, lColorCoded);
-          lWaveView.Location = new Point(0, currentY);
-          lWaveView.Width = scrollPanel.Width;
-          lWaveView.Height = 150;
-          lWaveView.Title = lWaveFilename;
-
-          var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
-
-          lWaveView.WaveViewController = mInputWave.WaveViewController ; 
-
-          lWaveView.Signal = lResultSignal;
-
-          // Add waveform view to content panel
-          contentPanel.Controls.Add(lWaveView);
-          currentY += lWaveView.Height;
-
-          mWaveViews.Add(lWaveView);
-        }
-
       } 
 
       // Set the content panel dimensions to accommodate all controls with full width
       contentPanel.Size = new Size(scrollPanel.Width, currentY);
 
-      mWaveViews.Invalidate();
+      mControlledViews.Invalidate();
       AddGeneralMessage("Session Results loaded");
 
       this.ExportButton.Enabled = true ;
