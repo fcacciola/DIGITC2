@@ -24,7 +24,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
   protected override void OnSetup()
   {
-    switch( Params.Get("PSquare") )
+    switch( Params.GetValue("PSquare") )
     {
       case "Binary_3_1_Guarded": mPolybiusSquare = PolybiusSquare.Binary_3_1_Guarded ; break ;
       case "Binary_2_1_Guarded": mPolybiusSquare = PolybiusSquare.Binary_2_1_Guarded; break ;
@@ -35,7 +35,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     }
 
-    mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
+    mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     mMinCount      = Params.GetInt("MinCount");
     mQuitThreshold = Params.GetInt("QuitThreshold");
   }

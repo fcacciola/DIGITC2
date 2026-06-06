@@ -1,4 +1,6 @@
 OutputDetails=true
+InputFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Input
+OutputFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Output
 SamplesFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Input\Samples
 DisableBranching=false
 MaxBranches=4

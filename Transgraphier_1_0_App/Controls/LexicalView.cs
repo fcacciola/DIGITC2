@@ -13,7 +13,6 @@ namespace Transgraphier_1_0_App
     private Form1 mMainWindow ;
     private Label mTitle;
     private RichTextBox mTextPanel;
-    private ConfigurationTableView mParameters;
     private TableLayoutPanel mTableLayout;
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -21,13 +20,6 @@ namespace Transgraphier_1_0_App
     {
       get => mTitle.Text;
       set => mTitle.Text = value;
-    }
-
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public Dictionary<string, string> Parameters
-    {
-      get => mParameters.Data;
-      set => mParameters.Data = value;
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -59,7 +51,6 @@ namespace Transgraphier_1_0_App
     {
       mTitle = new Label();
       mTextPanel = new RichTextBox();
-      mParameters = new ConfigurationTableView(mMainWindow);
       mTableLayout = new TableLayoutPanel();
 
       SuspendLayout();
@@ -93,14 +84,11 @@ namespace Transgraphier_1_0_App
       mTextPanel.WordWrap = false;
       mTextPanel.Dock = DockStyle.Fill;
 
-      // mParameters
-      mParameters.Dock = DockStyle.Fill;
 
       // Add controls to TableLayoutPanel
       mTableLayout.Controls.Add(mTitle, 0, 0);
       mTableLayout.SetColumnSpan(mTitle, 2);
       mTableLayout.Controls.Add(mTextPanel, 0, 1);
-      mTableLayout.Controls.Add(mParameters, 1, 1);
 
       Controls.Add(mTableLayout);
 

@@ -1,6 +1,6 @@
 NoiseFloorGate_FloorEstimationTrimRatio=0.05 
 NoiseFloorGate_FloorEstimationPercentile=10
-NoiseFloorGate_Floor=-1
+NoiseFloorGate_Floor=-1|Noise Floor
 NoiseFloorGate_EnvelopeAttack=0.005
 NoiseFloorGate_EnvelopeRelease=0.01
 
@@ -15,12 +15,12 @@ Discretize_GateOutLevel=0.85
 
 ExtractPulseSymbols_MinLevelThreshold=5
 ExtractPulseSymbols_MinDurationThreshold = 0.005
-ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
-ExtractPulseSymbols_VeryShortThreshold = -1
+ExtractPulseSymbols_ContiguousPulsesGapDuration = -1|Pulse Merge Threshold
+ExtractPulseSymbols_VeryShortThreshold = -1|Very Short Threshold
 
 ExtractTapCode_SeparatorCountThreshold=5
 ExtractTapCode_MinTapCount=16
-ExtractTapCode_IntraCountGap=-1
+ExtractTapCode_IntraCountGap=-1|Intra Count Gap
 
 BinarizeFromTapCode_PSquare=Binary
 BinarizeFromTapCode_MinCount=2

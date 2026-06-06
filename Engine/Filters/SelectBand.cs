@@ -122,7 +122,7 @@ namespace DIGITC2_ENGINE
     {
       // An Empty list means to do NO SPLITTNG
 
-      string lFCV = Params.Get("Frequency");
+      string lFCV = Params.GetValue("Frequency");
 
       if ( !string.IsNullOrEmpty(lFCV) ) 
       {

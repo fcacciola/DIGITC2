@@ -25,17 +25,53 @@ public static class ConfigHelper
     return !line.StartsWith("#") && !line.StartsWith("//") && line.Contains("=");
   }
 
+  public static (string,string) SplitSectionKey(string aL) 
+  {
+    var lLoc = aL.IndexOf('_');
+    string lSection = aL.Substring(0, lLoc).Trim();  
+    string lKey = aL.Substring(lLoc + 1).Trim();
+    return (lSection, lKey);  
+  }
+
+  public static (string, string) SplitSectionValue(string aL)
+  {
+    if ( aL.Contains('|') )
+    {
+      var lLoc = aL.LastIndexOf('|');
+      string lValue = aL.Substring(0, lLoc).Trim();
+      string lLabel = aL.Substring(lLoc + 1).Trim();
+      return (lValue, lLabel);
+    }
+    else
+    {
+      return (aL.Trim(), null);
+    }
+  }
+}
+
+public class Param
+{
+  public Param(string aName, string aValue, string aLabel)
+  {
+    Name  = aName;
+    Value = aValue;
+    Label = aLabel;
+  }
+
+  public string Name { get; set; }
+  public string Value { get; set; } = null;
+  public string Label { get; set; } = null;
 }
 
 public class Params
 {
-  public Dictionary<string, string> Map = null ;
+  public Dictionary<string, Param> Map = null ;
 
-  public Params() { Map = new Dictionary<string, string>() ; }
+  public Params() { Map = new Dictionary<string, Param>() ; }
 
   public Params Copy()
   {
-    Dictionary<string, string> lNewMap = new();
+    Dictionary<string, Param> lNewMap = new();
 
     foreach( var kv in Map )
       lNewMap.Add( kv.Key, kv.Value );
@@ -54,30 +90,33 @@ public class Params
 
       foreach( var lKV in  lRead) 
       {
-        Set(lKV.Key.Trim(), lKV.Value.Trim());
+        (string lValue, string lLabel) = ConfigHelper.SplitSectionValue(lKV.Value);
+        Set(lKV.Key.Trim(), lValue, lLabel);
       }
     }
 
     return this;  
   }
 
-  //public static Params FromFile( string aFile)
-  //{
-  //  Params rParams = new() ;
-  //  return rParams.LoadFile(aFile);
-  //}
-
-  public string Get( string aKey)
+  public Param Get_( string aKey)
   { 
     return Map.ContainsKey(aKey) ? Map[aKey] : null; 
   }
 
-  public void Set( string aKey, string aValue )
+  public string GetValue( string aKey) => Get_(aKey)?.Value ;
+
+  public void Set( string aKey, string aValue, string aLabel )
   {
     if ( !Map.ContainsKey(aKey) )
-          Map.Add(aKey, aValue);
-    else Map[aKey] = aValue; 
+         Map.Add(aKey, new Param(aKey,aValue,aLabel));
+    else Map[aKey] = new Param(aKey,aValue,aLabel); 
   }
+
+  public void ChangeValue( string aKey, string aValue )
+  {
+    Map[aKey].Value = aValue; 
+  }
+
 
   static int? ToInt( string aS )
   {
@@ -111,22 +150,22 @@ public class Params
     return null;
   }
 
-  public int?    GetOptionalInt   ( string aKey) { string v = Get(aKey); if ( v != null ) return ToInt   (v) ; else return null ; }
-  public float?  GetOptionalFloat ( string aKey) { string v = Get(aKey); if ( v != null ) return ToFloat (v) ; else return null ; }
-  public double? GetOptionalDouble( string aKey) { string v = Get(aKey); if ( v != null ) return ToDouble(v) ; else return null ; }
-  public bool?   GetOptionalBool  ( string aKey) { string v = Get(aKey); if ( v != null ) return ToBool  (v) ; else return null ; }
+  public int?    GetOptionalInt   ( string aKey) { string v = GetValue(aKey); if ( v != null ) return ToInt   (v) ; else return null ; }
+  public float?  GetOptionalFloat ( string aKey) { string v = GetValue(aKey); if ( v != null ) return ToFloat (v) ; else return null ; }
+  public double? GetOptionalDouble( string aKey) { string v = GetValue(aKey); if ( v != null ) return ToDouble(v) ; else return null ; }
+  public bool?   GetOptionalBool  ( string aKey) { string v = GetValue(aKey); if ( v != null ) return ToBool  (v) ; else return null ; }
 
   public int    GetInt   ( string aKey) => GetOptionalInt   ( aKey ) ?? 0 ;
   public float  GetFloat ( string aKey) => GetOptionalFloat ( aKey ) ?? 0.0f;
   public double GetDouble( string aKey) => GetOptionalDouble( aKey ) ?? 0.0;
   public bool   GetBool  ( string aKey) => GetOptionalBool  ( aKey ) ?? false;
 
-  public string GetPath( string aKey ) => ConfigHelper.ExpandRelativeFilePath(Get(aKey));
+  public string GetPath( string aKey ) => ConfigHelper.ExpandRelativeFilePath(GetValue(aKey));
 
   public List<T> GetNumberList<T>( string aKey ) where T : INumber<T>
   {
     List<T> rL = new List<T>(); 
-    string lLV = Get(aKey);
+    string lLV = GetValue(aKey);
     if ( ! IsNullOrEmpty(lLV) )
     {
       foreach ( string lN in lLV.Split(',') )
@@ -144,13 +183,10 @@ public class Params
   public List<int>   GetIntList  ( string aKey ) => GetNumberList<int>  (aKey);
   public List<float> GetFloatList( string aKey ) => GetNumberList<float>(aKey);
 
-  Params( Dictionary<string, string> aMap )  
+  Params( Dictionary<string, Param> aMap )  
   {
     Map = aMap;
   }
-
-
-
 }
 
 public class Settings : Params
@@ -194,13 +230,6 @@ public class Config
     return new Config( lNewSections );
   }
 
-  static (string,string) SplitSectionKey(string aL) 
-  {
-    var lLoc = aL.IndexOf('_');
-    string lSection = aL.Substring(0, lLoc);  
-    string lKey = aL.Substring(lLoc + 1);
-    return (lSection, lKey);  
-  }
 
   public static Config FromFile( string file)
   {
@@ -214,8 +243,9 @@ public class Config
 
       foreach( var lKV in  lRead) 
       {
-        var (lSection,lKey) = SplitSectionKey(lKV.Key);
-        rConfig.GetSection(lSection.Trim()).Set(lKey.Trim(), lKV.Value.Trim());
+        var (lSection,lKey)  = ConfigHelper.SplitSectionKey(lKV.Key);
+        var (lValue, lLabel) = ConfigHelper.SplitSectionValue(lKV.Value);
+        rConfig.GetSection(lSection).Set(lKey, lValue, lLabel);
       }
 
       return rConfig ;
@@ -243,6 +273,20 @@ public class Config
     }
 
     File.WriteAllLines( aFilename, lLines );
+  }
+
+  public List<Param> GetEditableParams()
+  {
+    List<Param> rL = new List<Param>();
+    foreach (var lSectionKV in mSections)
+    {
+      foreach (var lEntryKV in lSectionKV.Value.Map)
+      {
+        if (lEntryKV.Value.Label != null)
+          rL.Add(lEntryKV.Value);
+      }
+    }
+    return rL;
   }
 
   Config( Dictionary<string,Params> aSections ) { mSections= aSections; } 

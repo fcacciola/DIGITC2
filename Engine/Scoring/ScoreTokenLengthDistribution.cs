@@ -25,7 +25,7 @@ namespace DIGITC2_ENGINE
       FillCC();
 
       mQuitThreshold = Params.GetInt("QuitThreshold");
-      mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
+      mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     }
 
     // According to Claude Sonnet 4:

@@ -20,7 +20,7 @@ namespace DIGITC2_ENGINE
     {
       mBitSize       = Params.GetInt("BitSize");
       mQuitThreshold = Params.GetInt("QuitThreshold");
-      mFitnessMap    = new FitnessMap(Params.Get("FitnessMap"));
+      mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     }
 
     protected override Packet Process()

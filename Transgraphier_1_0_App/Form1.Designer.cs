@@ -213,6 +213,7 @@ namespace Transgraphier_1_0_App
       resultsPanel.Padding = new Padding(2);
       resultsPanel.Size = new Size(1920, 300);
       resultsPanel.TabIndex = 3;
+
       // 
       // logTextBox
       // 
@@ -220,7 +221,7 @@ namespace Transgraphier_1_0_App
       logTextBox.Name = "logTextBox";
       logTextBox.ReadOnly = true;
       logTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
-      logTextBox.Size = new Size(2000, 300);
+      logTextBox.Size = new Size(1000, 300);
       logTextBox.TabIndex = 1;
       logTextBox.Text = "";
       // 

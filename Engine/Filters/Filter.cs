@@ -67,7 +67,7 @@ namespace DIGITC2_ENGINE
     {
       Config rNew = Config.Copy();
       for( int i = 0 ; i < aKVList.Length ; i += 2 ) 
-        rNew.GetSection(Name).Set(aKVList[i], aKVList[i+1]);
+        rNew.GetSection(Name).ChangeValue(aKVList[i], aKVList[i+1]);
       Branches.Add(rNew) ;
     }
 

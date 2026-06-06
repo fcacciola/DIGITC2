@@ -105,8 +105,8 @@ namespace Transgraphier_1_0_App
 
       mSettings = Settings.FromFile(SettingsFile);
 
-      mSettings.Set("InputFolder" , InputFolder);  
-      mSettings.Set("OutputFolder", OutputFolder);  
+      mSettings.ChangeValue("InputFolder" , InputFolder);  
+      mSettings.ChangeValue("OutputFolder", OutputFolder);  
 
       if ( ! Directory.Exists( OutputFolder ))
         Directory.CreateDirectory( OutputFolder );  
@@ -167,12 +167,6 @@ namespace Transgraphier_1_0_App
       return rConfig;  
     }
 
-    Dictionary<string,string> GetParameters( string aFilter )
-    {
-      return mConfig.GetSection(aFilter).Map;
-    }
-
-
     void LoadInputFile()
     {
       try
@@ -225,7 +219,7 @@ namespace Transgraphier_1_0_App
         string lFolder = Path.GetDirectoryName(mInputFile);
         if ( lFolder != lSamplesFolder )
         {
-          mSettings.Set("SamplesFolder", lFolder );  
+          mSettings.ChangeValue("SamplesFolder", lFolder );  
           mSettings.Save(SettingsFile);
         }
 
@@ -476,6 +470,9 @@ namespace Transgraphier_1_0_App
       contentPanel.Width = scrollPanel.Width;
       scrollPanel.Controls.Add(contentPanel);
 
+      var lParameters = new ConfigurationTableView();
+      lParameters.Bind(mConfig);
+
       List<FilterOutcome> lFilterOutcomes = new List<FilterOutcome>();
 
       foreach (var lFolder in aPipelineOutcome.Folders )
@@ -514,7 +511,12 @@ namespace Transgraphier_1_0_App
       }
 
       int currentY = 0;
-
+      contentPanel.Controls.Add(lParameters);
+      lParameters.Location = new Point(0, currentY);
+      lParameters.Width = scrollPanel.Width;
+      lParameters.Height = 100;
+      currentY += lParameters.Height;
+    
       foreach( var lFilterOutcome in lFilterOutcomes )
       {
         if ( ! string.IsNullOrEmpty(lFilterOutcome.Message) )
@@ -590,7 +592,6 @@ namespace Transgraphier_1_0_App
           lLexicalView.Width = scrollPanel.Width;
           lLexicalView.Height = 300;
           lLexicalView.Title = lFilterOutcome.FilterName;
-          lLexicalView.Parameters = GetParameters(lFilterOutcome.FilterName);
 
           try
           {

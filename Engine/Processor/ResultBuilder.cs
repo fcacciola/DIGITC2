@@ -16,6 +16,7 @@ namespace DIGITC2_ENGINE
     public string      Name           { get; set; }
     public TextMessage Text           { get; set; }
     public Fitness     OverallFitness { get; set; }
+    public Config      Config         { get; set; }
 
     public List<Packet> FilterSequence { get; private set; } = new List<Packet>();
 

@@ -18,7 +18,7 @@ public class TapCodeToBytes : LexicalFilter
 
   protected override void OnSetup()
   { 
-    switch ( Params.Get("PSquare") ) 
+    switch ( Params.GetValue("PSquare") ) 
     {
       case "LatinAlphabet_Extended": mPSquare = PolybiusSquare.LatinAlphabet_Extended; break;
       case "LatinAlphabet_Simple":
