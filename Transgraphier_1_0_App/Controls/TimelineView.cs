@@ -35,6 +35,7 @@ namespace Transgraphier_1_0_App
       mTimelinePanel.Name = "mWavePanel";
       mTimelinePanel.TabIndex = 0;
       mTimelinePanel.Height = 200;
+      mTimelinePanel.Font = new Font("Consolas", 20, FontStyle.Bold, GraphicsUnit.Point);
       Controls.Add(mTimelinePanel);
 
       Name = "TimelineView";
@@ -68,7 +69,7 @@ namespace Transgraphier_1_0_App
 
     protected override void CacheRender()
     {
-      List<TimelineEntriesAtPos> lEntriesAtPos = new List<TimelineEntriesAtPos>();
+      List<TimelineLabelsAtPixel> lLabels = new List<TimelineLabelsAtPixel>();
 
       if ( mTimeline != null && mTimeline.Entries.Count > 0)
       {
@@ -77,7 +78,7 @@ namespace Transgraphier_1_0_App
         var visibleSamples = (int)Math.Ceiling(Width * samplesPerPixel);
         var endSample = Math.Min(ViewController.Length + 1, startSample + visibleSamples);
 
-        List<TimelineEntryPos> lPositions = new List<TimelineEntryPos>();
+        List<TimelinePixelSpan> lPixelSpans = new List<TimelinePixelSpan>();
 
         // Aggregate min/max per pixel
         for (int px = 0; px < Width; px++)
@@ -90,17 +91,17 @@ namespace Transgraphier_1_0_App
           if (sampleEnd < sampleStart)
             sampleEnd = sampleStart;
 
-          lPositions.Add(new TimelineEntryPos(px, sampleStart, sampleEnd));
+          lPixelSpans.Add(new TimelinePixelSpan(px, sampleStart, sampleEnd));
         }
 
-        if ( lPositions.Count < 2 )
+        if ( lPixelSpans.Count < 2 )
           return;
 
-        foreach( var lPos in lPositions )
+        foreach( var lPixelSpan in lPixelSpans )
         {
-          var lEAP = mTimeline.GetVisibleEntries(lPos);
-          if (lEAP != null)
-            lEntriesAtPos.Add(lEAP);
+          var lLAP = mTimeline.GetLabelsAtPixel(lPixelSpan);
+          if (lLAP != null)
+            lLabels.Add(lLAP);
         }
       }
 
@@ -109,15 +110,15 @@ namespace Transgraphier_1_0_App
       using (var g = Graphics.FromImage(mRender))
       {
         // background
-        g.FillRectangle(Brushes.AntiqueWhite, new Rectangle(0, 0, Width, Height));
+        g.FillRectangle(Brushes.LightCyan, new Rectangle(0, 0, Width, Height));
 
-        foreach( var lEAPs in lEntriesAtPos)
+        foreach( var lLAPs in lLabels)
         {
-          if ( lEAPs.Entries.Count > 0 )
+          if ( lLAPs.Labels.Count > 0 )
           {
-            string lLabel = lEAPs.Entries[0].Label;
+            string lLabel = lLAPs.Labels[0].Label;
             var lSize = g.MeasureString(lLabel, Font);
-            g.DrawString(lLabel, Font, Brushes.Black, lEAPs.Pos.PixelX - (lSize.Width / 2), CenterY - (lSize.Height / 2));
+            g.DrawString(lLabel, Font, Brushes.Black, lLAPs.Span.Pixel - (lSize.Width / 2), CenterY - (lSize.Height / 2));
           }
        } 
       }

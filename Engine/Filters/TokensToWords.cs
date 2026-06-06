@@ -51,7 +51,7 @@ namespace DIGITC2_ENGINE
 
       StringBuilder lSB = new StringBuilder ();
 
-      List<TimelineEntry> lTMEntries = new List<TimelineEntry>();
+      List<TimelineLabel> lTMEntries = new List<TimelineLabel>();
 
       foreach ( var lToken in LexicalInput.GetSymbols<ArraySymbol>() )
       {
@@ -67,7 +67,7 @@ namespace DIGITC2_ENGINE
           if ( ! lOptions.Validator.IsValid( lDigit ) )
             lDigit = lOptions.Fallback ;
 
-          var lTME = new TimelineEntry(lByteSymbol.SamplePos, lDigit);
+          var lTME = new TimelineLabel(lByteSymbol.SamplePos, lDigit);
           lTMEntries.Add(lTME);
 
           lSB.Append( lDigit );

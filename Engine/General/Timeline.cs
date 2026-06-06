@@ -18,79 +18,80 @@ namespace DIGITC2_ENGINE
 
 
 
-  public class TimelineEntryPos
+  public class TimelinePixelSpan
   {
-    public TimelineEntryPos(int aPixelX, int aSampleStart, int aSampleEnd)
+    public TimelinePixelSpan(int aPixelX, int aSampleStart, int aSampleEnd)
     {
-      PixelX      = aPixelX;
+      Pixel      = aPixelX;
       SampleStart = aSampleStart;
       SampleEnd   = aSampleEnd;
     }
 
-    public int PixelX ;
+    public int Pixel ;
     public int SampleStart ;
     public int SampleEnd;
 
     public override string ToString()
     {
-      return $"({PixelX}|{SampleStart}->{SampleEnd})";
+      return $"({Pixel}|{SampleStart}->{SampleEnd})";
     }
   }
 
-  public class TimelineEntry
+  public class TimelineLabel
   {
-    public TimelineEntry(int aPos, string aLabel)
+    public TimelineLabel(int aPixel, string aLabel)
     {
-      Pos   = aPos;
+      Pixel = aPixel;
       Label = aLabel;
     }
 
-    public int    Pos ;
+    public int    Pixel ;
     public string Label;
 
-    public bool IsVisible( TimelineEntryPos aPos)
+    public bool IsVisible( TimelinePixelSpan aPos)
     {
-      return Pos >= aPos.SampleStart && Pos <= aPos.SampleEnd;
+      return Pixel >= aPos.SampleStart && Pixel <= aPos.SampleEnd;
     }
 
     public override string ToString()
     {
-      return $"({Pos}|{Label})";
+      return $"({Pixel}|{Label})";
     }
   }
 
-  public class TimelineEntriesAtPos
+  public class TimelineLabelsAtPixel
   {
-    public TimelineEntriesAtPos( TimelineEntryPos aPos, List<TimelineEntry> aEntries)
+    public TimelineLabelsAtPixel( TimelinePixelSpan aSpan, List<TimelineLabel> alabels)
     {
-      Pos     = aPos;
-      Entries = aEntries;
+      Span   = aSpan;
+      Labels = alabels;
     }
-    public TimelineEntryPos Pos;
-    public List<TimelineEntry> Entries = new List<TimelineEntry>();
+    public TimelinePixelSpan Span;
+
+    public List<TimelineLabel> Labels = new List<TimelineLabel>();
 
     public override string ToString()
     {
-      return $"Pos: {Pos}, Entries: [{string.Join(", ", Entries)}]";
+      return $"Span: {Span}, Labels: [{string.Join(", ", Labels)}]";
     }
   }
 
   public class Timeline
   {
-    public Timeline( List<TimelineEntry> aEntries)
+    public Timeline( List<TimelineLabel> aEntries)
     {
       Entries = aEntries;
     }
 
-    public TimelineEntriesAtPos GetVisibleEntries( TimelineEntryPos aPos)
+    public TimelineLabelsAtPixel GetLabelsAtPixel( TimelinePixelSpan aPos)
     {
-      var r = new List<TimelineEntry>();
+      var r = new List<TimelineLabel>();
       foreach (var e in Entries)
       {
         if (e.IsVisible(aPos))
           r.Add(e);
       }
-      return r.Count > 0 ? new TimelineEntriesAtPos(aPos, r) : null ;
+      return r.Count > 0 ? new TimelineLabelsAtPixel(aPos, r) : null ;
     }
 
     public void Save( string aFilename )
@@ -113,7 +114,7 @@ namespace DIGITC2_ENGINE
       }
     }
 
-    public List<TimelineEntry> Entries = new List<TimelineEntry>();
+    public List<TimelineLabel> Entries = new List<TimelineLabel>();
   }
 
     

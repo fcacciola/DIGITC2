@@ -192,7 +192,7 @@ public static class ExactPercentile
       var lEnvelopeParams = new Envelope.Args{ AttackTime = mOptions.EnvelopeAttackTime, ReleaseTime = mOptions.EnvelopeReleaseTime};
       var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
 
-      string lEnvelopeLabel = $"Envelope_{lEnvelopeParams}";
+      string lEnvelopeLabel = $"First Envelope";
       
       Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
@@ -207,7 +207,7 @@ public static class ExactPercentile
 
       lGated.Sanitize();
 
-      string lLabel = $"NoiseGate_{(int)(lFloor*100000)}";
+      string lLabel = $"NoiseGate-{(int)(lFloor*100000)}";
 
       Save(lGated, $"{lLabel}.wav") ;
 

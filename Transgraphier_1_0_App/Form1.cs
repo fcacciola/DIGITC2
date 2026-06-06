@@ -577,34 +577,38 @@ namespace Transgraphier_1_0_App
         }
       }
 
-      foreach ( var lFilterOutcome in lFilterOutcomes )
+      // DISABLE the LexicalViews for now.
+      if ( false )
       {
-        string lTextResult = lFilterOutcome.TextResultFileName;
-
-        // Create LexicalView for this file
-        LexicalView lLexicalView = new LexicalView(this);
-        lLexicalView.Location = new Point(0, currentY);
-        lLexicalView.Width = scrollPanel.Width;
-        lLexicalView.Height = 300;
-        lLexicalView.Title = lFilterOutcome.FilterName;
-        lLexicalView.Parameters = GetParameters(lFilterOutcome.FilterName);
-
-        try
+        foreach ( var lFilterOutcome in lFilterOutcomes )
         {
-          string textContent = File.ReadAllText(lTextResult);
-          lLexicalView.TextContent = textContent;
-          lLexicalView.Invalidate();
-          lLexicalView.Refresh();
-        }
-        catch (Exception ex) 
-        {
-          AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
-        }
+          string lTextResult = lFilterOutcome.TextResultFileName;
 
-        // Add lexical view to content panel
-        contentPanel.Controls.Add(lLexicalView);
-        currentY += lLexicalView.Height;
-      } 
+          // Create LexicalView for this file
+          LexicalView lLexicalView = new LexicalView(this);
+          lLexicalView.Location = new Point(0, currentY);
+          lLexicalView.Width = scrollPanel.Width;
+          lLexicalView.Height = 300;
+          lLexicalView.Title = lFilterOutcome.FilterName;
+          lLexicalView.Parameters = GetParameters(lFilterOutcome.FilterName);
+
+          try
+          {
+            string textContent = File.ReadAllText(lTextResult);
+            lLexicalView.TextContent = textContent;
+            lLexicalView.Invalidate();
+            lLexicalView.Refresh();
+          }
+          catch (Exception ex) 
+          {
+            AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
+          }
+
+          // Add lexical view to content panel
+          contentPanel.Controls.Add(lLexicalView);
+          currentY += lLexicalView.Height;
+        } 
+      }
 
       // Set the content panel dimensions to accommodate all controls with full width
       contentPanel.Size = new Size(scrollPanel.Width, currentY);
