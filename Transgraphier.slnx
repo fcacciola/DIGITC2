@@ -2,14 +2,14 @@
   <Configurations>
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="Engine/DIGITC2_Engine.csproj">
+  <Project Path="Engine/Engine.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="Setup/Setup.vdproj" Type="Installer">
     <Platform Solution="*|x64" Project="x64" />
     <Build Solution="Release|x64" />
   </Project>
-  <Project Path="Transgraphier_1_0_App/Transgraphier_1_0_App.csproj">
+  <Project Path="Transgraphier/Transgraphier.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
 </Solution>

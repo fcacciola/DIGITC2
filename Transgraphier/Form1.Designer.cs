@@ -1,8 +1,8 @@
 ﻿
 
-using DIGITC2_ENGINE;
+using ENGINE;
 
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
   partial class Form1
   {
@@ -289,7 +289,7 @@ namespace Transgraphier_1_0_App
       Controls.Add(resultsPanel);
       Controls.Add(buttonPanel);
       Name = "Form1";
-      Text = "Transgraphier 1.5";
+      Text = "Transgraphier 2.3";
       WindowState = FormWindowState.Maximized;
       buttonPanel.ResumeLayout(false);
       ResumeLayout(false);

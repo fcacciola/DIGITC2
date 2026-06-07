@@ -12,7 +12,7 @@ using NWaves.Audio;
 using NWaves.Signals;
 using NWaves.Signals.Builders;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public class BytesSource : LexicalSource
   {

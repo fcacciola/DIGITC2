@@ -9,7 +9,6 @@ using MathNet.Numerics.Statistics;
 
 using NWaves.Operations;
 using NWaves.Signals;
-using NWaves.Signals;
 using NWaves.Transforms;
 using NWaves.Filters.Fda;
 using NWaves.Utils;
@@ -17,7 +16,7 @@ using NWaves.Utils;
 
 using OxyPlot.Annotations;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
 
   public class BandSplitter

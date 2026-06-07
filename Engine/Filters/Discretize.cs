@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
    
   public class Discretize : WaveFilter

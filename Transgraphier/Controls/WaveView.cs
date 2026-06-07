@@ -4,11 +4,11 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 
-using DIGITC2_ENGINE;
+using ENGINE;
 
 using NWaves.Signals;
 
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
   public class Ruler
   {

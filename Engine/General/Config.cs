@@ -7,7 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace DIGITC2_ENGINE ;
+namespace ENGINE ;
 
 public static class ConfigHelper
 {

@@ -4,7 +4,7 @@ using NWaves.Signals;
 
 using System;
 
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
   /// <summary>
   /// Helper class for loading audio signals from WAV files.

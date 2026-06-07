@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   
   public class LexicalSignal : Signal 

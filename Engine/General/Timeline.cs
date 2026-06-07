@@ -13,7 +13,7 @@ using NWaves.Audio;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
 
 

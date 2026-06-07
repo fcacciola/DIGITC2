@@ -16,7 +16,7 @@ using OxyPlot.Annotations;
 using LowPassFilter = NWaves.Filters.Elliptic.LowPassFilter ;
 
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
 
   public class Envelope : WaveFilter

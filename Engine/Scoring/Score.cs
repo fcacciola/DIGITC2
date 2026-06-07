@@ -11,7 +11,7 @@ using MathNet.Numerics.Statistics;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public enum Fitness { DISCARDED = 0, POOR = 1, GOOD = 2, EXCELENT = 3, PERFECT= 4, Undefined=100 }
 

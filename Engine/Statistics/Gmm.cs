@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using OxyPlot;
 using OxyPlot.Series;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public class CorrelationCalculator
   { 
@@ -22,7 +22,7 @@ namespace DIGITC2_ENGINE
     double ComputeWeight( double aX, Func<double,double,double> aWeightFunction = null )
     {
       var lMatch = FindX( aX );
-      return lMatch != null ? ( aWeightFunction != null ? aWeightFunction(lMatch,aX) : 1.0 ) : 0.0 ; 
+      return aWeightFunction != null ? aWeightFunction(lMatch,aX) : 1.0 ; 
     }
 
     double ComputeWeight ( IEnumerable<double> aXs, Func<double,double,double> aWeightFunction = null )

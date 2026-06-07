@@ -10,7 +10,7 @@ using NWaves.Signals;
 using MathNet.Numerics.Statistics;
 using System.Runtime.InteropServices;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
 
   public class FilterHelper

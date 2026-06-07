@@ -12,7 +12,7 @@ using OxyPlot.WindowsForms;
 
 using Series = OxyPlot.Series.Series;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public class Plotter
   {

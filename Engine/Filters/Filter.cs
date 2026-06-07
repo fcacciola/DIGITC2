@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public abstract class Filter 
   {

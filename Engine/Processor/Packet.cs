@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public abstract class PacketData
   {

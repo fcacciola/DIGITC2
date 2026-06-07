@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
   public class MeasureTimeTool
   {

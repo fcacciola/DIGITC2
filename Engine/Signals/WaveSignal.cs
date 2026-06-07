@@ -13,7 +13,7 @@ using NWaves.Signals.Builders;
 using NWaves.Utils;
 using NWaves.Windows;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public static class SIG
   {

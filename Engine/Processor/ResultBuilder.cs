@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public class PipelineResult
   {

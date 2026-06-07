@@ -11,7 +11,7 @@ using NWaves.Signals;
 using NWaves.Utils;
 
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public abstract class Source
   {

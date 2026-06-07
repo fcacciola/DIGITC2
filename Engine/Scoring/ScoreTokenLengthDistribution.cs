@@ -12,7 +12,7 @@ using MathNet.Numerics.Statistics;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public class ScoreTokenLengthDistribution : LexicalFilter
   {

@@ -1,4 +1,4 @@
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
   internal static class Program
   {

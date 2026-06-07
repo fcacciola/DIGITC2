@@ -6,7 +6,7 @@ using NWaves.Signals;
 using NWaves.Signals.Builders;
 using NWaves.Audio;
 
-namespace DIGITC2_ENGINE {
+namespace ENGINE {
 
 
 public class NoiseLab

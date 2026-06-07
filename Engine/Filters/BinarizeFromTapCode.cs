@@ -14,7 +14,7 @@ using Newtonsoft.Json.Serialization;
 using NWaves.Operations;
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
 public class BinarizeFromTapCode : FileLexicalFilter
 {

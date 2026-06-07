@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using NWaves.Signals;
 
-namespace DIGITC2_ENGINE
+namespace ENGINE
 {
   public delegate (string,double) GetSymbolMeaningAndValue( Symbol aSymbol );
 

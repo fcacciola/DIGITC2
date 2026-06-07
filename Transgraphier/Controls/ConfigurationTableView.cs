@@ -4,9 +4,9 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 
-using DIGITC2_ENGINE;
+using ENGINE;
 
-namespace Transgraphier_1_0_App
+namespace Transgraphier
 {
 
   public partial class ConfigurationTableView : UserControl
@@ -94,7 +94,7 @@ namespace Transgraphier_1_0_App
       _grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
     }
 
-    private void Grid_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
+    private void Grid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
     {
       if (mConfig == null)
         return;
