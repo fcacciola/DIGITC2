@@ -543,7 +543,7 @@ namespace Transgraphier_1_0_App
       var samplesPerPixel = ViewController.SamplesPerPixel;
       var startSample = (int)Math.Floor(ViewController.PanStartSample);
       var visibleSamples = (int)Math.Ceiling(Width * samplesPerPixel);
-      var endSample = Math.Min(ViewController.Length - 1, startSample + visibleSamples);
+      var endSample = Math.Min( Math.Min( signal.Length, ViewController.Length ) - 1, startSample + visibleSamples);
 
       // For each horizontal pixel compute min and max sample in that pixel column
 

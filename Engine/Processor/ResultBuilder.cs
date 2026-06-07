@@ -26,7 +26,7 @@ namespace DIGITC2_ENGINE
 
   public class PipelineResultBuilder  
   {
-    public PipelineResultBuilder( string aName, string aOutputFolder ) { Name = aName; OutputFolder = aOutputFolder ; }
+    public PipelineResultBuilder( Config aConfig, string aName, string aOutputFolder ) { Config = aConfig; Name = aName; OutputFolder = aOutputFolder ; }
 
     public void Add( Packet aPacket )
     {
@@ -40,7 +40,7 @@ namespace DIGITC2_ENGINE
       if ( Packets.Count == 0 )
         return rProduct ;
 
-      rProduct = new PipelineResult{ Name = Name, Text= Packets.Last().Data as TextMessage };
+      rProduct = new PipelineResult{ Name = Name, Text= Packets.Last().Data as TextMessage, Config = Config };
 
       int lOverallFitness = (int)Fitness.Undefined ;
   
@@ -61,6 +61,7 @@ namespace DIGITC2_ENGINE
       return rProduct ; 
     }
 
+    readonly public Config       Config;
     readonly public string       Name ;
     readonly public string       OutputFolder ;
     readonly public List<Packet> Packets = new List<Packet>();
@@ -125,6 +126,8 @@ namespace DIGITC2_ENGINE
 
           File.WriteAllLines( lReportPath      , lReport ) ;  
           File.WriteAllLines( lCollatedLogsPath, lCollatedLogs ) ;  
+
+          lPR.Config.Save(Path.Combine(lResultsFolder, $"Config.txt"));
 
           ++ lIdx ;
         }

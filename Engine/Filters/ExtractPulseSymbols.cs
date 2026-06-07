@@ -299,8 +299,11 @@ namespace DIGITC2_ENGINE
     double FindContiguousPulsesGapDuration()
     {
       if ( mOptions.ContiguousPulsesGapDuration == -1 )
-        return CalculateMergeThreshold();
-
+      {
+        double rR = CalculateMergeThreshold();
+        Params.ChangeValue("ContiguousPulsesGapDuration", $"{rR:F3}");
+        return rR;  
+      }
       return mOptions.ContiguousPulsesGapDuration ;
     }
 
@@ -368,8 +371,10 @@ namespace DIGITC2_ENGINE
 
         rR = Gmm.Intersection(lGMM.Components[0], lGMM.Components[1] ) * .5;
 
-        AddBranch("VeryShortThreshold",$"{(rR *   6)}");
-        AddBranch("VeryShortThreshold",$"{(rR * 1.4)}");
+        AddBranch("VeryShortThreshold",$"{(rR *   6):F3}");
+        AddBranch("VeryShortThreshold",$"{(rR * 1.4):F3}");
+
+        Params.ChangeValue("VeryShortThreshold", $"{rR:F3}");
 
         return rR;
       }

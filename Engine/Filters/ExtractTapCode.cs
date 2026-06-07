@@ -206,13 +206,13 @@ namespace DIGITC2_ENGINE
          rIntraCountGap = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
 
           double lIntraTapCode2 = lGMM.Intersection(0,1) ;
-          AddBranch("IntraCountGap",$"{(lIntraTapCode2)}");
+          AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
 
           if ( lGMM.Components.Count > 2 )
           {
             double lIntraTapCode3 = lGMM.Intersection(1,2) ;
 
-            AddBranch("IntraCountGap",$"{(lIntraTapCode3)}");
+            AddBranch("IntraCountGap",$"{lIntraTapCode3:F3}");
           }
         }
         else
@@ -221,6 +221,8 @@ namespace DIGITC2_ENGINE
         }
 
         lGMM?.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
+
+        Params.ChangeValue("IntraCountGap",$"{rIntraCountGap:F3}");
 
         return rIntraCountGap ;
       }

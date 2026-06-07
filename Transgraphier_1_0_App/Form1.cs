@@ -470,10 +470,10 @@ namespace Transgraphier_1_0_App
       contentPanel.Width = scrollPanel.Width;
       scrollPanel.Controls.Add(contentPanel);
 
-      var lParameters = new ConfigurationTableView();
-      lParameters.Bind(mConfig);
-
       List<FilterOutcome> lFilterOutcomes = new List<FilterOutcome>();
+
+      string lPipelineConfigFile = $"{aPipelineOutcome.LastFolder()}\\Config.txt";
+      Config lConfig = File.Exists(lPipelineConfigFile) ? Config.FromFile(lPipelineConfigFile) : mConfig;
 
       foreach (var lFolder in aPipelineOutcome.Folders )
       {
@@ -511,6 +511,8 @@ namespace Transgraphier_1_0_App
       }
 
       int currentY = 0;
+      var lParameters = new ConfigurationTableView(this);
+      lParameters.Bind(lConfig);
       contentPanel.Controls.Add(lParameters);
       lParameters.Location = new Point(0, currentY);
       lParameters.Width = scrollPanel.Width;
@@ -707,10 +709,9 @@ namespace Transgraphier_1_0_App
     }
 
 
-    public void ParametersChanged()
+    public void ParametersChanged( Config aPipelineConfig )
     {
-      this.SaveNewParamsButton.Enabled     = true;
-      this.RestoreOldParamsButton.Enabled  = true;
+      this.mConfig = aPipelineConfig.Copy() ;
     }
 
     private void LoadEVP_Click(object sender, EventArgs e)

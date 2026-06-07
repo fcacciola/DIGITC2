@@ -61,6 +61,10 @@ public class Param
   public string Name { get; set; }
   public string Value { get; set; } = null;
   public string Label { get; set; } = null;
+
+  public Param Copy() => new Param(Name, Value, Label);
+
+  public override string ToString() => Label != null ? $"{Value}|{Label}" : Value;
 }
 
 public class Params
@@ -74,7 +78,7 @@ public class Params
     Dictionary<string, Param> lNewMap = new();
 
     foreach( var kv in Map )
-      lNewMap.Add( kv.Key, kv.Value );
+      lNewMap.Add( kv.Key, kv.Value.Copy() );
 
     return new Params( lNewMap );
   }
@@ -268,6 +272,7 @@ public class Config
     {
       foreach( var lEntryKV in lSectionKV.Value.Map )
       {
+        
         lLines.Add( $"{lSectionKV.Key}_{lEntryKV.Key}={lEntryKV.Value}" );
       }
     }

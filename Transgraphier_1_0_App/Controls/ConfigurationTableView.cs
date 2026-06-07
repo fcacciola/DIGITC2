@@ -11,13 +11,17 @@ namespace Transgraphier_1_0_App
 
   public partial class ConfigurationTableView : UserControl
   {
+    private Form1 mMainForm = null ;
+
     private DataGridView _grid = new();
 
     private Config? mConfig;
     private List<Param> mParams;
 
-    public ConfigurationTableView()
+    public ConfigurationTableView( Form1 aMainForm )
     {
+      mMainForm = aMainForm;
+
       InitializeComponent();
 
       _grid.CellEndEdit += Grid_CellEndEdit;
@@ -98,9 +102,9 @@ namespace Transgraphier_1_0_App
       if (e.RowIndex != 1)
         return;
 
-      int lParamIdx = e.ColumnIndex / 2 ;
+      mParams[e.ColumnIndex].Value = _grid[e.ColumnIndex, 1].Value?.ToString() ?? "";
 
-      mParams[lParamIdx].Value = _grid[e.ColumnIndex, 1].Value?.ToString() ?? "";
+      mMainForm.ParametersChanged(mConfig);
     }
   }
 

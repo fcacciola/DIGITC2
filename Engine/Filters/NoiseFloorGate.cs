@@ -198,6 +198,8 @@ public static class ExactPercentile
 
       var (lFloor,lNewSamples) = EstimateFloor(lEnvelope.Samples);
 
+      Params.ChangeValue("Floor", $"{lFloor:F2}");
+
       WriteLine2GUI($"Floor={lFloor}");
 
       if ( lNewSamples == null )
