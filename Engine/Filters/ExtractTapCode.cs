@@ -162,7 +162,7 @@ namespace ENGINE
 
       rOptions.SeparatorCountThreshold = Params.GetInt("SeparatorCountThreshold");
       rOptions.MinNumberOfTaps         = Params.GetInt("MinTapCount");
-      rOptions.IntraCountGap           = Params.GetDouble("IntraCountGap");
+      rOptions.IntraCountGap_HighBound           = Params.GetDouble("IntraCountGap");
 
       return rOptions;
 
@@ -188,46 +188,60 @@ namespace ENGINE
       return rTaps ; 
     }
 
-    double ComputeIntraCountGap( List<double> aGaps )
+    double ComputeIntraCountGap_HighBound( List<double> aGaps )
     {
-      if ( mOptions.IntraCountGap == -1 )
+      if ( mOptions.IntraCountGap_HighBound == -1 )
       {
+        double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
+
         FilterHelper.DumpValues("Pulses_Gaps",aGaps);
-        var lGMM = GmmFitter.Fit(aGaps);
+        var lGMM = GmmFitter.Fit(aGaps,3);
 
-        double rIntraCountGap = 0.0; 
-
-        if ( lGMM != null && lGMM.Components.Count > 1 )
+        if ( lGMM != null )
         {
-          double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
+          lGMM.Save("GMM_For_IntraTapGap_Calculation");
 
-          double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
-
-         rIntraCountGap = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
-
-          double lIntraTapCode2 = lGMM.Intersection(0,1) ;
-          AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
-
-          if ( lGMM.Components.Count > 2 )
+          if ( lGMM.Components.Count == 1 )
           {
-            double lIntraTapCode3 = lGMM.Intersection(1,2) ;
+            rIntraCountGap_HighBound = lGMM.Components[0].N_Sigma(3);
+          }
+          else if ( lGMM.Components.Count > 1 )
+          {
+            double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
 
-            AddBranch("IntraCountGap",$"{lIntraTapCode3:F3}");
+            double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
+
+            rIntraCountGap_HighBound = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
+
+            double lIntraTapCode2 = lGMM.Intersection(0,1) ;
+            AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
+
+            if ( lGMM.Components.Count > 2 )
+            {
+              double lIntraTapCode3 = lGMM.Intersection(1,2) ;
+
+              AddBranch("IntraCountGap",$"{lIntraTapCode3:F3}");
+            }
+          }
+          else
+          {
+            WriteLine("Not enough components in GMM to calculate Intra Tap Gap.");
           }
         }
         else
         {
-          WriteLine("Not enough components in GMM to calculate Intra Tap Gap.");
+          WriteLine("No GMM to calculate Intra Tap Gap.");
         }
+
 
         lGMM?.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
-        Params.ChangeValue("IntraCountGap",$"{rIntraCountGap:F3}");
+        Params.ChangeValue("IntraCountGap",$"{rIntraCountGap_HighBound:F3}");
 
-        return rIntraCountGap ;
+        return rIntraCountGap_HighBound ;
       }
 
-      return mOptions.IntraCountGap ;
+      return mOptions.IntraCountGap_HighBound ;
     }
 
     protected override Packet Process ()
@@ -251,7 +265,7 @@ namespace ENGINE
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
       WriteDetailLine("Classifying Raw Taps...");
-      double lIntraTapGap_HighBound = ComputeIntraCountGap( lTaps.ConvertAll( t => t.Gap ).Skip(1).ToList() );
+      double lIntraTapGap_HighBound = ComputeIntraCountGap_HighBound( lTaps.ConvertAll( t => t.Gap ).Skip(1).ToList() );
       if ( lIntraTapGap_HighBound == 0 )
       {
         return CreateQuitOutput();
@@ -387,7 +401,7 @@ namespace ENGINE
     {
       internal int    SeparatorCountThreshold ;
       internal int    MinNumberOfTaps ;
-      internal double IntraCountGap = -1 ;
+      internal double IntraCountGap_HighBound = -1 ;
     }
 
     Options mOptions ;
