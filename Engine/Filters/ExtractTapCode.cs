@@ -195,11 +195,12 @@ namespace ENGINE
         double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
 
         FilterHelper.DumpValues("Pulses_Gaps",aGaps);
-        var lGMM = GmmFitter.Fit(aGaps,3);
+        var lGMM = GmmFitter.Fit(aGaps).ChooseBest(3);
 
         if ( lGMM != null )
         {
           lGMM.Save("GMM_For_IntraTapGap_Calculation");
+          lGMM.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
           if ( lGMM.Components.Count == 1 )
           {
@@ -211,7 +212,7 @@ namespace ENGINE
 
             double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
 
-            rIntraCountGap_HighBound = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
+            rIntraCountGap_HighBound = MathX.LERP(lK0_2_Sigma,lK0_K1_Midpoint,0.2)  ;
 
             double lIntraTapCode2 = lGMM.Intersection(0,1) ;
             AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
@@ -232,9 +233,6 @@ namespace ENGINE
         {
           WriteLine("No GMM to calculate Intra Tap Gap.");
         }
-
-
-        lGMM?.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
         Params.ChangeValue("IntraCountGap",$"{rIntraCountGap_HighBound:F3}");
 

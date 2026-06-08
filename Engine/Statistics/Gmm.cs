@@ -228,7 +228,7 @@ namespace ENGINE
 
     public double Intersection( int aIdxA, int aIdxB ) => Intersection( Components[aIdxA], Components[aIdxB] );
 
-    static public double InterpolateMean( GmmComponent aA, GmmComponent aB, double aX = 0.5 ) => (aA.Mean + aB.Mean) * aX ;
+    static public double InterpolateMean( GmmComponent aA, GmmComponent aB, double aX = 0.5 ) => MathX.LERP(aA.Mean, aB.Mean, aX);
 
     public double InterpolateMean( int aIdxA,int aIdxB, double aX = 0.5 ) => InterpolateMean( Components[aIdxA], Components[aIdxB], aX );
 
@@ -455,6 +455,14 @@ namespace ENGINE
     {
       var filtered = model.Components.Where(predicate).ToList();
       return filtered.Count > 0 ? new Gmm(filtered) : null;
+    }
+
+    public static Gmm ChooseBest(this Gmm model, int maxComponents)
+    {
+      var lByWeight = model.Components.OrderByDescending(c => c.Weight).ToList();
+      var lPick = lByWeight.Take(maxComponents).ToList();
+      var lByMean = lPick.OrderBy(c => c.Mean).ToList();
+      return new Gmm(lByMean);
     }
 
     // -------------------------------------------------------------------------
