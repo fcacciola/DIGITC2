@@ -10,13 +10,13 @@ Envelope_Release=0.01
 UpwardCompress_BaseFloor=0.2
 UpwardCompress_TargetFloor=0.45
 
-Discretize_GateCut=0.35
-Discretize_GateOutLevel=0.85
+Discretize_MergeProminence=0.5|Discretize Merge Prominence (0..1)
+Discretize_MinWidth=0.001|Discretize Min Width (seconds)
 
 ExtractPulseSymbols_MinLevelThreshold=5
 ExtractPulseSymbols_MinDurationThreshold = 0.005
-ExtractPulseSymbols_ContiguousPulsesGapDuration = -1|Pulse Merge Threshold
-ExtractPulseSymbols_VeryShortThreshold = -1|Very Short Threshold
+ExtractPulseSymbols_ContiguousPulsesGapDuration = -1
+ExtractPulseSymbols_VeryShortThreshold = -1
 
 ExtractTapCode_SeparatorCountThreshold=5
 ExtractTapCode_MinTapCount=16

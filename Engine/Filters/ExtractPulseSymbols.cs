@@ -170,9 +170,6 @@ namespace ENGINE
       mOptions = CreateOptions() ;
 
       CreatePulses();
-      SelectValidPulses();
-      MergeContiguousPulses();
-      RemoveVeryShortPulses();
 
       return CreateOutput( new LexicalSignal(CurrPulses), Name, null, false) ;
     }
@@ -214,6 +211,8 @@ namespace ENGINE
       AddPulse();
 
       CurrPulses.SetupGapDurations(); 
+
+      CurrPulses.Plot("Pulses");
     }
 
     void AddPulse()
@@ -225,186 +224,6 @@ namespace ENGINE
         CurrPulses.Add( new PulseSymbol(CurrPulses.Count, mPulseStart, mPos, lSteps ) );
       }
     }
-
-    void SelectValidPulses()
-    {
-      WriteLine2GUI($"Filtering Valid Pulses...");
-      Indent();
-      WriteDetailLine($"Initial Count={CurrPulses.Count}");
-      WriteLine2GUI($"Min Duration Threshold={mOptions.MinDurationThreshold}s");
-      WriteLine2GUI($"Miin Level Threshold={mOptions.MinLevelThreshold}%");
-
-      List<PulseSymbol> lValidPulses = new List<PulseSymbol>();
-
-      foreach( var lPulse in CurrPulses )
-      {
-        if ( lPulse.Duration > mOptions.MinDurationThreshold && lPulse.MaxLevel > mOptions.MinLevelThreshold )
-          lValidPulses.Add(lPulse );
-      }
-      WriteDetailLine($"Final Count={lValidPulses.Count}");
-      Unindent();
-
-      mPulsesBag.Add(lValidPulses);
-
-      CurrPulses.SetupGapDurations(); 
-
-      CurrPulses.Plot("0_Initial_Pulses");
-    }
-
-    double CalculateMergeThreshold()
-    {
-      var lGaps = CurrPulses.Gaps();
-      FilterHelper.DumpValues("Pulse_Gaps",lGaps);
-      var lGMM = GmmFitter.Fit(lGaps);
-
-      double rMergeThreshold = 0.0; 
-
-      if ( lGMM != null)
-      {
-        const double MIN_SPLIT_SPREAD = 0.0001; 
-
-        // Less than 3 components there are NO splits.
-        if ( lGMM.Components.Count == 3)
-        {
-          if ( lGMM.Components[0].StdDev > MIN_SPLIT_SPREAD )
-          {
-            double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
-
-            double lK0_2_Sigma = lGMM.Components[0].N_Sigma(2);
-
-            rMergeThreshold = Math.Min(lK0_K1_Midpoint, lK0_2_Sigma)  ;
-
-            double lMergeThreshold2 = lGMM.Intersection(0,1) ;
-
-            AddBranch("ContiguousPulsesGapDuration",$"{(lMergeThreshold2)}");
-            AddBranch("ContiguousPulsesGapDuration",$"{(0.01)}");
-          } 
-        }
-        else if ( lGMM.Components.Count >= 4)
-        {
-          if ( lGMM.Components[0].StdDev > MIN_SPLIT_SPREAD )
-            rMergeThreshold = Gmm.Intersection(lGMM.Components[0], lGMM.Components[1] ) ;
-        }
-      }
-      else
-      {
-        WriteLine("Not enough components in GMM to calculate Merge Threshold.");
-      }
-
-      lGMM.Plot("Gaps_Histogram_For_Merge_Threshold_Calculation"); 
-
-      return rMergeThreshold ;
-    }
-
-    double FindContiguousPulsesGapDuration()
-    {
-      if ( mOptions.ContiguousPulsesGapDuration == -1 )
-      {
-        double rR = CalculateMergeThreshold();
-        Params.ChangeValue("ContiguousPulsesGapDuration", $"{rR:F3}");
-        return rR;  
-      }
-      return mOptions.ContiguousPulsesGapDuration ;
-    }
-
-    void MergeContiguousPulses()
-    {
-      if ( CurrPulses.Count < 2 )
-        return ;
-
-      WriteLine2GUI("Merging Contiguous Pulses...");
-      Indent();  
-      WriteDetailLine($"Initial Count={CurrPulses.Count}");
-
-      double lContiguousPulsesGapDuration = FindContiguousPulsesGapDuration() ; 
-      WriteLine2GUI($"Contiguous Pulses Gap Duration Threshold={lContiguousPulsesGapDuration}s");
-
-      var lMergedPulses = new List<PulseSymbol>();
-
-      if ( lContiguousPulsesGapDuration > 0 ) 
-      {
-        var lPulseA = CurrPulses[0];
-
-        for ( int i = 1; i < CurrPulses.Count ; i++ )
-        { 
-          var lPulseB = CurrPulses[i]; 
-          var lGap = lPulseB.StartTime - lPulseA.EndTime;
-
-          if ( lGap < lContiguousPulsesGapDuration ) 
-          {
-            WriteDetailLine($"Merging pulses {lPulseA} and {lPulseB}.");
-            var lFilteredPulse = PulseSymbol.Merge(lPulseA,lPulseB);  
-            lPulseA = lFilteredPulse;
-          }
-          else 
-          {
-            WriteDetailLine($"Adding pulse {lPulseA} to result.");
-            lMergedPulses.Add(lPulseA);
-            lPulseA = lPulseB;
-          }
-        }
-
-        lMergedPulses.SetupGapDurations(); 
-        mPulsesBag.Add(lMergedPulses);
-      }
-
-      WriteDetailLine($"Final Count={CurrPulses.Count}");
-
-      CurrPulses.Plot("1_Merged_Pulses");
-      Unindent();  
-    }
-
-    double FindVeryShortThreshold()
-    {
-      if ( mOptions.VeryShortThreshold == -1 )
-      {
-        double rR = 0 ;
-
-        var lGMM = GmmFitter.Fit(CurrPulses.Durations());
-        lGMM.Plot("Durations_Histogram_For_VeryShort_Threshold_Calculation"); 
-
-        if ( lGMM.Components.Count < 2 )
-        {
-          WriteLine2GUI("Not enough components in GMM to calculate Very Short Threshold. Using default value of 0.05s");
-          return 0.005 ;
-        }
-
-        rR = Gmm.Intersection(lGMM.Components[0], lGMM.Components[1] ) * .5;
-
-        AddBranch("VeryShortThreshold",$"{(rR *   6):F3}");
-        AddBranch("VeryShortThreshold",$"{(rR * 1.4):F3}");
-
-        Params.ChangeValue("VeryShortThreshold", $"{rR:F3}");
-
-        return rR;
-      }
-      else 
-        return mOptions.VeryShortThreshold ;
-    }
-
-    void RemoveVeryShortPulses()
-    {
-      double lVeryShortThreshold = FindVeryShortThreshold();
-
-      WriteLine2GUI($"Removing Very Short Pulses...");
-      Indent();
-      WriteLine2GUI($"Very Short Threshold={lVeryShortThreshold}s");
-      WriteDetailLine($"Initial Count={CurrPulses.Count}");
-
-      var lFinalPulses = new List<PulseSymbol>(); 
-
-      lFinalPulses.AddRange( CurrPulses.Where( lPulse => lPulse.Duration >= lVeryShortThreshold ) ) ;
-
-      mPulsesBag.Add(lFinalPulses); 
-
-      CurrPulses.SetupGapDurations(); 
-
-      CurrPulses.Plot("2_Final_Pulses");
-
-      WriteDetailLine($"Final count: {CurrPulses.Count}");
-      Unindent();
-    }
-
 
     class Options
     {

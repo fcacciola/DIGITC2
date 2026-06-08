@@ -45,7 +45,10 @@ namespace Transgraphier
       ImportButton = new Button();
       TimeMeasureLabel = new Label();
       MeasureTimeButton = new Button();
-      HelpButton = new Button();
+      FirstBlockButton = new Button();
+      PrevBlockButton = new Button();
+      NextBlockButton = new Button();
+      ShowHelpButton = new Button();
       statusTextBox = new TextBox();
       statusPanel = new Panel();
       resultsTextBox = new RichTextBox();
@@ -58,7 +61,10 @@ namespace Transgraphier
       // 
       // buttonPanel
       // 
-      buttonPanel.Controls.Add(HelpButton);
+      buttonPanel.Controls.Add(ShowHelpButton);
+      buttonPanel.Controls.Add(NextBlockButton);
+      buttonPanel.Controls.Add(PrevBlockButton);
+      buttonPanel.Controls.Add(FirstBlockButton);
       buttonPanel.Controls.Add(TimeMeasureLabel);
       buttonPanel.Controls.Add(MeasureTimeButton);
       buttonPanel.Controls.Add(ImportButton);
@@ -192,15 +198,37 @@ namespace Transgraphier
       MeasureTimeButton.TabIndex = 2;
       MeasureTimeButton.Text = "Measure Time";
       MeasureTimeButton.Click += Measure_Click;
+
+      FirstBlockButton.Dock = DockStyle.Left;
+      FirstBlockButton.Name = "FirstBlockButton";
+      FirstBlockButton.Size = new Size(100, 30);
+      FirstBlockButton.TabIndex = 2;
+      FirstBlockButton.Text = "First Block";
+      FirstBlockButton.Click += FirstBlock_Click;
+
+      PrevBlockButton.Dock = DockStyle.Left;
+      PrevBlockButton.Name = "PrevBlockButton";
+      PrevBlockButton.Size = new Size(150, 30);
+      PrevBlockButton.TabIndex = 2;
+      PrevBlockButton.Text = "Prev Block";
+      PrevBlockButton.Click += PrevBlock_Click;
+
+      NextBlockButton.Dock = DockStyle.Left;
+      NextBlockButton.Name = "NextBlockButton";
+      NextBlockButton.Size = new Size(150, 30);
+      NextBlockButton.TabIndex = 2;
+      NextBlockButton.Text = "Next Block";
+      NextBlockButton.Click += NextBlock_Click;
+
       // 
       // showButton
       // 
-      HelpButton.Dock = DockStyle.Left;
-      HelpButton.Name = "HelpButton";
-      HelpButton.Size = new Size(200, 30);
-      HelpButton.TabIndex = 2;
-      HelpButton.Text = "Help";
-      HelpButton.Click += Help_Click;
+      ShowHelpButton.Dock = DockStyle.Left;
+      ShowHelpButton.Name = "ShowHelpButton";
+      ShowHelpButton.Size = new Size(200, 30);
+      ShowHelpButton.TabIndex = 2;
+      ShowHelpButton.Text = "Help";
+      ShowHelpButton.Click += Help_Click;
       // 
       // resultsPanel
       // 
@@ -311,7 +339,10 @@ namespace Transgraphier
     private Button ImportButton;
     private Label  TimeMeasureLabel;
     private Button MeasureTimeButton;
-    private Button HelpButton;
+    private Button FirstBlockButton;
+    private Button PrevBlockButton;
+    private Button NextBlockButton;
+    private Button ShowHelpButton;
     private Panel statusPanel;
     private TextBox statusTextBox;
     private Panel resultsPanel;

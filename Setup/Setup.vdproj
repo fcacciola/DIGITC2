@@ -146,7 +146,7 @@
         {
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4CF8F21A71CA40D183FDA01CD6E64A5C"
             {
-            "SourcePath" = "8:..\\Transgraphier_1_0_App\\Input\\Settings.txt"
+            "SourcePath" = "8:..\\Transgraphier\\Input\\Settings.txt"
             "TargetName" = "8:Settings.txt"
             "Tag" = "8:"
             "Folder" = "8:_95BBC3CE4E1E435299C8D492551C318D"
@@ -166,7 +166,7 @@
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A28769990A884B25B4A4389497261339"
             {
-            "SourcePath" = "8:..\\Transgraphier_1_0_App\\Input\\Config.txt"
+            "SourcePath" = "8:..\\Transgraphier\\Input\\Config.txt"
             "TargetName" = "8:Config.txt"
             "Tag" = "8:"
             "Folder" = "8:_95BBC3CE4E1E435299C8D492551C318D"
@@ -186,7 +186,7 @@
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BEED34535E8C4DF2B8D0EC3380D75B70"
             {
-            "SourcePath" = "8:..\\Transgraphier_1_0_App\\Input\\Manual.pdf"
+            "SourcePath" = "8:..\\Transgraphier\\Input\\Manual.pdf"
             "TargetName" = "8:Manual.pdf"
             "Tag" = "8:"
             "Folder" = "8:_95BBC3CE4E1E435299C8D492551C318D"
@@ -805,7 +805,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_28082FF4F242420198A2E2BE71924D30"
             {
-            "SourcePath" = "8:..\\Transgraphier_1_0_App\\obj\\x64\\Release\\net10.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Transgraphier\\obj\\x64\\Release\\net10.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8DF4B243B7DE43CDBEB420CB33D6671A"

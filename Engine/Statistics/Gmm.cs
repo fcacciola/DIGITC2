@@ -135,6 +135,14 @@ namespace ENGINE
       }
     }
 
+    public void Save( string aName )
+    {
+      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      { 
+        File.WriteAllLines(DContext.Session.OutputFile($"{aName}.txt"), Components.Select(c => c.ToString()));
+      }
+    }
+
     /// <summary>
     /// Computes the intersection point of two weighted Gaussian PDFs in log space.
     /// Solves w_A * N(x|muA,vA) = w_B * N(x|muB,vB) for x, returning the root
@@ -229,81 +237,152 @@ namespace ENGINE
     public List<GmmComponent> Components ;
   }
 
-  public class GmmFit_Gemini
+  
+  public class GmmFit
   {
-    public static Gmm Fit(double[] logData, int nComponents, int maxIterations = 100)
+    public static Gmm Fit(double[] logData, int nComponents, int maxIterations = 200)
     {
-      int n = logData.Length;
+      Gmm bestModel = null;
+      double bestLL = double.NegativeInfinity;
 
-      // 2. Initialize Parameters
-      double min = logData.Min();
-      double max = logData.Max();
-      double range = max - min;
-
-      double[] weights = Enumerable.Repeat(1.0 / nComponents, nComponents).ToArray();
-      double[] means = Enumerable.Range(0, nComponents).Select(i => min + range * (i + 0.5) / nComponents).ToArray();
-      double[] vars = Enumerable.Repeat(range * range / (nComponents * nComponents), nComponents).ToArray();
-
-      double[,] resp = new double[n, nComponents];
-
-      for (int iter = 0; iter < maxIterations; iter++)
+      for (int restart = 0; restart < 10; restart++)
       {
-        // --- E-Step: Calculate Responsibilities ---
-        for (int i = 0; i < n; i++)
+        var model = FitSingle(logData, nComponents, maxIterations, 1e-6, 1e-6, restart);
+        if (model == null) continue;
+
+        double ll = ComputeLogLikelihood(logData, model);
+
+        if (ll > bestLL)
         {
-          double rowSum = 0;
-          for (int k = 0; k < nComponents; k++)
-          {
-            resp[i, k] = weights[k] * NormalPdf(logData[i], means[k], Math.Sqrt(vars[k]));
-            rowSum += resp[i, k];
-          }
-          for (int k = 0; k < nComponents; k++)
-          {
-            resp[i, k] /= (rowSum + 1e-18); // Prevent division by zero
-          }
-        }
-
-        // --- M-Step: Update Weights, Means, and Covariances ---
-        for (int k = 0; k < nComponents; k++)
-        {
-          double weightSum = 0;
-          for (int i = 0; i < n; i++) weightSum += resp[i, k];
-
-          weights[k] = weightSum / n;
-
-          double newMean = 0;
-          for (int i = 0; i < n; i++) newMean += resp[i, k] * logData[i];
-          means[k] = newMean / weightSum;
-
-          double newVar = 0;
-          for (int i = 0; i < n; i++)
-          {
-            double diff = logData[i] - means[k];
-            newVar += resp[i, k] * (diff * diff);
-          }
-          // Apply variance floor to prevent numerical instability
-          vars[k] = Math.Max(newVar / weightSum, 1e-6); 
+          bestLL = ll;
+          bestModel = model;
         }
       }
 
-      // 3. Populate your Gmm classes
-      var componentList = new List<GmmComponent>();
-      for (int k = 0; k < nComponents; k++)
-      {
-        var lComponent = new GmmComponent(weights[k], means[k], vars[k]);
-
-        //if ( lComponent.Weight > 0.001 && lComponent.StdDev > 0.001 ) 
-          componentList.Add(lComponent);
-      }
-
-      return componentList.Count > 0 ? new Gmm(componentList) : null ;
+      return bestModel;
     }
 
-    private static double NormalPdf(double x, double mu, double sigma)
+    static Gmm FitSingle(double[] x, int k, int maxIter, double tol, double varFloor, int seed)
     {
-      double invSigma = 1.0 / (sigma * Math.Sqrt(2 * Math.PI));
-      double exponent = Math.Exp(-0.5 * Math.Pow((x - mu) / sigma, 2));
-      return invSigma * exponent;
+      int n = x.Length;
+
+      var sorted = (double[])x.Clone();
+      Array.Sort(sorted);
+
+      var means = new double[k];
+      var vars = new double[k];
+      var weights = new double[k];
+
+      for (int i = 0; i < k; i++)
+      {
+        double p = (i + 0.5 + 0.15 * (seed % 7)) / k;
+        p = Math.Max(0.0, Math.Min(1.0, p));
+        int idx = (int)Math.Round(p * (n - 1));
+
+        means[i] = sorted[idx];
+        weights[i] = 1.0 / k;
+      }
+
+      double globalVar = Variance(x);
+      for (int i = 0; i < k; i++)
+        vars[i] = Math.Max(globalVar, varFloor);
+
+      double[,] resp = new double[n, k];
+      double prevLL = double.NegativeInfinity;
+
+      for (int iter = 0; iter < maxIter; iter++)
+      {
+        double ll = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+          double maxLog = double.NegativeInfinity;
+
+          for (int c = 0; c < k; c++)
+          {
+            double lp = Math.Log(weights[c]) + LogGaussianPdf(x[i], means[c], vars[c]);
+            resp[i, c] = lp;
+            if (lp > maxLog) maxLog = lp;
+          }
+
+          double sum = 0;
+          for (int c = 0; c < k; c++)
+          {
+            resp[i, c] = Math.Exp(resp[i, c] - maxLog);
+            sum += resp[i, c];
+          }
+
+          ll += maxLog + Math.Log(sum);
+
+          for (int c = 0; c < k; c++)
+            resp[i, c] /= sum;
+        }
+
+        if (iter > 0 && Math.Abs(ll - prevLL) < tol * (1.0 + Math.Abs(prevLL)))
+          break;
+
+        prevLL = ll;
+
+        for (int c = 0; c < k; c++)
+        {
+          double Nk = 0;
+          for (int i = 0; i < n; i++) Nk += resp[i, c];
+          Nk = Math.Max(Nk, 1e-12);
+
+          weights[c] = Nk / n;
+
+          double mean = 0;
+          for (int i = 0; i < n; i++) mean += resp[i, c] * x[i];
+          mean /= Nk;
+          means[c] = mean;
+
+          double var = 0;
+          for (int i = 0; i < n; i++)
+          {
+            double d = x[i] - mean;
+            var += resp[i, c] * d * d;
+          }
+
+          vars[c] = Math.Max(var / Nk, varFloor);
+        }
+      }
+
+      var comps = new List<GmmComponent>();
+      for (int i = 0; i < k; i++)
+        comps.Add(new GmmComponent(weights[i], means[i], vars[i]));
+
+      return new Gmm(comps);
+    }
+
+    static double LogGaussianPdf(double x, double mean, double var)
+    {
+      double d = x - mean;
+      return -0.5 * (Math.Log(2.0 * Math.PI * var) + d * d / var);
+    }
+
+    static double Variance(double[] x)
+    {
+      double mean = x.Average();
+      double s = 0;
+      foreach (var v in x) { double d = v - mean; s += d * d; }
+      return s / Math.Max(1, x.Length - 1);
+    }
+
+    static double ComputeLogLikelihood(double[] data, Gmm model)
+    {
+      double ll = 0;
+      foreach (double x in data)
+      {
+        double mix = 0;
+        foreach (var c in model.Components)
+        {
+          double sigma = c.LogStdDev;
+          double z = (x - c.LogMean) / sigma;
+          mix += c.Weight * Math.Exp(-0.5 * z * z) / (sigma * Math.Sqrt(2.0 * Math.PI));
+        }
+        ll += Math.Log(Math.Max(mix, double.Epsilon));
+      }
+      return ll;
     }
   }
 
@@ -351,12 +430,9 @@ namespace ENGINE
 
       for (int k = 1; k <= maxComponents; k++)
       {
-        var model = GmmFit_Gemini.Fit(logData, k, maxIterations);
+        var model = GmmFit.Fit(logData, k, maxIterations);
         if ( model.Components.Count == 0 )
           continue; // Skip degenerate fits that lost all components
-
-        //var model = Gmm1D_ChatGPT.Fit(logData, k, maxIterations, tolerance);
-        //List<GmmComponent> model = FitEm_(logData, k, maxIterations, tolerance);
 
         double bic = ComputeBic(logData, model, k);
 
@@ -375,154 +451,10 @@ namespace ENGINE
       return bestModel;
     }
 
-
-
-
-    // -------------------------------------------------------------------------
-    // EM algorithm
-    // -------------------------------------------------------------------------
-
-    private static List<GmmComponent> FitEm_Claude(double[] logData,
-                                               int k,
-                                               int maxIter,
-                                               double tol)
+    public static Gmm FilterComponents(this Gmm model, Func<GmmComponent, bool> predicate)
     {
-      int n = logData.Length;
-
-      // --- Initialise components via K-means++ seeding ---
-      List<GmmComponent> components = Initialise(logData, k);
-
-      double prevLogLik = double.NegativeInfinity;
-
-      for (int iter = 0; iter < maxIter; iter++)
-      {
-        // --- E-step: compute responsibilities ---
-        double[,] r = EStep(logData, components);
-
-        // --- M-step: update parameters ---
-        components = MStep(logData, r, k);
-
-        // --- Check convergence ---
-        double logLik = ComputeLogLikelihood(logData, new Gmm(components));
-        if (Math.Abs(logLik - prevLogLik) < tol) break;
-        prevLogLik = logLik;
-      }
-
-      return components;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialisation — K-means++ seeding for stable starts
-    // -------------------------------------------------------------------------
-
-    private static List<GmmComponent> Initialise(double[] aLogData, int k)
-    {
-      var rng = new Random(42);
-      int n = aLogData.Length;
-      double total = aLogData.Sum();
-      double mean = total / n;
-      double var = aLogData.Sum(x => (x - mean) * (x - mean)) / n;
-
-      // Pick first centre at random, then spread subsequent centres
-      // proportional to squared distance from nearest existing centre
-      var centres = new List<double>();
-      centres.Add(aLogData[rng.Next(n)]);
-
-      for (int c = 1; c < k; c++)
-      {
-        double[] dists = aLogData.Select(x =>
-        {
-          double minD = centres.Min(ctr => (x - ctr) * (x - ctr));
-          return minD;
-        }).ToArray();
-
-        double sum = dists.Sum();
-        double r = rng.NextDouble() * sum;
-        double acc = 0;
-        int idx = 0;
-        for (; idx < n - 1; idx++)
-        {
-          acc += dists[idx];
-          if (acc >= r) break;
-        }
-        centres.Add(aLogData[idx]);
-      }
-
-      // Build initial components from centres
-      return centres.Select(c => new GmmComponent
-      (
-        1.0 / k,
-        c,
-        var / k      // Start narrow; EM will widen as needed
-      )).ToList();
-    }
-
-    // -------------------------------------------------------------------------
-    // E-step: responsibility matrix  r[i, j] = P(component j | data[i])
-    // -------------------------------------------------------------------------
-
-    private static double[,] EStep(double[] data, List<GmmComponent> components)
-    {
-      int n = data.Length;
-      int k = components.Count;
-      double[,] r = new double[n, k];
-
-      for (int i = 0; i < n; i++)
-      {
-        double sum = 0;
-        for (int j = 0; j < k; j++)
-        {
-          double val = components[j].Weight * GaussianPdf(data[i], components[j]);
-          r[i, j] = val;
-          sum += val;
-        }
-        // Normalise so each row sums to 1
-        if (sum > 0)
-          for (int j = 0; j < k; j++)
-            r[i, j] /= sum;
-      }
-
-      return r;
-    }
-
-    // -------------------------------------------------------------------------
-    // M-step: recompute weight / mean / variance from responsibilities
-    // -------------------------------------------------------------------------
-
-    private static List<GmmComponent> MStep(double[] data, double[,] r, int k)
-    {
-      int n = data.Length;
-      double minVariance = 1e-6;   // Guard against degenerate components
-      var components = new List<GmmComponent>(k);
-
-      for (int j = 0; j < k; j++)
-      {
-        double Nj = 0;
-        for (int i = 0; i < n; i++) Nj += r[i, j];
-
-        double weight = Nj / n;
-
-        double mean = 0;
-        for (int i = 0; i < n; i++) mean += r[i, j] * data[i];
-        mean /= Nj;
-
-        double variance = 0;
-        for (int i = 0; i < n; i++)
-        {
-          double diff = data[i] - mean;
-          variance += r[i, j] * diff * diff;
-        }
-        variance = Math.Max(variance / Nj, minVariance);
-
-        components.Add(new GmmComponent
-        (
-          weight,
-          mean,
-          variance
-        ));
-      }
-
-      return components;
+      var filtered = model.Components.Where(predicate).ToList();
+      return filtered.Count > 0 ? new Gmm(filtered) : null;
     }
 
     // -------------------------------------------------------------------------
@@ -572,195 +504,195 @@ namespace ENGINE
   }
 
 
-  static public class Gmm1D_ChatGPT
-  {
-    static public Gmm Fit
-    (
-      double[] aX,
-      int aK,
-      int aMaxIter = 200,
-      double aTol = 1e-6,
-      double aVarFloor = 1e-6
-    )
-    {
-      if( aK < 1 ) return  null ;
-      if( aX.Length < aK * 5 ) return null ;
+  //static public class Gmm1D_ChatGPT
+  //{
+  //  static public Gmm Fit
+  //  (
+  //    double[] aX,
+  //    int aK,
+  //    int aMaxIter = 200,
+  //    double aTol = 1e-6,
+  //    double aVarFloor = 1e-6
+  //  )
+  //  {
+  //    if( aK < 1 ) return  null ;
+  //    if( aX.Length < aK * 5 ) return null ;
 
-      var n = aX.Length ;
+  //    var n = aX.Length ;
 
-      // Init via quantiles (deterministic, decent for 1D).
-      var lX = (double[])aX.Clone() ;
-      Array.Sort(lX) ;
+  //    // Init via quantiles (deterministic, decent for 1D).
+  //    var lX = (double[])aX.Clone() ;
+  //    Array.Sort(lX) ;
 
-      var lMeans = new double[aK] ;
-      for( int k = 0 ; k < aK ; ++k )
-      {
-        var p = (k + 0.5) / aK ;
-        var idx = (int)Math.Round(p * (n - 1)) ;
-        idx = Math.Max(0, Math.Min(n-1, idx)) ;
-        lMeans[k] = lX[idx] ;
-      }
+  //    var lMeans = new double[aK] ;
+  //    for( int k = 0 ; k < aK ; ++k )
+  //    {
+  //      var p = (k + 0.5) / aK ;
+  //      var idx = (int)Math.Round(p * (n - 1)) ;
+  //      idx = Math.Max(0, Math.Min(n-1, idx)) ;
+  //      lMeans[k] = lX[idx] ;
+  //    }
 
-      var lWeights = new double[aK] ;
-      for( int k = 0 ; k < aK ; ++k )
-        lWeights[k] = 1.0 / aK ;
+  //    var lWeights = new double[aK] ;
+  //    for( int k = 0 ; k < aK ; ++k )
+  //      lWeights[k] = 1.0 / aK ;
 
-      // Initial variance from global variance.
-      var lGlobalVar = Variance(aX) ;
-      if( lGlobalVar < aVarFloor ) lGlobalVar = aVarFloor ;
+  //    // Initial variance from global variance.
+  //    var lGlobalVar = Variance(aX) ;
+  //    if( lGlobalVar < aVarFloor ) lGlobalVar = aVarFloor ;
 
-      var lVars = new double[aK] ;
-      for( int k = 0 ; k < aK ; ++k )
-        lVars[k] = lGlobalVar ;
+  //    var lVars = new double[aK] ;
+  //    for( int k = 0 ; k < aK ; ++k )
+  //      lVars[k] = lGlobalVar ;
 
-      var lNk = new double[aK] ;
-      var lNewMeans = new double[aK] ;
-      var lNewVars  = new double[aK] ;
-      var lNewWeights = new double[aK] ;
+  //    var lNk = new double[aK] ;
+  //    var lNewMeans = new double[aK] ;
+  //    var lNewVars  = new double[aK] ;
+  //    var lNewWeights = new double[aK] ;
 
-      double lPrevLL = double.NegativeInfinity ;
+  //    double lPrevLL = double.NegativeInfinity ;
 
-      for( int iter = 0 ; iter < aMaxIter ; ++iter )
-      {
-        Array.Clear(lNk, 0, aK) ;
-        Array.Clear(lNewMeans, 0, aK) ;
-        Array.Clear(lNewVars, 0, aK) ;
+  //    for( int iter = 0 ; iter < aMaxIter ; ++iter )
+  //    {
+  //      Array.Clear(lNk, 0, aK) ;
+  //      Array.Clear(lNewMeans, 0, aK) ;
+  //      Array.Clear(lNewVars, 0, aK) ;
 
-        double lLL = 0 ;
+  //      double lLL = 0 ;
 
-        // E-step: accumulate Nk and sum(r*x)
-        for( int i = 0 ; i < n ; ++i )
-        {
-          var x = aX[i] ;
+  //      // E-step: accumulate Nk and sum(r*x)
+  //      for( int i = 0 ; i < n ; ++i )
+  //      {
+  //        var x = aX[i] ;
 
-          // log probabilities
-          var lLogP = new double[aK] ;
-          double lMax = double.NegativeInfinity ;
+  //        // log probabilities
+  //        var lLogP = new double[aK] ;
+  //        double lMax = double.NegativeInfinity ;
 
-          for( int k = 0 ; k < aK ; ++k )
-          {
-            var lp = Math.Log(lWeights[k]) + LogGaussianPdf(x, lMeans[k], lVars[k]) ;
-            lLogP[k] = lp ;
-            if( lp > lMax ) lMax = lp ;
-          }
+  //        for( int k = 0 ; k < aK ; ++k )
+  //        {
+  //          var lp = Math.Log(lWeights[k]) + LogGaussianPdf(x, lMeans[k], lVars[k]) ;
+  //          lLogP[k] = lp ;
+  //          if( lp > lMax ) lMax = lp ;
+  //        }
 
-          // log-sum-exp
-          double lSum = 0 ;
-          for( int k = 0 ; k < aK ; ++k )
-            lSum += Math.Exp(lLogP[k] - lMax) ;
+  //        // log-sum-exp
+  //        double lSum = 0 ;
+  //        for( int k = 0 ; k < aK ; ++k )
+  //          lSum += Math.Exp(lLogP[k] - lMax) ;
 
-          var lLogSum = lMax + Math.Log(lSum) ;
-          lLL += lLogSum ;
+  //        var lLogSum = lMax + Math.Log(lSum) ;
+  //        lLL += lLogSum ;
 
-          // responsibilities and partial stats
-          for( int k = 0 ; k < aK ; ++k )
-          {
-            var r = Math.Exp(lLogP[k] - lLogSum) ;
-            lNk[k]       += r ;
-            lNewMeans[k] += r * x ;
-          }
-        }
+  //        // responsibilities and partial stats
+  //        for( int k = 0 ; k < aK ; ++k )
+  //        {
+  //          var r = Math.Exp(lLogP[k] - lLogSum) ;
+  //          lNk[k]       += r ;
+  //          lNewMeans[k] += r * x ;
+  //        }
+  //      }
 
-        // Update means + weights
-        for( int k = 0 ; k < aK ; ++k )
-        {
-          var nk = lNk[k] ;
-          if( nk < 1e-12 ) nk = 1e-12 ;
+  //      // Update means + weights
+  //      for( int k = 0 ; k < aK ; ++k )
+  //      {
+  //        var nk = lNk[k] ;
+  //        if( nk < 1e-12 ) nk = 1e-12 ;
 
-          lNewMeans[k]  /= nk ;
-          lNewWeights[k] = nk / n ;
-        }
+  //        lNewMeans[k]  /= nk ;
+  //        lNewWeights[k] = nk / n ;
+  //      }
 
-        // Second pass: compute variances with new means (recompute responsibilities; simple & safe)
-        for( int i = 0 ; i < n ; ++i )
-        {
-          var x = aX[i] ;
+  //      // Second pass: compute variances with new means (recompute responsibilities; simple & safe)
+  //      for( int i = 0 ; i < n ; ++i )
+  //      {
+  //        var x = aX[i] ;
 
-          var lLogP = new double[aK] ;
-          double lMax = double.NegativeInfinity ;
+  //        var lLogP = new double[aK] ;
+  //        double lMax = double.NegativeInfinity ;
 
-          for( int k = 0 ; k < aK ; ++k )
-          {
-            var lp = Math.Log(lWeights[k]) + LogGaussianPdf(x, lMeans[k], lVars[k]) ;
-            lLogP[k] = lp ;
-            if( lp > lMax ) lMax = lp ;
-          }
+  //        for( int k = 0 ; k < aK ; ++k )
+  //        {
+  //          var lp = Math.Log(lWeights[k]) + LogGaussianPdf(x, lMeans[k], lVars[k]) ;
+  //          lLogP[k] = lp ;
+  //          if( lp > lMax ) lMax = lp ;
+  //        }
 
-          double lSum = 0 ;
-          for( int k = 0 ; k < aK ; ++k )
-            lSum += Math.Exp(lLogP[k] - lMax) ;
+  //        double lSum = 0 ;
+  //        for( int k = 0 ; k < aK ; ++k )
+  //          lSum += Math.Exp(lLogP[k] - lMax) ;
 
-          var lLogSum = lMax + Math.Log(lSum) ;
+  //        var lLogSum = lMax + Math.Log(lSum) ;
 
-          for( int k = 0 ; k < aK ; ++k )
-          {
-            var r = Math.Exp(lLogP[k] - lLogSum) ;
-            var d = x - lNewMeans[k] ;
-            lNewVars[k] += r * d * d ;
-          }
-        }
+  //        for( int k = 0 ; k < aK ; ++k )
+  //        {
+  //          var r = Math.Exp(lLogP[k] - lLogSum) ;
+  //          var d = x - lNewMeans[k] ;
+  //          lNewVars[k] += r * d * d ;
+  //        }
+  //      }
 
-        for( int k = 0 ; k < aK ; ++k )
-        {
-          var nk = lNk[k] ;
-          if( nk < 1e-12 ) nk = 1e-12 ;
+  //      for( int k = 0 ; k < aK ; ++k )
+  //      {
+  //        var nk = lNk[k] ;
+  //        if( nk < 1e-12 ) nk = 1e-12 ;
 
-          lNewVars[k] /= nk ;
-          if( lNewVars[k] < aVarFloor ) lNewVars[k] = aVarFloor ;
-        }
+  //        lNewVars[k] /= nk ;
+  //        if( lNewVars[k] < aVarFloor ) lNewVars[k] = aVarFloor ;
+  //      }
 
-        // Convergence check on log-likelihood
-        if( iter > 0 )
-        {
-          var lDiff = Math.Abs(lLL - lPrevLL) ;
-          if( lDiff < aTol * (1.0 + Math.Abs(lPrevLL)) )
-          {
-            lWeights = (double[])lNewWeights.Clone() ;
-            lMeans   = (double[])lNewMeans.Clone() ;
-            lVars    = (double[])lNewVars.Clone() ;
-            break ;
-          }
-        }
+  //      // Convergence check on log-likelihood
+  //      if( iter > 0 )
+  //      {
+  //        var lDiff = Math.Abs(lLL - lPrevLL) ;
+  //        if( lDiff < aTol * (1.0 + Math.Abs(lPrevLL)) )
+  //        {
+  //          lWeights = (double[])lNewWeights.Clone() ;
+  //          lMeans   = (double[])lNewMeans.Clone() ;
+  //          lVars    = (double[])lNewVars.Clone() ;
+  //          break ;
+  //        }
+  //      }
 
-        lPrevLL = lLL ;
+  //      lPrevLL = lLL ;
 
-        lWeights = (double[])lNewWeights.Clone() ;
-        lMeans   = (double[])lNewMeans.Clone() ;
-        lVars    = (double[])lNewVars.Clone() ;
-      }
+  //      lWeights = (double[])lNewWeights.Clone() ;
+  //      lMeans   = (double[])lNewMeans.Clone() ;
+  //      lVars    = (double[])lNewVars.Clone() ;
+  //    }
 
-      var lComps = new List<GmmComponent>() ;
-      for( int k = 0 ; k < aK ; ++k )
-        lComps.Add( new GmmComponent(lWeights[k], lMeans[k], lVars[k]) ) ;
+  //    var lComps = new List<GmmComponent>() ;
+  //    for( int k = 0 ; k < aK ; ++k )
+  //      lComps.Add( new GmmComponent(lWeights[k], lMeans[k], lVars[k]) ) ;
 
-      return new Gmm(lComps) ;
-    }
+  //    return new Gmm(lComps) ;
+  //  }
 
-    static double LogGaussianPdf( double x, double mu, double var )
-    {
-      var d = x - mu ;
-      return -0.5 * (Math.Log(2.0 * Math.PI * var) + (d*d)/var) ;
-    }
+  //  static double LogGaussianPdf( double x, double mu, double var )
+  //  {
+  //    var d = x - mu ;
+  //    return -0.5 * (Math.Log(2.0 * Math.PI * var) + (d*d)/var) ;
+  //  }
 
-    static double Variance( double[] aX )
-    {
-      var n = aX.Length ;
-      if( n <= 1 ) return 0 ;
+  //  static double Variance( double[] aX )
+  //  {
+  //    var n = aX.Length ;
+  //    if( n <= 1 ) return 0 ;
 
-      double mean = 0 ;
-      for( int i = 0 ; i < n ; ++i )
-        mean += aX[i] ;
-      mean /= n ;
+  //    double mean = 0 ;
+  //    for( int i = 0 ; i < n ; ++i )
+  //      mean += aX[i] ;
+  //    mean /= n ;
 
-      double s2 = 0 ;
-      for( int i = 0 ; i < n ; ++i )
-      {
-        var d = aX[i] - mean ;
-        s2 += d*d ;
-      }
+  //    double s2 = 0 ;
+  //    for( int i = 0 ; i < n ; ++i )
+  //    {
+  //      var d = aX[i] - mean ;
+  //      s2 += d*d ;
+  //    }
 
-      return s2 / (n - 1) ;
-    }
-  }
+  //    return s2 / (n - 1) ;
+  //  }
+  //}
 
 }

@@ -18,70 +18,37 @@ namespace ENGINE
 
     protected override void OnSetup()
     {
-      mGate = new Gate( Params.GetFloat("GateCut"), Params.GetFloat("GateOutLevel") ) ;
-    }
-
-    public class Gate
-    {
-      public Gate( float aCut, float aOutLevel )
+      mOptions = new Options
       {
-        Cut      = aCut;
-        OutLevel = aOutLevel;
-      }
-
-      public float Apply( float aV )
-      {
-        if ( aV >= Cut )
-          return OutLevel; 
-        return 0f; 
-      }
-
-      readonly internal float Cut ;
-      readonly internal float OutLevel ;
-
-      public override string ToString() => $"C_{(int)Cut*100}_O_{(int)OutLevel*100}";
+        MinWidth        = Params.GetDouble("MinWidth"),
+        MergeProminence = Params.GetFloat("MergeProminence")
+      };
     }
 
 
     protected override Packet Process ()
     {
       WaveSignal lSignal = WaveInput ;
-      WriteLine2GUI($"Applying Discretization Gate: Cut Level={mGate.Cut} Output Level={mGate.OutLevel}");
 
-      AddBranch("GateCut",$"{(mGate.Cut *  .8)}");
-      AddBranch("GateCut",$"{(mGate.Cut * 1.2)}");
+      WriteLine2GUI($"Applying Discretization...");
 
-      lSignal = Apply( lSignal, mGate ) ;
-      return CreateOutput( lSignal, $"Discretized.") ;
-    }
+      var lDiscretizer =  EnvelopeDiscretizer.CreateAuto(lSignal.Rep.Samples, SIG.SamplesForTime(mOptions.MinWidth),  mOptions.MergeProminence);
+      var lNewSamples = lDiscretizer.Discretize(lSignal.Rep.Samples);
 
-    WaveSignal Apply ( WaveSignal aInput, Gate aGate )
-    {
-      var rDiscrete = Apply(aInput.Rep, aGate) ;
-      
-      var rR = aInput.CopyWith(rDiscrete);
+      var rR = lSignal.CopyWith( new DiscreteSignal( SIG.SamplingRate, lNewSamples) );
 
       Save(rR, $"Discretized.wav") ;
 
-      return rR ;
+      return CreateOutput( rR, $"Discretized.") ;
     }
 
-    public static DiscreteSignal Apply ( DiscreteSignal aInput, Gate aGate )
+    class Options
     {
-      float lMax = aInput.GetPeak();
-
-      float[] lSrc = aInput.Samples ;
-      int lLen = lSrc.Length ;
-
-      float[] rOutput = new float[lLen];
-
-      for ( int i = 0 ; i < lLen ; i++ )  
-        rOutput[i] = aGate.Apply(lSrc[i]) ;  
-
-      return new DiscreteSignal(SIG.SamplingRate, rOutput);
+      internal double MinWidth = 0.001 ;
+      internal float  MergeProminence = 0.5f ;
     }
 
-    Gate mGate = null ;
+    Options mOptions ;
 
     public override string Name => this.GetType().Name ;
 

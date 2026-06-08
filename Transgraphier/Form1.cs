@@ -43,12 +43,18 @@ namespace Transgraphier
 
     public void UpdateSS( double aPanStartSample)
     {
+      if (aPanStartSample < 0 || aPanStartSample > Length)
+        return;
+
       PanStartSample = aPanStartSample ;
       Invalidate();
     }
 
     public void Update( double aSamplePerPixel, double aPanStartSample)
     {
+      if (aPanStartSample < 0 || aPanStartSample > Length)
+        return;
+
       SamplesPerPixel = aSamplePerPixel ;
       PanStartSample  = aPanStartSample ;
       Invalidate();
@@ -92,9 +98,16 @@ namespace Transgraphier
     ControlledViews     mControlledViews = new ControlledViews();
     MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
 
+    int mBlockIdx = 0 ;
+
+    List<int> mBlockStartSamples = new List<int>();
+
     public Form1()
     {
       InitializeComponent();
+
+      var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+      this.Text = $"Transgraphier {version.Major}.{version.Minor}";
     }
 
     protected override void OnLoad(EventArgs e)
@@ -126,6 +139,10 @@ namespace Transgraphier
       {
         UpdateTimeMeasureLabel();
       };
+
+      DisableBlockButtons();
+
+      mBlockIdx = 0 ;
     }
 
     private void UpdateTimeMeasureLabel()
@@ -148,9 +165,9 @@ namespace Transgraphier
       var availableWidth = Math.Max(1.0, mInputWave.Width);
 
       var lZPC = new ViewController(){ MinSamplesPerPixel = 2.0
-                                        , MaxSamplesPerPixel = aSignal.Length / availableWidth
-                                        , Views = mControlledViews  
-      };
+                                      , MaxSamplesPerPixel = aSignal.Length / availableWidth
+                                      , Views = mControlledViews  
+                                      };
           
       lZPC.Update(lZPC.MaxSamplesPerPixel,0 ) ; // Zoom out the entire signal
       lZPC.Length = aSignal.Length;
@@ -171,6 +188,8 @@ namespace Transgraphier
     {
       try
       {
+        DisableBlockButtons();
+
         mSessionName = Path.GetFileNameWithoutExtension(mInputFile);
 
         mControlledViews.Clear();
@@ -546,6 +565,11 @@ namespace Transgraphier
 
           var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
 
+          if ( lColorCoded )
+          {
+            LoadBlocks(lResultSignal);
+          }
+
           lWaveView.ViewController = mInputWave.ViewController ; 
 
           lWaveView.Signal = lResultSignal;
@@ -623,6 +647,51 @@ namespace Transgraphier
 
       this.Refresh();
 
+    }
+
+    void LoadBlocks( DiscreteSignal aColorCodedSignal )
+    {
+      bool lSeparatorFound = false;
+      for ( int i = 0; i < aColorCodedSignal.Length; i++)
+      {
+        if (aColorCodedSignal[i] == 0 )
+          continue;
+
+        if ( Math.Abs(aColorCodedSignal[i]) > 0.9 )
+        {
+          lSeparatorFound = true;
+        }
+        else
+        {
+          if (lSeparatorFound )
+            mBlockStartSamples.Add(i);
+          lSeparatorFound = false;
+        }
+      }
+
+      if (mBlockStartSamples.Count > 0)
+      {
+        AddGeneralMessage($"Loaded {mBlockStartSamples.Count} blocks from color coded signal.");
+        mBlockStartSamples.Insert(0, 0); // Ensure the first block starts at sample 0)
+        mBlockStartSamples.Add(aColorCodedSignal.Length); // Add an end marker for easier block size calculation
+        mBlockIdx = 0;
+
+        EnableBlockButtons();
+      }
+    }
+
+    void DisableBlockButtons()
+    {
+      this.FirstBlockButton.Enabled = false;
+      this.PrevBlockButton.Enabled = false;
+      this.NextBlockButton.Enabled = false;
+    }
+
+    void EnableBlockButtons()
+    {
+      this.FirstBlockButton.Enabled = true;
+      this.PrevBlockButton.Enabled = true;
+      this.NextBlockButton.Enabled = true;
     }
 
     string GetLastSessionFolder()
@@ -836,6 +905,51 @@ namespace Transgraphier
     {
       File.Copy(mConfigFile, mConfigFile + ".backup", true);
       mConfig.Save(mConfigFile);
+    }
+
+    private void GotoBlock( int aIdx )
+    {
+      mBlockIdx = aIdx;
+
+      if ( mBlockIdx < mBlockStartSamples.Count  - 1 )
+      {
+        var lNewSS = mBlockStartSamples[mBlockIdx];
+
+        double lAvailableWidth = Math.Max(1.0, mInputWave.Width);
+
+        double lBlockSizeInSamples = mBlockStartSamples[mBlockIdx + 1] - mBlockStartSamples[mBlockIdx];
+
+        double lNewSamplesPerPixel = lBlockSizeInSamples / lAvailableWidth;
+
+        mInputWave.ViewController.Update(lNewSamplesPerPixel, lNewSS);
+      }
+    }
+
+    private void FirstBlock_Click(object sender, EventArgs e)
+    {
+      GotoBlock(0);
+    }
+
+    private void PrevBlock_Click(object sender, EventArgs e)
+    {
+      GotoBlock(mBlockIdx-1);
+    }
+
+    private void NextBlock_Click(object sender, EventArgs e)
+    {
+      GotoBlock(mBlockIdx+1);
+    }
+
+    private void ZoomBlock_Click(object sender, EventArgs e)
+    {
+
+      //double lCenterX = lAvailableWidth / 2.0;
+
+      //double lNewSamplesPerPixel = mBlockSizeInSamples / lAvailableWidth;
+
+      //var lNewStartSample = Math.Max(0, mBlockSizeInSamples * mBlockIdx);
+
+      //mInputWave.ViewController.Update(lNewSamplesPerPixel, lNewStartSample);
     }
 
     private void Help_Click(object sender, EventArgs e)
