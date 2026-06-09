@@ -121,7 +121,7 @@ public class Pipeline
 
   public PipelineResult Process( Processor aProcessor )
   {
-    PipelineResultBuilder rRB = new PipelineResultBuilder(Config, Name, DContext.Session.CurrentOutputFolder) ;  
+    PipelineResultBuilder rRB = new PipelineResultBuilder(Config, Name, Session.CurrentOutputFolder) ;  
 
     mFilterIdx = 0  ;
 
@@ -145,7 +145,7 @@ public class Pipeline
 
         if ( lPacket is not null )
         {
-          lPacket.OutputFolder = DContext.Session.CurrentOutputFolder ;
+          lPacket.OutputFolder = Session.CurrentOutputFolder ;
 
           rRB.Add( lPacket ) ;
 
@@ -158,19 +158,19 @@ public class Pipeline
 
           if ( lPacket.ShouldQuit )
           {
-            DContext.WriteLine2GUI("Filter asked to Quit Processor.");
+            Session.WriteLine2GUI("Filter asked to Quit Processor.");
             break ;
           }
         }
         else
         {
-          DContext.WriteLine2GUI("Filter returned NO result. Quitting.");
+          Session.WriteLine2GUI("Filter returned NO result. Quitting.");
           break ;
         }
       }
       catch ( Exception e ) 
       { 
-        DContext.Error(e);
+        Session.Error(e);
       }
         
       mFilterIdx = mFilterIdx + 1  ;

@@ -57,17 +57,17 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          DContext.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
+          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
         }
         else
         {
-          DContext.Error($"Pipeline {lPipelineIdx} failed. Aborting.") ;
+          aSession.Error($"Pipeline {lPipelineIdx} failed. Aborting.") ;
           break ;
         }
 
         if ( aSettings.GetBool("DisableBranching") )
         {
-          DContext.WriteLine2GUI($"Skipping branch-out pipelines.") ;
+          aSession.WriteLine2GUI($"Skipping branch-out pipelines.") ;
           break ;
         }
 
@@ -78,7 +78,7 @@ public class Processor
 
         if ( lGoodPipelinesCount > aSettings.GetInt("MaxGoodBranches") || lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
         {
-          DContext.Error($"Too many Pipelines. Aborting.") ;
+          aSession.Error($"Too many Pipelines. Aborting.") ;
           break ;
         }
       }
@@ -88,11 +88,11 @@ public class Processor
     }
     catch( Exception x )
     {
-      DContext.Error(x);
+      aSession.Error(x);
     }
 
     aSession.SetCurrentOutputFolder(lMainPipelineFolder);
-    DContext.CloseLogger();
+    aSession.CloseLogger();
 
     return rPipelineResults ;
   }

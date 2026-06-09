@@ -15,8 +15,7 @@ namespace ENGINE
 
   public class FilterHelper
   {
-
-    static public void DumpValues<T>( string aName, List<T> aValues )
+    static public void DumpValues<T>( Session aSession, string aName, List<T> aValues )
     {
       try
       {
@@ -26,11 +25,11 @@ namespace ENGINE
 
         var lCSV = string.Join(" , ", lAsStrings ) ;
 
-        File.WriteAllText(DContext.Session.OutputFile($"{aName}_CSV.txt"), lCSV);
+        File.WriteAllText(aSession.OutputFile($"{aName}_CSV.txt"), lCSV);
       }
       catch( Exception e )
       {
-        DContext.Error(e);
+        aSession.Error(e);
       }
     }
   }
@@ -66,18 +65,14 @@ namespace ENGINE
       return aPulses.Select( p => p.Duration ).ToList();
     }
 
-    static public void Plot( this List<PulseSymbol> aPulses, string aLabel )
+    static public void Plot( this List<PulseSymbol> aPulses, string aLabel, Session aSession )
     {
       List<float> lSamples = new List<float> ();
       aPulses.ForEach( s => s.DumpSamples(lSamples ) );
       DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
       WaveSignal lWave = new WaveSignal(lWaveRep);
-      lWave.SaveTo( DContext.Session.OutputFile( aLabel + ".wav") ) ;
+      lWave.SaveTo( aSession.OutputFile( aLabel + ".wav"), aSession ) ;
     }
-  }
-
-  public class PulseFilterHelper : FilterHelper
-  {
   }
 
   internal class PulseStepBuilder
@@ -212,7 +207,7 @@ namespace ENGINE
 
       CurrPulses.SetupGapDurations(); 
 
-      CurrPulses.Plot("Pulses");
+      Plot(CurrPulses,"Pulses");
     }
 
     void AddPulse()

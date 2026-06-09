@@ -287,8 +287,6 @@ namespace Transgraphier
 
       var lSession = new Session(mInputFile, mSessionName, mSettings, mMWGUI);
 
-      DContext.Setup( lSession ) ;
-
       try
       {
 
@@ -310,6 +308,7 @@ namespace Transgraphier
           lStartSignal = mInputLexicalSignal;
           lPipeline = PipelineFactory.FromTapCode() ;
         }
+
 
         var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lStartSignal);
 
@@ -339,7 +338,7 @@ namespace Transgraphier
         AddErrorMessage($"Processing FAILED!!!: {ex}");
       }
 
-      DContext.Shutdown(); 
+      lSession.Shutdown(); 
     }
 
     public class PipelineOutcome 

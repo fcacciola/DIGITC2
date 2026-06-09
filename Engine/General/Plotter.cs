@@ -31,8 +31,9 @@ namespace ENGINE
       public static Options Bars  => new Options{Type=TypeE.Bars} ;
     }
 
-    public Plotter ( Options aOptions = null )  
+    public Plotter ( Session aSession, Options aOptions = null )  
     {
+      mSession = aSession;
       mOptions = aOptions ?? Options.Default; 
       mPlot = new PlotModel { Title = mOptions.Title, Subtitle = mOptions.Subtitle, PlotAreaBorderThickness = new OxyThickness(0), Background = OxyColor.FromRgb(255,255,255) };
       mPlot.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, AxislineThickness = 2, AxislineColor = OxyColors.Blue, AxislineStyle = LineStyle.Solid });
@@ -53,7 +54,7 @@ namespace ENGINE
 
     public void SavePNG( string aFilename )
     {
-      DContext.WriteDetailLine($"Saving PNG Image to: [{aFilename}]");
+      mSession.WriteDetailLine($"Saving PNG Image to: [{aFilename}]");
       try
       {
         var lBitmap = ToBitmap();
@@ -61,13 +62,13 @@ namespace ENGINE
       }
       catch( Exception ex ) 
       {
-        DContext.Error(ex);
+        mSession.Error(ex);
       }
     }
 
     public void SaveSVG( string aFilename )
     {
-      DContext.WriteDetailLine($"Saving SVG PLOT: [{aFilename}]");
+      mSession.WriteDetailLine($"Saving SVG PLOT: [{aFilename}]");
       try
       {
         var lExporter = new OxyPlot.SvgExporter { Width = 1000, Height = 500 };
@@ -75,10 +76,11 @@ namespace ENGINE
       }
       catch( Exception ex ) 
       {
-        DContext.Error(ex);
+        mSession.Error(ex);
       }
     }
 
+    Session   mSession;
     Options   mOptions ;
     PlotModel mPlot ;
   }

@@ -40,7 +40,7 @@ namespace ENGINE
       }
       catch ( Exception x )
       {
-        DContext.Error(x);
+        Session.Error(x);
       }
 
       Unindent();
@@ -59,10 +59,6 @@ namespace ENGINE
 
     protected Params Params => Config.GetSection(Name);
 
-    protected void AddNewConfig( string aKey, string aValue )
-    {
-    }
-
     protected void AddBranch( params string[] aKVList )
     {
       Config rNew = Config.Copy();
@@ -75,18 +71,27 @@ namespace ENGINE
 
     protected void Save( DiscreteSignal aDS, string aName )
     {
-      aDS.SaveTo( Session.OutputFile( aName ) ) ;
+      aDS.SaveTo( Session.OutputFile( aName ), Session ) ;
     }
 
     protected void Save( WaveSignal aWS, string aName ) => Save(aWS.Rep, aName);  
 
+    protected void Plot<SYM>( List<SYM> aSymbols, string aLabel ) where SYM : Symbol
+    {
+      List<float> lSamples = new List<float> ();
+      aSymbols.ForEach( s => s.DumpSamples(lSamples ) );
+      DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
+      WaveSignal lWave = new WaveSignal(lWaveRep);
+      lWave.SaveTo( Session.OutputFile( aLabel + ".wav"), Session ) ;
+    }
+
     public override string ToString() => Name ;
 
-    protected void WriteDetailLine( string aLine ) => DContext.WriteDetailLine( aLine ) ;
-    protected void WriteLine      ( string aLine ) => DContext.WriteLine      ( aLine ) ;
-    protected void WriteLine2GUI  ( string aLine ) => DContext.WriteLine2GUI  ( aLine ) ;
-    protected void Indent                       () => DContext.Indent() ;  
-    protected void Unindent                     () => DContext.Unindent() ;  
+    protected void WriteDetailLine( string aLine ) => Session.WriteDetailLine( aLine ) ;
+    protected void WriteLine      ( string aLine ) => Session.WriteLine      ( aLine ) ;
+    protected void WriteLine2GUI  ( string aLine ) => Session.WriteLine2GUI  ( aLine ) ;
+    protected void Indent                       () => Session.Indent() ;  
+    protected void Unindent                     () => Session.Unindent() ;  
 
     protected Session      Session ;
     protected Settings     Settings ;

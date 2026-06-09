@@ -105,9 +105,9 @@ namespace ENGINE
       }
     }
 
-    public Plotter CreatePlot( string aName )
+    public Plotter CreatePlot( Session aSession, string aName )
     {
-      Plotter rPlot = new Plotter(  new Plotter.Options{Title=aName} );
+      Plotter rPlot = new Plotter( aSession, new Plotter.Options{Title=aName} );
 
       foreach( var lComponent in Components )
       {
@@ -125,21 +125,21 @@ namespace ENGINE
       return rPlot;
     }
 
-    public void Plot( string aName )
+    public void Plot( Session aSession, string aName )
     {
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      if ( aSession.Settings.GetBool("OutputDetails") )
       { 
-        var lPlot = CreatePlot(aName);
-        lPlot.SavePNG(DContext.Session.OutputFile($"{aName}.png"));
-        lPlot.SaveSVG(DContext.Session.OutputFile($"{aName}.svg"));
+        var lPlot = CreatePlot(aSession, aName);
+        lPlot.SavePNG(aSession.OutputFile($"{aName}.png"));
+        lPlot.SaveSVG(aSession.OutputFile($"{aName}.svg"));
       }
     }
 
-    public void Save( string aName )
+    public void Save( Session aSession, string aName )
     {
-      if ( DContext.Session.Settings.GetBool("OutputDetails") )
+      if ( aSession.Settings.GetBool("OutputDetails") )
       { 
-        File.WriteAllLines(DContext.Session.OutputFile($"{aName}.txt"), Components.Select(c => c.ToString()));
+        File.WriteAllLines(aSession.OutputFile($"{aName}.txt"), Components.Select(c => c.ToString()));
       }
     }
 

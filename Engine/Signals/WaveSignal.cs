@@ -53,8 +53,7 @@ namespace ENGINE
 
     public float ComputeMax() => Rep.Samples.Max();
 
-    public void SaveTo( Stream aStream   ) => Rep.SaveTo(aStream);
-    public void SaveTo( string aFilename ) => Rep.SaveTo(aFilename);
+    public void SaveTo( string aFilename, Session aSession ) => Rep.SaveTo(aFilename, aSession);
 
     public WaveSignal Transform(Func<float, float> Transformation)
     {
@@ -119,31 +118,34 @@ namespace ENGINE
 
   public static class DiscreteSignalExtensions2
   {
-    public static void SaveTo( this DiscreteSignal aDS, Stream aStream ) 
-    {
-      try
-      {
-        var lWF = new WaveFile(aDS);
-        lWF.SaveTo( aStream );  
-      }
-      catch( Exception ex )
-      {
-        DContext.Error(ex);
-      }
-    }
+    //public static void SaveTo( this DiscreteSignal aDS, Stream aStream ) 
+    //{
+    //  try
+    //  {
+    //    var lWF = new WaveFile(aDS);
+    //    lWF.SaveTo( aStream );  
+    //  }
+    //  catch( Exception ex )
+    //  {
+    //    DContext.Error(ex);
+    //  }
+    //}
 
-    public static void SaveTo( this DiscreteSignal aDS, string aFilename )  
+    public static void SaveTo( this DiscreteSignal aDS, string aFilename, Session aSession )  
     {
-      DContext.WriteDetailLine($"Saving signal to file: [{aFilename}]");
+      aSession.WriteDetailLine($"Saving signal to file: [{aFilename}]");
 
       try
       {
         using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
-          aDS.SaveTo( lStream );  
+        {
+          var lWF = new WaveFile(aDS);
+          lWF.SaveTo( lStream );  
+        }
       }
       catch( Exception ex )
       {
-        DContext.Error(ex);
+        aSession.Error(ex);
       }
     }
 

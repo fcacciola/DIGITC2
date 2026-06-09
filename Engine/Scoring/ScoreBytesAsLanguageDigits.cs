@@ -69,7 +69,7 @@ namespace ENGINE
 
       double lCorrelation = mCC.Calculate(lBytes) ;  
 
-      DContext.WriteLine($"Correlation: {lCorrelation}");
+      WriteLine($"Correlation: {lCorrelation}");
 
       var lLikelihood = (int)Math.Round(lCorrelation * 100) ; 
 

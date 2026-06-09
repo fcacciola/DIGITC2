@@ -194,13 +194,13 @@ namespace ENGINE
       {
         double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
 
-        FilterHelper.DumpValues("Pulses_Gaps",aGaps);
+        FilterHelper.DumpValues(Session, "Pulses_Gaps",aGaps);
         var lGMM = GmmFitter.Fit(aGaps).ChooseBest(3);
 
         if ( lGMM != null )
         {
-          lGMM.Save("GMM_For_IntraTapGap_Calculation");
-          lGMM.Plot("Gaps_Histogram_For_IntraTapGap_Calculation"); 
+          lGMM.Save(Session, "GMM_For_IntraTapGap_Calculation");
+          lGMM.Plot(Session, "Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
           if ( lGMM.Components.Count == 1 )
           {
@@ -382,15 +382,6 @@ namespace ENGINE
 
 
       return CreateOutput( new FileSignal(lTapCodeFile), "TapCodes") ;
-    }
-
-    void Plot( List<TapCodeSymbol> aPulses, string aLabel )
-    {
-      List<float> lSamples = new List<float> ();
-      aPulses.ForEach( s => s.DumpSamples(lSamples ) );
-      DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
-      WaveSignal lWave = new WaveSignal(lWaveRep);
-      lWave.SaveTo( DContext.Session.OutputFile( aLabel + ".wav") ) ;
     }
 
     public override string Name => this.GetType().Name ;

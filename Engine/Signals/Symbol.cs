@@ -46,6 +46,7 @@ namespace ENGINE
     public static bool operator ==(Symbol lhs, Symbol rhs) => Equals(lhs,rhs) ;
     public static bool operator !=(Symbol lhs, Symbol rhs) => !(lhs == rhs);
 
+    public virtual void DumpSamples( List<float> aSamples ) {}
   }
 
   public class PulseStep
@@ -112,7 +113,7 @@ namespace ENGINE
       return new PulseSymbol( Idx, Start, End, lStepsCopy ); 
     }  
 
-    public void DumpSamples( List<float> aSamples )
+    public override void DumpSamples( List<float> aSamples )
     {
       int lC = aSamples.Count ;
       for( int i = lC ; i < Start ; i++ )
@@ -217,7 +218,7 @@ namespace ENGINE
 
     public override string ToString() => string.Join("|", Symbols.ConvertAll( s => s.ToString() ) );
     
-    public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
+    //public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
     
     public double Value => Symbols.Count ;
 
@@ -237,7 +238,7 @@ namespace ENGINE
 
     public override string ToString() => $"[{Word}]" ;
 
-    public int UpperBound => Math.Max(Word.Length,DContext.Session.Settings.GetInt("MaxWordLength")) ;
+    //public int UpperBound => Math.Max(Word.Length,DContext.Session.Settings.GetInt("MaxWordLength")) ;
 
     public double Length => Word.Length ;
 

@@ -27,8 +27,10 @@ namespace ENGINE
       public string         Label ;
     }
 
-    public BandSplitter( List<double> aCenterFrequencies, double aOverlapFactor = 0.0, double aSpectrumStart = 100, double aSpectrumEnd = 22000 )
+    public BandSplitter( Session aSession, List<double> aCenterFrequencies, double aOverlapFactor = 0.0, double aSpectrumStart = 100, double aSpectrumEnd = 22000 )
     {
+      mSession = aSession;  
+
       mFrequencies = new (double, double, double)[aCenterFrequencies.Count];
 
       List<double> lExtendedCenters = new List<double> { aSpectrumStart };
@@ -53,8 +55,10 @@ namespace ENGINE
       }
     }
 
-    public BandSplitter( (double,double)[] aFrequencies_LH )
+    public BandSplitter( Session aSession, (double,double)[] aFrequencies_LH )
     {
+      mSession = aSession;
+
       mFrequencies = new (double, double, double)[aFrequencies_LH.Length];
 
       for (int i = 0; i < aFrequencies_LH.Length; i++)
@@ -65,12 +69,14 @@ namespace ENGINE
       }
     }
 
-    public BandSplitter( (double,double,double)[] aFrequencies_LMH )
+    public BandSplitter( Session aSession, (double,double,double)[] aFrequencies_LMH )
     {
+      mSession = aSession;
+
       mFrequencies = aFrequencies_LMH;
     }
 
-    public BandSplitter( int aNumberOfBands )
+    public BandSplitter( Session aSession, int aNumberOfBands )
     {
       mFrequencies = FilterBanks.HerzBands(aNumberOfBands, 44100, 100, 22.000, true); // 100hz -> 22khz as frequency range.
     }
@@ -80,7 +86,7 @@ namespace ENGINE
 
     public List<Band> Split(DiscreteSignal aSignal)
     {
-      DContext.WriteLine2GUI($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
+      mSession.WriteLine2GUI($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
 
       List<Band> rBands = new List<Band>();
 
@@ -88,7 +94,7 @@ namespace ENGINE
       {
         var lFiltered = FilterBand(aSignal, lBFrequencies.Item1, lBFrequencies.Item3);
         var rBand = new Band { Signal = lFiltered, Label = BandFrequenecyToString(lBFrequencies) };
-        DContext.WriteLine($"  Band: {rBand.Label}");
+        mSession.WriteLine($"  Band: {rBand.Label}");
         rBands.Add( rBand );
       } 
       return rBands;
@@ -108,6 +114,7 @@ namespace ENGINE
       return rFiltered; 
     }
 
+    Session mSession;
     (double,double,double)[] mFrequencies ;
   }
 
@@ -136,7 +143,7 @@ namespace ENGINE
         }
 
         if ( lFrequencyCenters.Count > 0 ) 
-          mSplitter = new BandSplitter(lFrequencyCenters, aOverlapFactor: .2);
+          mSplitter = new BandSplitter(Session, lFrequencyCenters, aOverlapFactor: .2);
       }
 
     }
@@ -163,7 +170,7 @@ namespace ENGINE
       //}
       //else
       {
-        DContext.WriteLine2GUI("Passing input signal AS-IS. No band splitting specified.");
+        WriteLine2GUI("Passing input signal AS-IS. No band splitting specified.");
 
         return CreateOutput(WaveInput.Copy(), $"{WaveInput.Name}_UNSPLIT") ;
       }
