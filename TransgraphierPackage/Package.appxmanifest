@@ -9,8 +9,8 @@
 
   <Identity
     Name="77d4c580-b675-496f-8ba6-f1af43616a4f"
-    Publisher="CN=User"
-    Version="2.4.2.0" />
+    Publisher="CN=FCacciola"
+    Version="2.4.3.0" />
 
   <Properties>
     <DisplayName>TransgraphierPackage</DisplayName>
