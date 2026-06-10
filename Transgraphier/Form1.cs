@@ -87,15 +87,16 @@ namespace Transgraphier
 
   public partial class Form1 : Form
   {
-    TabControl    mSessionsTabControl;
-    Settings      mSettings  = null ;
-    Config        mConfig    = null ;
-    string        mConfigFile = null ;
-    string        mInputFile = null ; 
-    string        mSessionName = null ;
-    string        mSessionFolder = null ; 
-    MainWindowGUI mMWGUI     = null; 
-    ControlledViews     mControlledViews = new ControlledViews();
+    TabControl      mSessionsTabControl;
+    Settings        mSettings  = null ;
+    Config          mBaseConfig = null ;
+    Config          mWorkingConfig = null ;
+    string          mConfigFile = null ;
+    string          mInputFile = null ; 
+    string          mSessionName = null ;
+    string          mSessionFolder = null ; 
+    MainWindowGUI   mMWGUI     = null; 
+    ControlledViews mControlledViews = new ControlledViews();
     MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
 
     int mBlockIdx = 0 ;
@@ -124,7 +125,7 @@ namespace Transgraphier
       if ( ! Directory.Exists( OutputFolder ))
         Directory.CreateDirectory( OutputFolder );  
 
-      mConfig = LoadConfig();  
+      mBaseConfig = LoadConfig();  
 
       AddGeneralMessage("Transgraphier 1.0 started.");
       AddGeneralMessage($"Input Folder: {InputFolder}.");
@@ -254,6 +255,8 @@ namespace Transgraphier
 
         Clear();
 
+        mWorkingConfig = mBaseConfig.Copy();
+
         bool lSessionExists =  Directory.Exists( mSessionFolder );
 
         if ( lSessionExists )
@@ -285,7 +288,7 @@ namespace Transgraphier
         return;
       }
 
-      var lSession = new Session(mInputFile, mSessionName, mSettings, mMWGUI);
+      var lSession = new Session(mInputFile, mSessionName, mSettings, mMWGUI, mWorkingConfig);
 
       try
       {
@@ -310,7 +313,7 @@ namespace Transgraphier
         }
 
 
-        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, mConfig, lStartSignal);
+        var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, lStartSignal);
 
         string lInputCopy = $"{lSession.CurrentOutputFolder}\\{lSession.Name}.wav";
         if ( ! File.Exists(lInputCopy) )
@@ -491,7 +494,7 @@ namespace Transgraphier
       List<FilterOutcome> lFilterOutcomes = new List<FilterOutcome>();
 
       string lPipelineConfigFile = $"{aPipelineOutcome.LastFolder()}\\Config.txt";
-      Config lConfig = File.Exists(lPipelineConfigFile) ? Config.FromFile(lPipelineConfigFile) : mConfig;
+      Config lConfig = File.Exists(lPipelineConfigFile) ? Config.FromFile(lPipelineConfigFile) : mWorkingConfig;
 
       foreach (var lFolder in aPipelineOutcome.Folders )
       {
@@ -779,7 +782,7 @@ namespace Transgraphier
 
     public void ParametersChanged( Config aPipelineConfig )
     {
-      this.mConfig = aPipelineConfig.Copy() ;
+      this.mWorkingConfig = aPipelineConfig.Copy() ;
     }
 
     private void LoadEVP_Click(object sender, EventArgs e)
@@ -891,19 +894,6 @@ namespace Transgraphier
       {
         AddErrorMessage($"Export failed: {ex.Message}");
       }
-    }
-
-
-    private void RestoreOldParameters_Click(object sender, EventArgs e)
-    {
-      File.Copy(mConfigFile + ".backup", mConfigFile, true);
-      LoadConfig();
-    }
-
-    private void SaveNewParameters_Click(object sender, EventArgs e)
-    {
-      File.Copy(mConfigFile, mConfigFile + ".backup", true);
-      mConfig.Save(mConfigFile);
     }
 
     private void GotoBlock( int aIdx )

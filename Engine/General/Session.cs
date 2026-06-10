@@ -19,12 +19,13 @@ namespace ENGINE
 
   public class Session
   {
-    public Session( string aInputFile, string aName, Settings aSettings, GUI aGUI )
+    public Session( string aInputFile, string aName, Settings aSettings, GUI aGUI, Config aConfig )
     {
       InputFile        = aInputFile ;
       Name             = aName;
       Settings         = aSettings;
       GUI              = aGUI;  
+      Config           = aConfig ;
       InputFolder      = aSettings.GetPath("InputFolder");  
       RootOutputFolder = aSettings.GetPath("OutputFolder");
 
@@ -138,6 +139,7 @@ namespace ENGINE
     public string   Name ;
     public Settings Settings ;
     public GUI      GUI ;
+    public Config   Config ;
 
     public string   BaseFolder ;
     public string   InputFolder ;

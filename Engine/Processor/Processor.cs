@@ -12,10 +12,10 @@ namespace ENGINE
 
 public class Processor
 {
-  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, Config aConfig, Signal aStartSignal )
+  public static SessionResult Process ( Session aSession, Settings aSettings, string aName, MainPipeline aMainPipeline, Signal aStartSignal )
   {
     var lProcessor = new Processor(aMainPipeline);
-    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal, aConfig  ) ;
+    var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal ) ;
 
     return new SessionResult(lPipelineResults,aName);
   }
@@ -25,11 +25,11 @@ public class Processor
     mMainPipeline = aMainPipeline ; 
   }
 
-  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal, Config aConfig )
+  public List<PipelineResult> Process( Session aSession, Settings aSettings, Signal aStartSignal )
   {
     var rPipelineResults = new List<PipelineResult>();
 
-    mMainPipeline.Start( aSession, aSettings, aConfig, aStartSignal ) ;
+    mMainPipeline.Start( aSession, aSettings, aSession.Config, aStartSignal ) ;
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 

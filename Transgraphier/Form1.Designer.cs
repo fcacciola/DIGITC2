@@ -37,8 +37,6 @@ namespace Transgraphier
       sessionLabel = new Label();
       sessionName = new TextBox();
       processButton = new Button();
-      SaveNewParamsButton = new Button();
-      RestoreOldParamsButton = new Button();
       LoadLastSessionButton = new Button();
       LoadSessionButton = new Button();
       ExportButton = new Button();
@@ -71,8 +69,6 @@ namespace Transgraphier
       buttonPanel.Controls.Add(ExportButton);
       buttonPanel.Controls.Add(LoadSessionButton);
       buttonPanel.Controls.Add(LoadLastSessionButton);
-      buttonPanel.Controls.Add(RestoreOldParamsButton);
-      buttonPanel.Controls.Add(SaveNewParamsButton);
       buttonPanel.Controls.Add(processButton);
       buttonPanel.Controls.Add(sessionName);
       buttonPanel.Controls.Add(sessionLabel);
@@ -124,26 +120,6 @@ namespace Transgraphier
       processButton.Text = "RUN";
       processButton.Click += Process_Click;
       processButton.Enabled = false;
-      // 
-      // processButton
-      // 
-      SaveNewParamsButton.Dock = DockStyle.Left;
-      SaveNewParamsButton.Name = "SaveNewParamsButton";
-      SaveNewParamsButton.Size = new Size(200, 30);
-      SaveNewParamsButton.TabIndex = 1;
-      SaveNewParamsButton.Text = "Save New Parameters";
-      SaveNewParamsButton.Click += SaveNewParameters_Click;
-      SaveNewParamsButton.Enabled = false;
-      // 
-      // processButton
-      // 
-      RestoreOldParamsButton.Dock = DockStyle.Left;
-      RestoreOldParamsButton.Name = "RestoreOldParamsButton";
-      RestoreOldParamsButton.Size = new Size(220, 30);
-      RestoreOldParamsButton.TabIndex = 1;
-      RestoreOldParamsButton.Text = "Restore Old Parameters";
-      RestoreOldParamsButton.Click += RestoreOldParameters_Click;
-      RestoreOldParamsButton.Enabled = false;
       // 
       // showButton
       // 
@@ -331,8 +307,6 @@ namespace Transgraphier
     private Label sessionLabel;
     private TextBox sessionName;
     private Button processButton;
-    private Button SaveNewParamsButton;
-    private Button RestoreOldParamsButton;
     private Button LoadLastSessionButton;
     private Button LoadSessionButton;
     private Button ExportButton;
