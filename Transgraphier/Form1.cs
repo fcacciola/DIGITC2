@@ -495,6 +495,8 @@ namespace Transgraphier
 
       string lPipelineConfigFile = $"{aPipelineOutcome.LastFolder()}\\Config.txt";
       Config lConfig = File.Exists(lPipelineConfigFile) ? Config.FromFile(lPipelineConfigFile) : mWorkingConfig;
+      if (mWorkingConfig == null)
+        mWorkingConfig = lConfig ;
 
       foreach (var lFolder in aPipelineOutcome.Folders )
       {

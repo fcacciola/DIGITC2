@@ -149,15 +149,9 @@ namespace ENGINE
 
     Options CreateOptions()
     {
-      Options rOptions = new ();
-
-      rOptions.MinLevelThreshold           = Params.GetInt("MinLevelThreshold");
-      rOptions.MinDurationThreshold        = Params.GetDouble("MinDurationThreshold");
-      rOptions.ContiguousPulsesGapDuration = Params.GetDouble("ContiguousPulsesGapDuration");
-      rOptions.VeryShortThreshold          = Params.GetDouble("VeryShortThreshold");
+      Options rOptions = new () { MinPulseWidth = Params.GetDouble("MinPulseWidth") };
 
       return rOptions;
-
     }
 
     protected override Packet Process ()
@@ -165,6 +159,7 @@ namespace ENGINE
       mOptions = CreateOptions() ;
 
       CreatePulses();
+      FilterShortPulses();
 
       return CreateOutput( new LexicalSignal(CurrPulses), Name, null, false) ;
     }
@@ -206,8 +201,6 @@ namespace ENGINE
       AddPulse();
 
       CurrPulses.SetupGapDurations(); 
-
-      Plot(CurrPulses,"Pulses");
     }
 
     void AddPulse()
@@ -220,12 +213,54 @@ namespace ENGINE
       }
     }
 
+    double CalculateMinPulseWidth() 
+    {
+      if ( mOptions.MinPulseWidth == -1 )
+      {
+        double lMinPulseWidth = 0 ;
+
+        var lDurations = CurrPulses.Durations();
+
+        FilterHelper.DumpValues(Session, "Pulse_Durations",lDurations);
+        var lGMM = GmmFitter.Fit(lDurations) ;
+
+        if ( lGMM != null && lGMM.Components.Count > 0 )
+        {
+          lGMM.Save(Session, "Raw GMM_For_MinPulseWidth_Calculation");
+          lGMM.Plot(Session, "Raw Gaps_Histogram_For_MinPulseWidth_Calculation"); 
+
+          var lFilteredGMM = lGMM.DiscardMeaningless() ;
+
+          lFilteredGMM.Save(Session, "GMM_For_MinPulseWidth_Calculation");
+          lFilteredGMM.Plot(Session, "Gaps_Histogram_For_MinPulseWidth_Calculation"); 
+
+          if (lFilteredGMM.Components.Count > 0)
+          {
+            var lFirst = lFilteredGMM.Components[0];
+            lMinPulseWidth = Math.Max(lFirst.N_Sigma(-4),0);
+          }
+        }
+
+        Params.ChangeValue("MinPulseWidth",$"{lMinPulseWidth:F3}");
+
+        return lMinPulseWidth;
+      }
+
+      return mOptions.MinPulseWidth;
+    }
+
+    void FilterShortPulses() 
+    {
+      double lMinpulseWidth = CalculateMinPulseWidth();
+
+      var lPulses = CurrPulses;
+      lPulses.RemoveAll(p => p.Duration < lMinpulseWidth);
+      Plot(CurrPulses,"Pulses");
+    }
+
     class Options
     {
-      internal int    MinLevelThreshold ;
-      internal double MinDurationThreshold ;
-      internal double ContiguousPulsesGapDuration = -1 ;
-      internal double VeryShortThreshold = -1 ;
+      internal double MinPulseWidth { get; set; }
     }
 
     Options                   mOptions ;

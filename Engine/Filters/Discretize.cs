@@ -20,7 +20,6 @@ namespace ENGINE
     {
       mOptions = new Options
       {
-        MinWidth        = Params.GetDouble("MinWidth"),
         MergeProminence = Params.GetFloat("MergeProminence")
       };
     }
@@ -32,7 +31,7 @@ namespace ENGINE
 
       WriteLine2GUI($"Applying Discretization...");
 
-      var lDiscretizer =  EnvelopeDiscretizer.CreateAuto(lSignal.Rep.Samples, SIG.SamplesForTime(mOptions.MinWidth),  mOptions.MergeProminence);
+      var lDiscretizer =  EnvelopeDiscretizer.CreateAuto(lSignal.Rep.Samples, 0,  mOptions.MergeProminence);
       var lNewSamples = lDiscretizer.Discretize(lSignal.Rep.Samples);
 
       var rR = lSignal.CopyWith( new DiscreteSignal( SIG.SamplingRate, lNewSamples) );
@@ -44,7 +43,6 @@ namespace ENGINE
 
     class Options
     {
-      internal double MinWidth = 0.001 ;
       internal float  MergeProminence = 0.5f ;
     }
 

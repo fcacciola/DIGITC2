@@ -68,7 +68,7 @@ namespace ENGINE
       StdDev = Math.Sqrt(Var);
     }
 
-    public override string ToString() => $"Mean={Mean} StdDev={StdDev} Weight={Weight}";
+    public override string ToString() => $"Linear Mean={Mean} Linear StdDev={StdDev} Linear Variance={Var} Log Mean={LogMean} Log StdDev={LogStdDev} Log Variance={LogVar} Weight={Weight}";
 
     public double N_Sigma( double aN ) => Mean + aN * StdDev;
   }
@@ -127,6 +127,9 @@ namespace ENGINE
 
     public void Plot( Session aSession, string aName )
     {
+      if (Components.Count == 0)
+        return;
+
       if ( aSession.Settings.GetBool("OutputDetails") )
       { 
         var lPlot = CreatePlot(aSession, aName);
@@ -137,6 +140,9 @@ namespace ENGINE
 
     public void Save( Session aSession, string aName )
     {
+      if (Components.Count == 0)
+        return;
+
       if ( aSession.Settings.GetBool("OutputDetails") )
       { 
         File.WriteAllLines(aSession.OutputFile($"{aName}.txt"), Components.Select(c => c.ToString()));
@@ -455,6 +461,37 @@ namespace ENGINE
     {
       var filtered = model.Components.Where(predicate).ToList();
       return filtered.Count > 0 ? new Gmm(filtered) : null;
+    }
+
+    static bool IsMeaningless(GmmComponent                aComponent,
+                              IReadOnlyList<GmmComponent> aAll,
+                              double                      aLogSigmaCeiling = 0.67,
+                              double                      aWidthRatioFloor = 5.0)
+    {
+      // 1. Absolute width: spans more than ~×2 around its median -> background, not a mode.
+      if (aComponent.LogStdDev > aLogSigmaCeiling)
+        return true;
+
+      // 2. Engulfment: much wider than a sibling AND its ±1σ interval swallows that sibling's mean.
+      foreach (GmmComponent lOther in aAll)
+      {
+        if (ReferenceEquals(lOther, aComponent))
+          continue;
+
+        bool lContains  = Math.Abs(lOther.LogMean - aComponent.LogMean) < aComponent.LogStdDev;
+        bool lMuchWider = aComponent.LogStdDev > aWidthRatioFloor * lOther.LogStdDev;
+
+        if (lContains && lMuchWider)
+          return true;
+      }
+
+      return false;
+    }
+
+
+    public static Gmm DiscardMeaningless(this Gmm model) 
+    {
+      return model.FilterComponents(c => ! IsMeaningless(c, model.Components));
     }
 
     public static Gmm ChooseBest(this Gmm model, int maxComponents)

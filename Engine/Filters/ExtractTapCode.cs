@@ -162,7 +162,7 @@ namespace ENGINE
 
       rOptions.SeparatorCountThreshold = Params.GetInt("SeparatorCountThreshold");
       rOptions.MinNumberOfTaps         = Params.GetInt("MinTapCount");
-      rOptions.IntraCountGap_HighBound           = Params.GetDouble("IntraCountGap");
+      rOptions.IntraCountGap_HighBound = Params.GetDouble("IntraCountGap");
 
       return rOptions;
 
@@ -195,10 +195,15 @@ namespace ENGINE
         double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
 
         FilterHelper.DumpValues(Session, "Pulses_Gaps",aGaps);
-        var lGMM = GmmFitter.Fit(aGaps).ChooseBest(3);
+        var lRawGMM = GmmFitter.Fit(aGaps) ;
 
-        if ( lGMM != null )
+        if ( lRawGMM != null )
         {
+          lRawGMM.Save(Session, "Raw GMM_For_IntraTapGap_Calculation");
+          lRawGMM.Plot(Session, "Raw Gaps_Histogram_For_IntraTapGap_Calculation"); 
+
+          var lGMM = lRawGMM.DiscardMeaningless().ChooseBest(3);
+
           lGMM.Save(Session, "GMM_For_IntraTapGap_Calculation");
           lGMM.Plot(Session, "Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
@@ -372,7 +377,7 @@ namespace ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      Plot(lSymbols, "TapCode_ColorCoded");
+      Plot(lSymbols, "TapCodeColorCoded");
 
       string lTapCodeFile = Session.OutputFile("TapCode.txt");
 
