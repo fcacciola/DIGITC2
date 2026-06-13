@@ -128,7 +128,7 @@ namespace ENGINE
 
     public TapCode Code ;
 
-    public void DumpSamples( List<float> aSamples )
+    public override void DumpSamples( List<float> aSamples )
     {
       if ( ! Code.IsSeparator )
       {
