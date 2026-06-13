@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\DESKTOP\Engine\Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="EngineDefaults\Settings.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\DESKTOP\Transgraphier\Input\Config.txt" Link="EngineDefaults\Config.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\DESKTOP\Engine\Input\References\**\*" LinkBase="EngineDefaults\References" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

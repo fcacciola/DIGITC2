@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Server/">
+    <Project Path="Server/DigitC2.Server.csproj" />
+  </Folder>
+  <Project Path="../DESKTOP/Engine/Engine.csproj" />
+</Solution>

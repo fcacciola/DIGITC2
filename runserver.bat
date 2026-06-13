@@ -1,0 +1,1 @@
+dotnet run --project WEB\Server\DigitC2.Server.csproj --urls http://127.0.0.1:5188

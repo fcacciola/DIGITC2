@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/audio.ts","./src/main.tsx","./src/ruler.ts","./src/types.ts","./src/viewcontroller.ts","./src/components/blocknavigator.tsx","./src/components/configtable.tsx","./src/components/timelineview.tsx","./src/components/waveview.tsx"],"version":"5.9.3"}
