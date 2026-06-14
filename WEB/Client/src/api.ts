@@ -1,7 +1,7 @@
 import type { ConfigParam, ProcessJobResponse, ResultFileNode, ResultManifest } from "./types";
 
 export async function getDefaultConfig(): Promise<ConfigParam[]> {
-  const response = await fetch("/api/config");
+  const response = await fetchApi("/api/config", undefined, "Could not reach the local server while loading configuration.");
   const payload = await readJsonResponse<ConfigParam[]>(response, "Could not load configuration.");
 
   if (!response.ok) {
@@ -17,10 +17,10 @@ export async function processFile(file: File, sessionName: string, configParams:
   form.append("name", sessionName);
   form.append("config", JSON.stringify(configParams));
 
-  const response = await fetch("/api/jobs", {
+  const response = await fetchApi("/api/jobs", {
     method: "POST",
     body: form
-  });
+  }, "Could not reach the local server while uploading the input file. Check that the server is running and that the file is under the upload limit.");
 
   const payload = await readJsonResponse<ProcessJobResponse>(response, "Processing failed.");
   if (!response.ok) {
@@ -31,7 +31,7 @@ export async function processFile(file: File, sessionName: string, configParams:
 }
 
 export async function getResult(resultUrl: string): Promise<ResultManifest> {
-  const response = await fetch(resultUrl);
+  const response = await fetchApi(resultUrl, undefined, "Could not reach the local server while loading the result.");
   const payload = await readJsonResponse<ResultManifest>(response, "Could not load result.");
 
   if (!response.ok) {
@@ -42,7 +42,7 @@ export async function getResult(resultUrl: string): Promise<ResultManifest> {
 }
 
 export async function getTextFile(url: string): Promise<string> {
-  const response = await fetch(resolveServerUrl(url));
+  const response = await fetchApi(resolveServerUrl(url), undefined, "Could not reach the local server while loading a result file.");
 
   if (!response.ok) {
     throw new Error("Could not load text file.");
@@ -78,6 +78,18 @@ export function resolveServerUrl(url: string): string {
   }
 
   return url;
+}
+
+async function fetchApi(url: string, init: RequestInit | undefined, networkErrorMessage: string): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (caught) {
+    if (caught instanceof TypeError) {
+      throw new Error(networkErrorMessage);
+    }
+
+    throw caught;
+  }
 }
 
 async function readJsonResponse<T>(response: Response, fallbackMessage: string): Promise<T> {

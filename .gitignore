@@ -5,3 +5,5 @@
 /Output.txt
 WEB/Server/App_Data/
 /WEB/Client/dist/assets
+/WEB/Server/wwwroot
+/WEB/publish
