@@ -4,3 +4,4 @@
 **/packages
 /Output.txt
 WEB/Server/App_Data/
+/WEB/Client/dist/assets

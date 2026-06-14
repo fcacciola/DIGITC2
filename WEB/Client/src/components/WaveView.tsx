@@ -179,7 +179,22 @@ function renderWave(
   visible.drawImage(cache, 0, 0);
 }
 
+
 function drawSamples(
+  ctx: CanvasRenderingContext2D,
+  wave: WaveAsset,
+  controller: ViewControllerState,
+  width: number,
+  centerY: number,
+  waveHalfH: number
+)
+{
+  if ( wave.colorCoded )
+       drawSamples_ColorCoded(ctx, wave, controller, width, centerY, waveHalfH);
+  else drawSamplesO           (ctx, wave, controller, width, centerY, waveHalfH);
+}
+
+function drawSamples_Normal(
   ctx: CanvasRenderingContext2D,
   wave: WaveAsset,
   controller: ViewControllerState,
@@ -193,29 +208,8 @@ function drawSamples(
   const visibleSamples = Math.ceil(width * samplesPerPixel);
   const endSample = Math.min(Math.min(samples.length, controller.length) - 1, startSample + visibleSamples);
 
-  // if (shouldRenderAsStepWave(wave)) {
-  //   drawStepSamples(ctx, samples, samplesPerPixel, startSample, endSample, width, centerY, waveHalfH);
-  //   return;
-  // }
-
-  // if (wave.colorCoded) {
-  //   drawColorCodedSamples(ctx, samples, samplesPerPixel, startSample, endSample, width, centerY, waveHalfH);
-  //   return;
-  // }
-
-  const paths = {
-    red: new Path2D(),
-    blue: new Path2D(),
-    black: new Path2D(),
-    gray: new Path2D()
-  };
-
-  const started = {
-    red: false,
-    blue: false,
-    black: false,
-    gray: false
-  };
+  // Pass 1: reduce each pixel column to its (min, max) -> (hy = top, ly = bottom).
+  const cols: { px: number; ly: number; hy: number }[] = [];
 
   for (let px = 0; px < width; px++) {
     const sampleStart = startSample + Math.floor(px * samplesPerPixel);
@@ -231,119 +225,66 @@ function drawSamples(
 
     let min = samples[sampleStart];
     let max = samples[sampleStart];
-    for (let sampleIndex = sampleStart + 1; sampleIndex <= sampleEnd; sampleIndex++) {
-      const value = samples[sampleIndex];
-      if (value < min) {
-        min = value;
-      }
-      if (value > max) {
-        max = value;
-      }
+    for (let i = sampleStart + 1; i <= sampleEnd; i++) {
+      const v = samples[i];
+      if (v < min) min = v;
+      if (v > max) max = v;
     }
 
-    let ly = Math.ceil(min * waveHalfH);
-    let hy = Math.ceil(max * waveHalfH);
-    
-    if ( wave.colorCoded )
-    {
-      let path_key    : keyof typeof paths   = ( min != max ) ? "gray" : ( max > 0.8 ? "black" : ( max > 0.5 ?"blue" : "red" ) )  ;
-      let started_key : keyof typeof started = ( min != max ) ? "gray" : ( max > 0.8 ? "black" : ( max > 0.5 ?"blue" : "red" ) )  ;
-
-      started[started_key] = addPolylinePoint(paths[path_key], started[started_key], px, centerY - ly);
-      started[started_key] = addPolylinePoint(paths[path_key], started[started_key], px, centerY - hy);
-    }
-    else
-    {
-      started.blue = addPolylinePoint(paths.blue, started.blue, px, centerY - ly);
-      started.blue = addPolylinePoint(paths.blue, started.blue, px, centerY - hy);
-    }
+    cols.push({
+      px,
+      ly: centerY - Math.ceil(min * waveHalfH),
+      hy: centerY - Math.ceil(max * waveHalfH)
+    });
   }
 
-  if ( wave.colorCoded )
-  {
-    drawPath(ctx, paths.red, "#dc2626", started.red);
-    drawPath(ctx, paths.black, "#111827", started.black);
-    drawPath(ctx, paths.gray, "#6b7280", started.gray);
-  }
-  drawPath(ctx, paths.blue, "#2563eb", started.blue);
-}
-
-function drawColorCodedSamples(
-  ctx: CanvasRenderingContext2D,
-  samples: Float32Array,
-  samplesPerPixel: number,
-  startSample: number,
-  endSample: number,
-  width: number,
-  centerY: number,
-  waveHalfH: number
-) {
-  for (let px = 0; px < width; px++) {
-    const sampleStart = startSample + Math.floor(px * samplesPerPixel);
-    if (sampleStart > endSample || sampleStart >= samples.length) {
-      break;
-    }
-
-    let sampleEnd = startSample + Math.ceil((px + 1) * samplesPerPixel) - 1;
-    sampleEnd = Math.min(sampleEnd, endSample);
-    if (sampleEnd < sampleStart) {
-      sampleEnd = sampleStart;
-    }
-
-    let min = samples[sampleStart];
-    let max = samples[sampleStart];
-    for (let sampleIndex = sampleStart + 1; sampleIndex <= sampleEnd; sampleIndex++) {
-      const value = samples[sampleIndex];
-      if (value < min) {
-        min = value;
-      }
-      if (value > max) {
-        max = value;
-      }
-    }
-
-    const ly = centerY - Math.ceil(min * waveHalfH);
-    const hy = centerY - Math.ceil(max * waveHalfH);
-    
-    ctx.fillStyle = getColorCodedFill(min, max);
-    ctx.fillRect(px, ly, 1, hy-ly);
-  }
-}
-
-function getColorCodedFill(min: number, max: number): string {
-  if (min !== max) {
-    return "#6b7280";
+  if (cols.length === 0) {
+    return;
   }
 
-  if (max > 0.8) {
-    return "#111827";
-  }
-
-  if (max > 0.5) {
-    return "#2563eb";
-  }
-
-  return "#dc2626";
-}
-
-function shouldRenderAsStepWave(wave: WaveAsset): boolean {
-  const name = `${wave.title} ${wave.relativePath}`.toLowerCase();
-  return !wave.colorCoded && (name.includes("pulses") || name.includes("discretized"));
-}
-
-function drawStepSamples(
-  ctx: CanvasRenderingContext2D,
-  samples: Float32Array,
-  samplesPerPixel: number,
-  startSample: number,
-  endSample: number,
-  width: number,
-  centerY: number,
-  waveHalfH: number
-) {
+  // Pass 2: top envelope left->right, then back along the centerline. No center dives.
   const path = new Path2D();
-  let started = false;
-  let previousY = 0;
+  path.moveTo(cols[0].px, centerY);
+  for (let i = 0; i < cols.length; i++) {
+    path.lineTo(cols[i].px, cols[i].hy);
+  }
+  path.lineTo(cols[cols.length - 1].px, centerY);
+  path.closePath();
+
+  drawPath(ctx, path, "#2563eb", false, true);
+}
+
+function drawSamples_ColorCoded(
+  ctx: CanvasRenderingContext2D,
+  wave: WaveAsset,
+  controller: ViewControllerState,
+  width: number,
+  centerY: number,
+  waveHalfH: number
+) {
+  const { samples } = wave;
+  const samplesPerPixel = controller.samplesPerPixel;
+  const startSample = Math.floor(controller.panStartSample);
+  const visibleSamples = Math.ceil(width * samplesPerPixel);
+  const endSample = Math.min(Math.min(samples.length, controller.length) - 1, startSample + visibleSamples);
+
+  // Levels: blue/red are DC runs at +/-0.6; black is a +/-0.9 OSCILLATION.
+  // Black is identified by amplitude (only it reaches 0.9 on either rail).
+  const LV_BLACK = 0.9;
+  const LV_BLUE  = 0.6;
+  const LV_RED   = -0.6;
+
+  const BLACK_MIN = 0.75;   // |extreme| above this -> part of the +/-0.9 oscillation
+  const POS_MIN   = 0.3;    // max above this -> a +0.6 run is present
+  const NEG_MIN   = -0.3;   // min below this -> a -0.6 run is present
+
+  const cy  = Math.round(centerY);
+  const yOf = (v: number) => Math.round(centerY - v * waveHalfH);
+
+  const blue  = new Path2D();
+  const red   = new Path2D();
+  const black = new Path2D();
+  const gray  = new Path2D();
 
   for (let px = 0; px < width; px++) {
     const sampleStart = startSample + Math.floor(px * samplesPerPixel);
@@ -357,27 +298,100 @@ function drawStepSamples(
       sampleEnd = sampleStart;
     }
 
-    const value = samples[sampleEnd];
-    const y = centerY - Math.ceil(value * waveHalfH);
-
-    if (!started) {
-      path.moveTo(px, y);
-      previousY = y;
-      started = true;
-      continue;
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = sampleStart; i <= sampleEnd; i++) {
+      const v = samples[i];
+      if (v < min) min = v;
+      if (v > max) max = v;
     }
 
-    if (y !== previousY) {
-      path.lineTo(px, previousY);
-      path.lineTo(px, y);
-    } else {
-      path.lineTo(px, y);
-    }
+    const reachesBlack = max > BLACK_MIN || min < -BLACK_MIN;   // the +/-0.9 oscillation
+    const hasBlue = max > POS_MIN;
+    const hasRed  = min < NEG_MIN;
 
-    previousY = y;
+    if (reachesBlack) {
+      // Full symmetric block, regardless of which rail(s) this pixel caught.
+      const top = yOf(LV_BLACK);
+      black.rect(px, top, 1, yOf(-LV_BLACK) - top);
+    } else if (hasBlue && hasRed) {
+      // Genuine blue + red mix -> gray, centre out to both.
+      const top    = yOf(LV_BLUE);
+      const bottom = yOf(LV_RED);
+      gray.rect(px, top, 1, bottom - top);
+    } else if (hasBlue) {
+      const top = yOf(LV_BLUE);     // +0.6 -> centre up
+      blue.rect(px, top, 1, cy - top);
+    } else if (hasRed) {
+      const bottom = yOf(LV_RED);   // -0.6 -> centre down
+      red.rect(px, cy, 1, bottom - cy);
+    }
+    // else: silence, nothing to draw
   }
 
-  drawPath(ctx, path, "#2563eb", started);
+  fillPath(ctx, gray,  "#6b7280");
+  fillPath(ctx, blue,  "#2563eb");
+  fillPath(ctx, red,   "#dc2626");
+  fillPath(ctx, black, "#111827");
+}
+
+function fillPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string) {
+  ctx.fillStyle = color;
+  ctx.fill(path);
+}
+
+
+function drawSamplesO(
+  ctx: CanvasRenderingContext2D,
+  wave: WaveAsset,
+  controller: ViewControllerState,
+  width: number,
+  centerY: number,
+  waveHalfH: number
+) {
+  const { samples } = wave;
+  const samplesPerPixel = controller.samplesPerPixel;
+  const startSample = Math.floor(controller.panStartSample);
+  const visibleSamples = Math.ceil(width * samplesPerPixel);
+  const endSample = Math.min(Math.min(samples.length, controller.length) - 1, startSample + visibleSamples);
+
+  let path = new Path2D();
+  
+  let started = false ;
+
+  for (let px = 0; px < width; px++) {
+    const sampleStart = startSample + Math.floor(px * samplesPerPixel);
+    if (sampleStart > endSample || sampleStart >= samples.length) {
+      break;
+    }
+
+    let sampleEnd = startSample + Math.ceil((px + 1) * samplesPerPixel) - 1;
+    sampleEnd = Math.min(sampleEnd, endSample);
+    if (sampleEnd < sampleStart) {
+      sampleEnd = sampleStart;
+    }
+
+    let min = samples[sampleStart];
+    let max = samples[sampleStart];
+    for (let sampleIndex = sampleStart + 1; sampleIndex <= sampleEnd; sampleIndex++) {
+      const value = samples[sampleIndex];
+      if (value < min) {
+        min = value;
+      }
+      if (value > max) {
+        max = value;
+      }
+    }
+
+    let ly = centerY - Math.ceil(min * waveHalfH);
+    let hy = centerY - Math.ceil(max * waveHalfH);
+    
+    started = addPolylinePoint(path, started, px, ly);
+    started = addPolylinePoint(path, started, px, hy);
+
+  }
+
+  drawPath(ctx, path, "#2563eb" , false, started);
 }
 
 function addPolylinePoint(path: Path2D, started: boolean, x: number, y: number): boolean {
@@ -390,7 +404,7 @@ function addPolylinePoint(path: Path2D, started: boolean, x: number, y: number):
   return true;
 }
 
-function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, used: boolean) {
+function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, fill: boolean, used: boolean) {
   if (!used) {
     return;
   }
@@ -400,6 +414,13 @@ function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, us
   ctx.lineCap = "butt";
   ctx.lineJoin = "bevel";
   ctx.stroke(path);
+
+  if ( fill )
+  {
+     ctx.fillStyle = color;
+     //ctx.fill(path);
+
+  }
 }
 
 function drawRuler(
