@@ -2,10 +2,10 @@ import type { ConfigParam, ProcessJobResponse, ResultFileNode, ResultManifest } 
 
 export async function getDefaultConfig(): Promise<ConfigParam[]> {
   const response = await fetch("/api/config");
-  const payload = await response.json();
+  const payload = await readJsonResponse<ConfigParam[]>(response, "Could not load configuration.");
 
   if (!response.ok) {
-    throw new Error(payload.error ?? "Could not load configuration.");
+    throw new Error(readErrorMessage(payload, "Could not load configuration."));
   }
 
   return payload;
@@ -22,9 +22,9 @@ export async function processFile(file: File, sessionName: string, configParams:
     body: form
   });
 
-  const payload = await response.json();
+  const payload = await readJsonResponse<ProcessJobResponse>(response, "Processing failed.");
   if (!response.ok) {
-    throw new Error(payload.error ?? "Processing failed.");
+    throw new Error(readErrorMessage(payload, "Processing failed."));
   }
 
   return payload;
@@ -32,10 +32,10 @@ export async function processFile(file: File, sessionName: string, configParams:
 
 export async function getResult(resultUrl: string): Promise<ResultManifest> {
   const response = await fetch(resultUrl);
-  const payload = await response.json();
+  const payload = await readJsonResponse<ResultManifest>(response, "Could not load result.");
 
   if (!response.ok) {
-    throw new Error(payload.error ?? "Could not load result.");
+    throw new Error(readErrorMessage(payload, "Could not load result."));
   }
 
   return payload;
@@ -78,4 +78,52 @@ export function resolveServerUrl(url: string): string {
   }
 
   return url;
+}
+
+async function readJsonResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(extractPlainTextError(text) || fallbackMessage);
+  }
+
+  throw new Error(fallbackMessage);
+}
+
+function readErrorMessage(payload: unknown, fallbackMessage: string): string {
+  if (payload && typeof payload === "object") {
+    const errorPayload = payload as { error?: unknown; detail?: unknown; title?: unknown };
+    for (const candidate of [errorPayload.error, errorPayload.detail, errorPayload.title]) {
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
+        return candidate;
+      }
+    }
+  }
+
+  return fallbackMessage;
+}
+
+function extractPlainTextError(text: string): string {
+  const normalized = text
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  const exceptionMatch = normalized.match(/System\.[^:]+:\s*([^]+?)(?:\s+at\s+|$)/);
+  if (exceptionMatch?.[1]) {
+    return exceptionMatch[1].trim();
+  }
+
+  return normalized.length > 280 ? `${normalized.slice(0, 277)}...` : normalized;
 }

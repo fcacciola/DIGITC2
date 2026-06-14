@@ -7,13 +7,13 @@ type TimelineViewProps = {
   onControllerChange: (controller: ViewControllerState) => void;
 };
 
-const titleHeight = 30;
+const titleHeight = 0;
 const marginSize = 2;
 
 export function TimelineView({ timeline, controller, onControllerChange }: TimelineViewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cacheRef = useRef<HTMLCanvasElement | null>(null);
-  const [size, setSize] = useState({ width: 1, height: 140 });
+  const [size, setSize] = useState({ width: 1, height: 52 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,7 +25,7 @@ export function TimelineView({ timeline, controller, onControllerChange }: Timel
       const rect = entries[0].contentRect;
       setSize({
         width: Math.max(1, Math.floor(rect.width)),
-        height: Math.max(80, Math.floor(rect.height))
+        height: Math.max(48, Math.floor(rect.height))
       });
     });
 
@@ -83,7 +83,7 @@ function renderTimeline(
   const centerY = cssHeight - marginSize - viewH / 2;
   const labels = collectLabelsForPixels(timeline, controller, cssWidth);
 
-  ctx.font = "700 20px Consolas, monospace";
+  ctx.font = "700 14px Consolas, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#111827";

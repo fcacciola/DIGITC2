@@ -1,2 +1,0 @@
-MainPackage=C:\Work\Repos\Playground\Navidean\DIGITC2\TransgraphierPackage\bin\x64\Release\TransgraphierPackage_2.4.3.0_x64.msix
-SymbolPackage=C:\Work\Repos\Playground\Navidean\DIGITC2\TransgraphierPackage\obj\x64\Release\Symbols\TransgraphierPackage_2.4.3.0_x64.appxsym

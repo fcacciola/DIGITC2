@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
-import type { ViewControllerState, WaveAsset } from "../types";
+import type { MeasureSelection, ViewControllerState, WaveAsset } from "../types";
 import { clamp } from "../viewController";
 import { getRulerTicks } from "../ruler";
 
@@ -8,18 +8,30 @@ type WaveViewProps = {
   controller: ViewControllerState;
   onControllerChange: (controller: ViewControllerState) => void;
   onViewportWidthChange?: (width: number) => void;
+  measureEnabled?: boolean;
+  measureSelection?: MeasureSelection | null;
+  onMeasureSelectionChange?: (selection: MeasureSelection | null) => void;
 };
 
-const titleHeight = 30;
+const titleHeight = 0;
 const marginSize = 2;
-const rulerHeight = 40;
+const rulerHeight = 24;
 
-export function WaveView({ wave, controller, onControllerChange, onViewportWidthChange }: WaveViewProps) {
+export function WaveView({
+  wave,
+  controller,
+  onControllerChange,
+  onViewportWidthChange,
+  measureEnabled = false,
+  measureSelection = null,
+  onMeasureSelectionChange
+}: WaveViewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cacheRef = useRef<HTMLCanvasElement | null>(null);
   const controllerRef = useRef(controller);
   const dragRef = useRef<{ x: number; panning: boolean } | null>(null);
-  const [size, setSize] = useState({ width: 1, height: 150 });
+  const measureDragRef = useRef<{ startSample: number } | null>(null);
+  const [size, setSize] = useState({ width: 1, height: 76 });
 
   useEffect(() => {
     controllerRef.current = controller;
@@ -67,7 +79,7 @@ export function WaveView({ wave, controller, onControllerChange, onViewportWidth
       const width = Math.max(1, Math.floor(rect.width));
       setSize({
         width,
-        height: Math.max(80, Math.floor(rect.height))
+        height: Math.max(64, Math.floor(rect.height))
       });
       onViewportWidthChange?.(width);
     });
@@ -82,20 +94,39 @@ export function WaveView({ wave, controller, onControllerChange, onViewportWidth
   }, [handleWheel, onViewportWidthChange]);
 
   useEffect(() => {
-    renderWave(canvasRef.current, cacheRef, wave, controller, size.width, size.height);
-  }, [wave, controller, size]);
+    renderWave(canvasRef.current, cacheRef, wave, controller, size.width, size.height, measureSelection);
+  }, [wave, controller, size, measureSelection]);
 
   return (
     <section className="controlled-view" aria-label={wave.title}>
       <div className="view-title">{wave.title}</div>
       <canvas
         ref={canvasRef}
-        className="wave-canvas"
+        className={measureEnabled ? "wave-canvas measure-enabled" : "wave-canvas"}
         onPointerDown={(event) => {
+          if (measureEnabled) {
+            const startSample = getSampleFromPointer(event.currentTarget, event.clientX, controllerRef.current);
+            measureDragRef.current = { startSample };
+            onMeasureSelectionChange?.({ startSample, endSample: startSample });
+            event.currentTarget.setPointerCapture(event.pointerId);
+            event.preventDefault();
+            return;
+          }
+
           dragRef.current = { x: event.clientX, panning: true };
           event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
+          if (measureDragRef.current) {
+            const endSample = getSampleFromPointer(event.currentTarget, event.clientX, controllerRef.current);
+            onMeasureSelectionChange?.({
+              startSample: measureDragRef.current.startSample,
+              endSample
+            });
+            event.preventDefault();
+            return;
+          }
+
           if (!dragRef.current?.panning) {
             return;
           }
@@ -111,10 +142,12 @@ export function WaveView({ wave, controller, onControllerChange, onViewportWidth
           });
         }}
         onPointerUp={(event) => {
+          measureDragRef.current = null;
           dragRef.current = null;
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
         onPointerCancel={() => {
+          measureDragRef.current = null;
           dragRef.current = null;
         }}
       />
@@ -128,7 +161,8 @@ function renderWave(
   wave: WaveAsset,
   controller: ViewControllerState,
   cssWidth: number,
-  cssHeight: number
+  cssHeight: number,
+  measureSelection: MeasureSelection | null
 ) {
   if (!canvas) {
     return;
@@ -177,6 +211,63 @@ function renderWave(
 
   visible.clearRect(0, 0, canvas.width, canvas.height);
   visible.drawImage(cache, 0, 0);
+  visible.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawMeasureSelection(visible, measureSelection, controller, cssWidth, cssHeight);
+  visible.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function getSampleFromPointer(canvas: HTMLCanvasElement, clientX: number, controller: ViewControllerState): number {
+  const rect = canvas.getBoundingClientRect();
+  const x = clamp(clientX - rect.left, 0, rect.width);
+  return clamp(
+    controller.panStartSample + x * controller.samplesPerPixel - controller.samplesPerPixel / 2,
+    0,
+    controller.length
+  );
+}
+
+function drawMeasureSelection(
+  ctx: CanvasRenderingContext2D,
+  selection: MeasureSelection | null,
+  controller: ViewControllerState,
+  width: number,
+  height: number
+) {
+  if (!selection) {
+    return;
+  }
+
+  const start = Math.min(selection.startSample, selection.endSample);
+  const end = Math.max(selection.startSample, selection.endSample);
+  const visibleStart = controller.panStartSample;
+  const visibleEnd = controller.panStartSample + width * controller.samplesPerPixel;
+  if (end < visibleStart || start > visibleEnd) {
+    return;
+  }
+
+  const x1 = clamp((start - controller.panStartSample) / controller.samplesPerPixel, 0, width);
+  const x2 = clamp((end - controller.panStartSample) / controller.samplesPerPixel, 0, width);
+
+  if (Math.abs(x2 - x1) < 0.5) {
+    ctx.strokeStyle = "#0f766e";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(Math.round(x1) + 0.5, 0);
+    ctx.lineTo(Math.round(x1) + 0.5, height);
+    ctx.stroke();
+    return;
+  }
+
+  ctx.fillStyle = "rgba(20, 184, 166, 0.18)";
+  ctx.fillRect(x1, 0, x2 - x1, height);
+  ctx.strokeStyle = "#0f766e";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(Math.round(x1) + 0.5, 0);
+  ctx.lineTo(Math.round(x1) + 0.5, height);
+  ctx.moveTo(Math.round(x2) + 0.5, 0);
+  ctx.lineTo(Math.round(x2) + 0.5, height);
+  ctx.stroke();
 }
 
 
@@ -191,67 +282,7 @@ function drawSamples(
 {
   if ( wave.colorCoded )
        drawSamples_ColorCoded(ctx, wave, controller, width, centerY, waveHalfH);
-  else drawSamplesO           (ctx, wave, controller, width, centerY, waveHalfH);
-}
-
-function drawSamples_Normal(
-  ctx: CanvasRenderingContext2D,
-  wave: WaveAsset,
-  controller: ViewControllerState,
-  width: number,
-  centerY: number,
-  waveHalfH: number
-) {
-  const { samples } = wave;
-  const samplesPerPixel = controller.samplesPerPixel;
-  const startSample = Math.floor(controller.panStartSample);
-  const visibleSamples = Math.ceil(width * samplesPerPixel);
-  const endSample = Math.min(Math.min(samples.length, controller.length) - 1, startSample + visibleSamples);
-
-  // Pass 1: reduce each pixel column to its (min, max) -> (hy = top, ly = bottom).
-  const cols: { px: number; ly: number; hy: number }[] = [];
-
-  for (let px = 0; px < width; px++) {
-    const sampleStart = startSample + Math.floor(px * samplesPerPixel);
-    if (sampleStart > endSample || sampleStart >= samples.length) {
-      break;
-    }
-
-    let sampleEnd = startSample + Math.ceil((px + 1) * samplesPerPixel) - 1;
-    sampleEnd = Math.min(sampleEnd, endSample);
-    if (sampleEnd < sampleStart) {
-      sampleEnd = sampleStart;
-    }
-
-    let min = samples[sampleStart];
-    let max = samples[sampleStart];
-    for (let i = sampleStart + 1; i <= sampleEnd; i++) {
-      const v = samples[i];
-      if (v < min) min = v;
-      if (v > max) max = v;
-    }
-
-    cols.push({
-      px,
-      ly: centerY - Math.ceil(min * waveHalfH),
-      hy: centerY - Math.ceil(max * waveHalfH)
-    });
-  }
-
-  if (cols.length === 0) {
-    return;
-  }
-
-  // Pass 2: top envelope left->right, then back along the centerline. No center dives.
-  const path = new Path2D();
-  path.moveTo(cols[0].px, centerY);
-  for (let i = 0; i < cols.length; i++) {
-    path.lineTo(cols[i].px, cols[i].hy);
-  }
-  path.lineTo(cols[cols.length - 1].px, centerY);
-  path.closePath();
-
-  drawPath(ctx, path, "#2563eb", false, true);
+  else drawSamples_Normal    (ctx, wave, controller, width, centerY, waveHalfH);
 }
 
 function drawSamples_ColorCoded(
@@ -340,8 +371,7 @@ function fillPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string) {
   ctx.fill(path);
 }
 
-
-function drawSamplesO(
+function drawSamples_Normal(
   ctx: CanvasRenderingContext2D,
   wave: WaveAsset,
   controller: ViewControllerState,
@@ -391,7 +421,7 @@ function drawSamplesO(
 
   }
 
-  drawPath(ctx, path, "#2563eb" , false, started);
+  drawPath(ctx, path, "#2563eb" ,  started);
 }
 
 function addPolylinePoint(path: Path2D, started: boolean, x: number, y: number): boolean {
@@ -404,7 +434,7 @@ function addPolylinePoint(path: Path2D, started: boolean, x: number, y: number):
   return true;
 }
 
-function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, fill: boolean, used: boolean) {
+function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, used: boolean) {
   if (!used) {
     return;
   }
@@ -414,13 +444,6 @@ function drawPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string, fi
   ctx.lineCap = "butt";
   ctx.lineJoin = "bevel";
   ctx.stroke(path);
-
-  if ( fill )
-  {
-     ctx.fillStyle = color;
-     //ctx.fill(path);
-
-  }
 }
 
 function drawRuler(
@@ -444,7 +467,7 @@ function drawRuler(
   ctx.lineTo(width, rulerTop);
   ctx.stroke();
 
-  ctx.font = "12px Consolas, monospace";
+  ctx.font = "10px Consolas, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillStyle = "#111827";
@@ -454,8 +477,8 @@ function drawRuler(
     const x = Math.round(tick.x);
     ctx.beginPath();
     ctx.moveTo(x, rulerTop + rulerH - 1);
-    ctx.lineTo(x, rulerTop + rulerH - 11);
+    ctx.lineTo(x, rulerTop + rulerH - 8);
     ctx.stroke();
-    ctx.fillText(tick.label, x, rulerTop + 4);
+    ctx.fillText(tick.label, x, rulerTop + 3);
   }
 }

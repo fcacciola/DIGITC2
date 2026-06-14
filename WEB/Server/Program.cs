@@ -40,6 +40,14 @@ app.MapPost("/api/jobs", async (
     {
         return Results.BadRequest(new { error = ex.Message });
     }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Processing failed unexpectedly.");
+        return Results.Problem(
+            title: "Processing failed.",
+            detail: ex.Message,
+            statusCode: StatusCodes.Status500InternalServerError);
+    }
 }).DisableAntiforgery();
 
 app.MapGet("/api/jobs/{jobId}/result", (string jobId, ResultCatalogService catalog, HttpRequest request) =>

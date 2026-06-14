@@ -1,5 +1,5 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { AlertCircle, FileAudio, Loader2, Play } from "lucide-react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { AlertCircle, Download, FileAudio, Loader2, Mic, Play, Ruler, Square } from "lucide-react";
 import { flattenFiles, getDefaultConfig, getResult, getTextFile, processFile } from "./api";
 import { loadLocalWaveAsset, loadTimelineAsset, loadWaveAsset } from "./audio";
 import { WaveView } from "./components/WaveView";
@@ -7,11 +7,13 @@ import { TimelineView } from "./components/TimelineView";
 import { ConfigTable } from "./components/ConfigTable";
 import { BlockNavigator } from "./components/BlockNavigator";
 import { clamp, createInitialController, updateViewportWidth } from "./viewController";
-import type { ConfigParam, ResultFileNode, ResultManifest, TimelineAsset, ViewControllerState, WaveAsset } from "./types";
+import type { ConfigParam, MeasureSelection, ResultFileNode, ResultManifest, TimelineAsset, ViewControllerState, WaveAsset } from "./types";
+import { startWavRecorder, type WavRecorderSession } from "./recorder";
 
 type LoadState = "idle" | "processing" | "loading-results" | "ready" | "error";
 
 export function App() {
+  const recorderRef = useRef<WavRecorderSession | null>(null);
   const [inputFile, setInputFile] = useState<File | null>(null);
   const [sessionName, setSessionName] = useState("");
   const [state, setState] = useState<LoadState>("idle");
@@ -27,9 +29,16 @@ export function App() {
   const [blockStartSamples, setBlockStartSamples] = useState<number[]>([]);
   const [blockIndex, setBlockIndex] = useState(0);
   const [hasProcessedResult, setHasProcessedResult] = useState(false);
+  const [measureEnabled, setMeasureEnabled] = useState(false);
+  const [measureSelection, setMeasureSelection] = useState<MeasureSelection | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedDownloadUrl, setRecordedDownloadUrl] = useState<string | null>(null);
+  const [recordedFileName, setRecordedFileName] = useState<string | null>(null);
 
-  const canProcess = inputFile !== null && state !== "processing" && state !== "loading-results";
+  const canProcess = inputFile !== null && !isRecording && state !== "processing" && state !== "loading-results";
   const visibleFileCount = useMemo(() => (manifest ? flattenFiles(manifest.files).length : 0), [manifest]);
+  const measurementSampleRate = inputWave?.sampleRate ?? resultWaves[0]?.sampleRate ?? null;
+  const measurementText = formatMeasurement(measureSelection, measurementSampleRate);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +60,15 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      recorderRef.current?.cancel();
+      if (recordedDownloadUrl) {
+        URL.revokeObjectURL(recordedDownloadUrl);
+      }
+    };
+  }, [recordedDownloadUrl]);
+
   async function handleProcess() {
     if (!inputFile) {
       return;
@@ -66,6 +84,7 @@ export function App() {
     setBlockStartSamples([]);
     setBlockIndex(0);
     setHasProcessedResult(false);
+    setMeasureSelection(null);
 
     try {
       const session = sessionName.trim() || inputFile.name.replace(/\.[^.]+$/, "");
@@ -111,6 +130,52 @@ export function App() {
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
+    if (recordedDownloadUrl) {
+      URL.revokeObjectURL(recordedDownloadUrl);
+      setRecordedDownloadUrl(null);
+      setRecordedFileName(null);
+    }
+
+    await loadInputFile(file, !sessionName);
+  }
+
+  async function handleStartRecording() {
+    setError(null);
+
+    try {
+      recorderRef.current = await startWavRecorder();
+      setIsRecording(true);
+    } catch (caught) {
+      setState("error");
+      setError(caught instanceof Error ? caught.message : "Could not start recording.");
+    }
+  }
+
+  async function handleStopRecording() {
+    const recorder = recorderRef.current;
+    if (!recorder) {
+      return;
+    }
+
+    setIsRecording(false);
+    recorderRef.current = null;
+
+    try {
+      const file = await recorder.stop();
+      if (recordedDownloadUrl) {
+        URL.revokeObjectURL(recordedDownloadUrl);
+      }
+
+      setRecordedDownloadUrl(URL.createObjectURL(file));
+      setRecordedFileName(file.name);
+      await loadInputFile(file, true);
+    } catch (caught) {
+      setState("error");
+      setError(caught instanceof Error ? caught.message : "Could not finish recording.");
+    }
+  }
+
+  async function loadInputFile(file: File | null, updateSessionName: boolean) {
     setInputFile(file);
     setManifest(null);
     setResultWaves([]);
@@ -120,12 +185,13 @@ export function App() {
     setBlockStartSamples([]);
     setBlockIndex(0);
     setHasProcessedResult(false);
+    setMeasureSelection(null);
     setInputWave(null);
     setController(null);
     setError(null);
     setState("idle");
 
-    if (file && !sessionName) {
+    if (file && updateSessionName) {
       setSessionName(file.name.replace(/\.[^.]+$/, ""));
     }
 
@@ -182,13 +248,30 @@ export function App() {
             onPrevious={() => gotoBlock(blockIndex - 1)}
             onNext={() => gotoBlock(blockIndex + 1)}
           />
+          <button
+            type="button"
+            className={measureEnabled ? "measure-tool is-active" : "measure-tool"}
+            disabled={!controller}
+            onClick={() => {
+              setMeasureEnabled((current) => !current);
+              if (measureEnabled) {
+                setMeasureSelection(null);
+              }
+            }}
+            title="Measure time interval"
+            aria-pressed={measureEnabled}
+          >
+            <Ruler size={16} aria-hidden="true" />
+            <span>Measure</span>
+          </button>
+          <div className="measure-readout" aria-live="polite">{measurementText}</div>
           <div className="server-pill">Local server</div>
         </div>
       </header>
 
       <section className="upload-panel">
         <label className="file-drop">
-          <input type="file" accept=".wav,.txt,audio/wav,text/plain" onChange={handleFileChange} />
+          <input type="file" accept=".wav,.txt,audio/wav,text/plain" disabled={isRecording} onChange={handleFileChange} />
           <FileAudio size={22} aria-hidden="true" />
           <span>{inputFile ? inputFile.name : "Choose a .wav or .txt file"}</span>
         </label>
@@ -197,6 +280,30 @@ export function App() {
           <span>Session</span>
           <input value={sessionName} onChange={(event) => setSessionName(event.target.value)} placeholder="Session name" />
         </label>
+
+        <div className="recording-tools">
+          <button
+            type="button"
+            className={isRecording ? "record-button is-recording" : "record-button"}
+            disabled={state === "processing" || state === "loading-results"}
+            onClick={isRecording ? handleStopRecording : handleStartRecording}
+            title={isRecording ? "Stop recording" : "Record audio"}
+          >
+            {isRecording ? <Square size={16} aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
+            <span>{isRecording ? "Stop" : "Record"}</span>
+          </button>
+
+          <a
+            className={recordedDownloadUrl ? "download-recording" : "download-recording is-disabled"}
+            href={recordedDownloadUrl ?? undefined}
+            download={recordedFileName ?? undefined}
+            aria-disabled={!recordedDownloadUrl}
+            title="Download recorded WAV"
+          >
+            <Download size={16} aria-hidden="true" />
+            <span>Download</span>
+          </a>
+        </div>
 
         <button className="primary-button" disabled={!canProcess} onClick={handleProcess}>
           {state === "processing" || state === "loading-results" ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
@@ -225,6 +332,9 @@ export function App() {
             controller={controller}
             onControllerChange={setController}
             onViewportWidthChange={handleViewportWidthChange}
+            measureEnabled={measureEnabled}
+            measureSelection={measureSelection}
+            onMeasureSelectionChange={setMeasureSelection}
           />
         )}
 
@@ -240,7 +350,15 @@ export function App() {
 
         {controller &&
           resultWaves.map((wave) => (
-            <WaveView key={wave.id} wave={wave} controller={controller} onControllerChange={setController} />
+            <WaveView
+              key={wave.id}
+              wave={wave}
+              controller={controller}
+              onControllerChange={setController}
+              measureEnabled={measureEnabled}
+              measureSelection={measureSelection}
+              onMeasureSelectionChange={setMeasureSelection}
+            />
           ))}
 
         {controller && timeline && (
@@ -364,4 +482,24 @@ function formatOverallResult(resultText: string): string {
     "",
     fitnessLine?.trim() ?? "Overall Fitness: Undefined"
   ].join("\n");
+}
+
+function formatMeasurement(selection: MeasureSelection | null, sampleRate: number | null): string {
+  if (!selection || !sampleRate) {
+    return "No interval selected";
+  }
+
+  const sampleCount = Math.abs(selection.endSample - selection.startSample);
+  const seconds = sampleCount / sampleRate;
+  const milliseconds = seconds * 1000;
+
+  if (sampleCount < 1) {
+    return "0 samples";
+  }
+
+  if (seconds < 1) {
+    return `${sampleCount.toFixed(0)} samples | ${milliseconds.toFixed(3)} ms`;
+  }
+
+  return `${sampleCount.toFixed(0)} samples | ${seconds.toFixed(6)} s`;
 }

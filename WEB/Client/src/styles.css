@@ -30,7 +30,7 @@ a {
 .app-shell {
   width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 18px;
+  padding: 8px 12px;
 }
 
 .top-bar {
@@ -38,27 +38,27 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 4px 2px 14px;
+  padding: 0 2px 6px;
 }
 
 .top-bar h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .top-bar p {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   color: #64748b;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .top-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -66,31 +66,72 @@ a {
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #475569;
-  padding: 7px 10px;
+  padding: 5px 8px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
+}
+
+.measure-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #b8c3cf;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.measure-tool.is-active {
+  border-color: #0f766e;
+  background: #ccfbf1;
+  color: #134e4a;
+}
+
+.measure-tool:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.measure-readout {
+  min-width: 196px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .upload-panel {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(180px, 280px) auto;
-  gap: 10px;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 280px) auto auto;
+  gap: 6px;
   align-items: stretch;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .file-drop,
 .session-field,
+.record-button,
+.download-recording,
 .primary-button {
-  min-height: 44px;
+  min-height: 34px;
   border-radius: 6px;
 }
 
 .file-drop {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 0 10px;
   border: 1px solid #b8c3cf;
   background: #ffffff;
   cursor: pointer;
@@ -111,19 +152,24 @@ a {
   white-space: nowrap;
 }
 
+.file-drop:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .session-field {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: 6px;
+  padding: 0 8px;
   border: 1px solid #b8c3cf;
   background: #ffffff;
 }
 
 .session-field span {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .session-field input {
@@ -141,14 +187,51 @@ a {
   justify-content: center;
   gap: 8px;
   min-width: 124px;
-  padding: 0 16px;
+  padding: 0 12px;
   border: 1px solid #1f2937;
   background: #1f2937;
   color: #ffffff;
   cursor: pointer;
 }
 
+.recording-tools {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.record-button,
+.download-recording {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid #b8c3cf;
+  background: #ffffff;
+  color: #1f2937;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.record-button.is-recording {
+  border-color: #991b1b;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.download-recording.is-disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.record-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -179,8 +262,8 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
 }
 
 .error-panel {
@@ -194,7 +277,7 @@ a {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   background: #d1d9e2;
 }
 
@@ -203,7 +286,7 @@ a {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 7px 10px;
   background: #ffffff;
 }
 
@@ -220,8 +303,8 @@ a {
 }
 
 .messages-panel {
-  padding: 10px 12px;
-  margin-bottom: 12px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
   color: #475569;
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 13px;
@@ -229,22 +312,22 @@ a {
 }
 
 .overall-result {
-  margin: 0 0 12px;
-  padding: 12px;
+  margin: 0 0 6px;
+  padding: 8px 10px;
   color: #111827;
   font-family: Consolas, "Liberation Mono", monospace;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.35;
   white-space: pre-wrap;
 }
 
 .complete-log {
-  margin-top: 12px;
+  margin-top: 6px;
   overflow: hidden;
 }
 
 .log-title {
-  height: 30px;
+  height: 24px;
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -258,7 +341,7 @@ a {
   max-height: 360px;
   overflow: auto;
   margin: 0;
-  padding: 12px;
+  padding: 8px 10px;
   color: #475569;
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 12px;
@@ -293,14 +376,14 @@ a {
 }
 
 .workspace {
-  min-height: 420px;
-  padding: 10px;
-  margin-bottom: 12px;
+  min-height: 0;
+  padding: 6px;
+  margin-bottom: 6px;
 }
 
 .empty-state {
   display: grid;
-  min-height: 380px;
+  min-height: 260px;
   place-items: center;
   color: #64748b;
   text-align: center;
@@ -308,7 +391,7 @@ a {
 
 .controlled-view {
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   border: 1px solid #c8d1dc;
   border-radius: 6px;
   background: #ffffff;
@@ -316,7 +399,7 @@ a {
 
 .config-table {
   overflow-x: auto;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   border: 1px solid #c8d1dc;
   border-radius: 6px;
   background: #ffffff;
@@ -346,17 +429,17 @@ a {
 .config-label {
   display: flex;
   align-items: center;
-  min-height: 38px;
-  padding: 7px 9px;
+  min-height: 26px;
+  padding: 4px 7px;
   color: #111827;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.25;
 }
 
 .config-cell input {
   width: 100%;
-  height: 38px;
+  height: 26px;
   min-width: 0;
   border: 0;
   outline: 0;
@@ -377,10 +460,10 @@ a {
 .block-navigator {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 0;
-  padding: 8px;
+  padding: 4px;
   border: 1px solid #c8d1dc;
   border-radius: 6px;
   background: #ffffff;
@@ -390,8 +473,8 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: 28px;
+  padding: 0 8px;
   border: 1px solid #b8c3cf;
   border-radius: 6px;
   background: #f8fafc;
@@ -406,18 +489,18 @@ a {
 
 .block-count {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .view-title {
-  height: 30px;
+  height: 20px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 8px;
   background: #e5e7eb;
   color: #111827;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -428,7 +511,7 @@ a {
 .timeline-canvas {
   display: block;
   width: 100%;
-  height: 150px;
+  height: 76px;
   cursor: grab;
   touch-action: none;
 }
@@ -437,14 +520,19 @@ a {
   cursor: grabbing;
 }
 
+.wave-canvas.measure-enabled,
+.wave-canvas.measure-enabled:active {
+  cursor: crosshair;
+}
+
 .timeline-canvas {
-  height: 140px;
+  height: 52px;
   cursor: default;
 }
 
 @media (max-width: 760px) {
   .app-shell {
-    padding: 12px;
+    padding: 8px;
   }
 
   .top-bar {

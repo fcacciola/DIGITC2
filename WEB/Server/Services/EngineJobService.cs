@@ -75,7 +75,6 @@ public sealed class EngineJobService
                 : PipelineFactory.FromTapCode();
 
             var result = Processor.Process(session, settings, session.Name, pipeline, startSignal);
-            CopyInputToSessionFolder(inputPath, session);
             result.Save();
 
             var runResult = new EngineRunResult(
@@ -132,12 +131,6 @@ public sealed class EngineJobService
         {
             settings.Set(key, value, null);
         }
-    }
-
-    private static void CopyInputToSessionFolder(string inputPath, Session session)
-    {
-        var copyPath = Path.Combine(session.CurrentOutputFolder, Path.GetFileName(inputPath));
-        File.Copy(inputPath, copyPath, true);
     }
 
     private string GetWorkspaceRoot()

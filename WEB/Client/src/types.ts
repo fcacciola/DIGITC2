@@ -64,3 +64,8 @@ export type ViewControllerState = {
   length: number;
   viewportWidth: number;
 };
+
+export type MeasureSelection = {
+  startSample: number;
+  endSample: number;
+};
