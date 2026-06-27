@@ -25,7 +25,6 @@ namespace ENGINE
       FillCC();
 
       mQuitThreshold = Params.GetInt("QuitThreshold");
-      mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     }
 
     // According to Claude Sonnet 4:
@@ -79,19 +78,14 @@ namespace ENGINE
 
       WriteLine($"Correlation: {lCorrelation}");
 
-      var lLikelihood = (int)Math.Round(lCorrelation * 100) ; 
+      Score lScore = new Score(Name, lCorrelation, false) ;
 
-      var lFitness = mFitnessMap.Map(lLikelihood) ;
-
-      Score lScore = new Score(Name, lLikelihood,lFitness) ;
-
-      return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lLikelihood < mQuitThreshold);
+      return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lCorrelation * 100 < mQuitThreshold);
     }
 
     public override string Name => this.GetType().Name ;
 
     int                   mQuitThreshold;
-    FitnessMap            mFitnessMap ;
     CorrelationCalculator mCC = null ;
   }
 }

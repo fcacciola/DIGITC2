@@ -121,7 +121,7 @@ public class Pipeline
 
   public PipelineResult Process( Processor aProcessor )
   {
-    PipelineResultBuilder rRB = new PipelineResultBuilder(Config, Name, Session.CurrentOutputFolder) ;  
+    PipelineResultBuilder rRB = new PipelineResultBuilder( Session.ScoreModel, Config, Name, Session.CurrentOutputFolder) ;  
 
     mFilterIdx = 0  ;
 

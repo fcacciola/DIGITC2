@@ -1,172 +1,375 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-using MathNet.Numerics.Statistics;
-
-using NWaves.Operations;
-using NWaves.Signals;
+using Newtonsoft.Json;
 
 namespace ENGINE
 {
-  public enum Fitness { DISCARDED = 0, POOR = 1, GOOD = 2, EXCELENT = 3, PERFECT= 4, Undefined=100 }
-
-  public class FitnessMap
+  // ---------------------------------------------------------------------------
+  //  Raw per-filter score. Likelihood is a double in the filter's own units
+  //  (correlation -1..1, coverage fraction 0..1, etc.); the combiner standardizes
+  //  each filter against its noise baseline, so values are NOT clamped to 0..1.
+  //  The coverage score is flagged via IsCoverage, not by filter name.
+  // ---------------------------------------------------------------------------
+  public class Score
   {
-    public FitnessMap( string aThresholds )
-    {
-      if ( ! string.IsNullOrEmpty(aThresholds))
-      {
-        string[] lTS = aThresholds.Split(',');
-        if ( lTS.Length == 4 )
-        {
-          int.TryParse( lTS[0], out PoorFitThreshold);
-          int.TryParse( lTS[1], out GoodFitThreshold);
-          int.TryParse( lTS[2], out ExcelentFitThreshold);
-          int.TryParse( lTS[3], out PerfectFitThreshold);
-        }
-      }
-    }
-
-    public Fitness Map( int aLikelihood )
-    {
-      return  aLikelihood > PerfectFitThreshold ? Fitness.PERFECT
-            : aLikelihood > ExcelentFitThreshold? Fitness.EXCELENT
-            : aLikelihood > GoodFitThreshold    ? Fitness.GOOD
-            : aLikelihood > PoorFitThreshold    ? Fitness.POOR
-
-            : Fitness.DISCARDED ;
-    }
-
-    int PoorFitThreshold = 35, GoodFitThreshold = 50, ExcelentFitThreshold = 85, PerfectFitThreshold = 99;  
-  }
-
-  public class Score 
-  {
-    public Score( string aFilterName, int aLikelihood, Fitness aFitness )
+    public Score( string aFilterName, double aLikelihood, bool aIsCoverage = false )
     {
       FilterName = aFilterName;
       Likelihood = aLikelihood;
-      Fitness    = aFitness;  
+      IsCoverage = aIsCoverage;
     }
 
-    public override string ToString() => $"{FilterName}: {Fitness} (Likelihood:{Likelihood})";
+    public override string ToString()
+      => $"{FilterName}: {Likelihood:F4}{(IsCoverage ? "  (coverage)" : "")}";
 
     public string  FilterName  ;
-    public int     Likelihood = 0 ;
-    public Fitness Fitness ;
+    public double  Likelihood = 0.0 ;
+    public bool    IsCoverage  { get; set; }
   }
 
 
-  //public class ZipfDistribtionEstimator
-  //{
-  //  public ZipfDistribtionEstimator( Distribution aSamples )
-  //  {
-  //    Samples = aSamples ;
+  // ---------------------------------------------------------------------------
+  //  Online mean/variance (Welford). Used only during calibration.
+  // ---------------------------------------------------------------------------
+  public class RunningStats
+  {
+    public void Add( double aValue )
+    {
+      mCount += 1;
+      double lDelta  = aValue - mMean;
+      mMean  += lDelta / mCount;
+      double lDelta2 = aValue - mMean;
+      mM2    += lDelta * lDelta2;
+    }
 
-  //    Likelihood = Calculate_LMZ();
-  //  }
+    public FilterBaseline Snapshot() => new FilterBaseline( mMean, StdDev, mCount );
 
-  //  public double Likelihood = 0 ;
+    public long    Count     => mCount;
+    public double  Mean      => mMean;
+    public double  Variance  => mCount > 1 ? mM2 / (mCount - 1) : 0.0;
+    public double  StdDev    => Math.Sqrt( Variance );
 
-  //  public static double Score ( Distribution aRankSize ) 
-  //  { 
-  //    ZipfDistribtionEstimator  lE = new ZipfDistribtionEstimator ( aRankSize );
-  //    return lE.Likelihood ;
-  //  }
-
-  //  double Calculate_LMZ()
-  //  {
-  //    double lZ1 = Calculate_Z1();
-  //    double lZ2 = Calculate_Z2();
-
-  //    double lZ1_Squared = Square(lZ1);
-  //    double lZ2_Squared = Square(lZ2);
-
-  //    double lT0 = lZ1_Squared ;
-  //    double lT1 = 6.0 * lZ1 * lZ2 ;
-  //    double lT2 = 12.0 * lZ2_Squared ;
-
-  //    double lT = lT0 + lT1 + lT2 ;
-
-  //    double n = Samples.Count ;
-  //    double rLMZ = 4 * lT * n;
-
-  //    return rLMZ ;
-  //  }
-
-  //  double Calculate_Z1()
-  //  {
-  //    double n  = Samples.Count ;
-  //    double Xn = Samples.Values.Last();
-
-  //    double lSum = 0 ; Samples.Values.Select( Xi => lSum += Math.Log( Xi  / Xn ) );
-
-  //    double lSumN = lSum / n ;
-
-  //    double z1 = 1 - lSumN ;
-
-  //    return z1 ;
-  //  }
-
-  //  double Calculate_Z2()
-  //  {
-  //    double n  = Samples.Count ;
-  //    double Xn = Samples.Values.Last();
-
-  //    double lSum = 0 ; Samples.Values.Select( Xi => lSum += Xn / Xi  );
-
-  //    double lSumN = lSum / n ;
-
-  //    double z2 = 0.5 - lSumN ;
-
-  //    return z2 ;
-
-  //  }
-
-  //  static double Square( double n ) => n * n ;
-
-  //  Distribution Samples ;
-  //}
-
-  //public class StatisticalScore : Score
-  //{
-  //  public StatisticalScore( Signal aSignal, Distribution aSamples, Histogram aHistogram, double aRankSizeTailThreshold ) 
-  //  {
-  //    //aSamples.FillBaseStats();
-
-  //    //Histogram = aHistogram ;
-
-  //    //var lRankSize = Histogram.GetRankSize(aRankSizeTailThreshold);
-
-  //    //lRankSize.Stats.Zipf_Likelihood = ZipfDistribtionEstimator.Score(lRankSize);
-
-  //    //RankSize    = DTable.FromY(lRankSize);
-  //    //LogRankSize = RankSize.ToLog();
-
-  //    //Histogram.Table.CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aSignal.Name +"_Histogram.png"));
-  //    //RankSize       .CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aSignal.Name +"_RanSize.png"));
-  //    //LogRankSize    .CreatePlot(Plot.Options.Bars).SavePNG(Context.Session.OutFile(aSignal.Name +"_LogRankSize.png"));
-  //  } 
-
-  //  public override State GetState() 
-  //  {
-  //    State rS = new State("Score") ;
-
-  //    rS.Add( State.With("Likelihood", Likelihood ) ) ;
+    long    mCount  = 0 ;
+    double  mMean   = 0.0 ;
+    double  mM2     = 0.0 ;
+  }
 
 
-  //    return rS ;
-  //  }
+  // ---------------------------------------------------------------------------
+  //  Frozen per-filter baseline (mean/std), the runtime form of RunningStats.
+  // ---------------------------------------------------------------------------
+  public class FilterBaseline
+  {
+    public FilterBaseline()
+    {
+    }
 
-  //  public Histogram Histogram        ;
-  //  public DTable    RankSize         ;
-  //  public DTable    LogRankSize      ;
-  //}
+    public FilterBaseline( double aMean, double aStd, long aCount )
+    {
+      Mean   = aMean;
+      Std    = aStd;
+      Count  = aCount;
+    }
+
+    public double  Mean   { get; set; }
+    public double  Std    { get; set; }
+    public long    Count  { get; set; }
+  }
 
 
+  // ---------------------------------------------------------------------------
+  //  Result of combining one branch's per-filter scores. Carries the breakdown.
+  // ---------------------------------------------------------------------------
+  public class CombinedScore
+  {
+    public CombinedScore( double aValue, double aCoverage, IReadOnlyList<(string Name, double Z)> aTerms )
+    {
+      Value     = aValue;
+      Coverage  = aCoverage;
+      Terms     = aTerms;
+    }
+
+    public override string ToString()
+    {
+      string lTerms   = string.Join( ", ", Terms.Select( t => $"{t.Name}={t.Z:F2}σ" ) );
+      string lVerdict = Accepted.HasValue ? (Accepted.Value ? " [ACCEPT]" : " [REJECT]") : "";
+      return $"S={Value:F3} (coverage={Coverage:F2}; {lTerms}){lVerdict}";
+    }
+
+    public double                                  Value     ;
+    public double                                  Coverage  ;
+    public IReadOnlyList<(string Name, double Z)>  Terms     ;
+    public bool?                                   Accepted  ;   // null until Decide() runs
+  }
+
+
+  // ---------------------------------------------------------------------------
+  //  The serializable calibration blob. This is the whole shipped artifact.
+  // ---------------------------------------------------------------------------
+  public class Calibration
+  {
+    public int                                 SchemaVersion     { get; set; } = 1;
+    public Dictionary<string, FilterBaseline>  Baselines         { get; set; } = new Dictionary<string, FilterBaseline>();
+    public double[]                            NullWinnerScores  { get; set; }   // sorted; threshold derivable at any quantile
+    public double                              RejectThreshold   { get; set; }
+    public double                              Quantile          { get; set; }
+    public string                              Square            { get; set; }
+    public string                              PipelineVersion   { get; set; }
+    public int                                 NoiseInputCount   { get; set; }
+    public string                              CalibratedUtc     { get; set; }
+
+    public string ToJson() => JsonConvert.SerializeObject( this, Formatting.Indented );
+
+    public static Calibration FromJson( string aJson ) => JsonConvert.DeserializeObject<Calibration>( aJson );
+
+    public void Save( string aPath ) => File.WriteAllText( aPath, ToJson() );
+
+    public static Calibration Load( string aPath ) => FromJson( File.ReadAllText( aPath ) );
+  }
+
+
+  // ---------------------------------------------------------------------------
+  //  Combines per-filter scores into a single standardized score, selects the
+  //  winning branch, and decides accept/reject against a noise-calibrated null.
+  //
+  //    S = coverage * Σ z_i      (coverage is a 0..1 reliability multiplier)
+  //
+  //  The coverage score (flagged Score.IsCoverage) is NOT a peer term; it scales
+  //  the linguistic evidence so low coverage shrinks it toward zero.
+  // ---------------------------------------------------------------------------
+  public class ScoreModel
+  {
+    // ---- Calibration: feed NOISE inputs. Each input produced a set of candidate
+    //      branches; each branch is its list of raw per-filter Scores. ----
+
+    public void AddNoiseInput( IReadOnlyList<IReadOnlyList<Score>> aBranches )
+    {
+      // Per-filter baseline is taken over ALL branches (more samples is better);
+      // the winner-selection bias is handled separately, on the combined score.
+      foreach (IReadOnlyList<Score> lBranch in aBranches)
+        foreach (Score lScore in lBranch)
+          if (!lScore.IsCoverage)
+            GetStats( lScore.FilterName ).Add( lScore.Likelihood );
+
+      mNoiseInputs.Add( aBranches );
+    }
+
+    public void AddNoiseInput( IReadOnlyList<PipelineResult> aBranches )
+      => AddNoiseInput( ProjectScores( aBranches ) );
+
+    public void Calibrate( double aRejectQuantile = 0.99 )
+    {
+      // 1) Freeze per-filter baselines from the accumulators.
+      mBaselines = new Dictionary<string, FilterBaseline>();
+      foreach (KeyValuePair<string, RunningStats> lKV in mFilterStats)
+        mBaselines[lKV.Key] = lKV.Value.Snapshot();
+
+      // 2) With baselines known, take the WINNER's combined score per noise input.
+      //    Thresholding the max-over-branches corrects the selection bias.
+      List<double> lWinners = new List<double>( mNoiseInputs.Count );
+      foreach (IReadOnlyList<IReadOnlyList<Score>> lBranches in mNoiseInputs)
+      {
+        CombinedScore lWinner = SelectWinner( lBranches );
+        if (lWinner != null)
+          lWinners.Add( lWinner.Value );
+      }
+      lWinners.Sort();
+
+      mNullWinnerScores = lWinners;
+      mNoiseInputCount  = lWinners.Count;
+      mQuantile         = aRejectQuantile;
+      mRejectThreshold  = Quantile( lWinners, aRejectQuantile );
+      mCalibrated       = true;
+
+      // 3) Calibration scaffolding is no longer needed; free it.
+      mFilterStats.Clear();
+      mNoiseInputs.Clear();
+    }
+
+    // ---- Runtime ----
+
+    public CombinedScore Decide( IReadOnlyList<IReadOnlyList<Score>> aBranches )
+    {
+      CombinedScore lWinner = SelectWinner( aBranches );
+      if (lWinner != null && mCalibrated)
+        lWinner.Accepted = lWinner.Value >= mRejectThreshold;
+      return lWinner;
+    }
+
+    public PipelineResult Decide( IReadOnlyList<PipelineResult> aBranches )
+    {
+      PipelineResult lWinner = SelectWinner( aBranches );
+      if (lWinner != null && mCalibrated)
+        lWinner.CombinedScore.Accepted = lWinner.CombinedScore.Value >= mRejectThreshold;
+      return lWinner;
+    }
+
+    public CombinedScore SelectWinner( IReadOnlyList<IReadOnlyList<Score>> aBranches )
+    {
+      CombinedScore lBest = null;
+      foreach (IReadOnlyList<Score> lBranch in aBranches)
+      {
+        CombinedScore lCombined = Combine( lBranch );
+        if (lBest == null || lCombined.Value > lBest.Value)
+          lBest = lCombined;
+      }
+      return lBest;
+    }
+
+    public PipelineResult SelectWinner( IReadOnlyList<PipelineResult> aBranches )
+    {
+      PipelineResult lBest = null;
+      foreach (PipelineResult lBranch in aBranches)
+      {
+        lBranch.CombinedScore = Combine( lBranch.FilterScores );
+        if (lBest == null || lBranch.CombinedScore.Value > lBest.CombinedScore.Value)
+          lBest = lBranch;
+      }
+      return lBest;
+    }
+
+    public CombinedScore Combine( IReadOnlyList<Score> aBranch )
+    {
+      double                         lCoverage = 1.0;
+      double                         lZSum     = 0.0;
+      List<(string Name, double Z)>  lTerms    = new List<(string, double)>();
+
+      foreach (Score lScore in aBranch)
+      {
+        if (lScore.IsCoverage)
+        {
+          lCoverage = Clamp01( lScore.Likelihood );   // coverage filter emits a 0..1 fraction
+          continue;
+        }
+        double lZ = Standardize( lScore );
+        lZSum += lZ;
+        lTerms.Add( (lScore.FilterName, lZ) );
+      }
+
+      return new CombinedScore( lCoverage * lZSum, lCoverage, lTerms );
+    }
+
+    // ---- Threshold helpers (operate on the shipped null distribution) ----
+
+    // Re-derive the cutoff at a different quantile without recalibrating
+    // (e.g. to apply a look-elsewhere correction for the session's search volume).
+    public double ThresholdForQuantile( double aQuantile )
+      => Quantile( mNullWinnerScores, aQuantile );
+
+    // Fraction of the noise null at or below aValue: a percentile / p-value report.
+    public double PercentileOf( double aValue )
+    {
+      if (mNullWinnerScores == null || mNullWinnerScores.Count == 0)
+        return double.NaN;
+      int lBelow = 0;
+      foreach (double lS in mNullWinnerScores)
+        if (lS <= aValue)
+          lBelow += 1;
+      return (double) lBelow / mNullWinnerScores.Count;
+    }
+
+    // ---- Serialization (Newtonsoft) ----
+
+    public Calibration Export()
+    {
+      return new Calibration
+      {
+        Baselines        = mBaselines,
+        NullWinnerScores = mNullWinnerScores?.ToArray(),
+        RejectThreshold  = mRejectThreshold,
+        Quantile         = mQuantile,
+        NoiseInputCount  = mNoiseInputCount,
+        CalibratedUtc    = DateTime.UtcNow.ToString( "o" ),
+      };
+    }
+
+    public static ScoreModel FromCalibration( Calibration aCal )
+    {
+      ScoreModel lModel = new ScoreModel();
+      lModel.mBaselines        = aCal.Baselines ?? new Dictionary<string, FilterBaseline>();
+      lModel.mNullWinnerScores = aCal.NullWinnerScores?.ToList();
+      lModel.mRejectThreshold  = aCal.RejectThreshold;
+      lModel.mQuantile         = aCal.Quantile;
+      lModel.mNoiseInputCount  = aCal.NoiseInputCount;
+      lModel.mCalibrated       = true;
+      return lModel;
+    }
+
+    // Provenance is required so a stale model can be detected later.
+    public void Save( string aPath, string aSquare, string aPipelineVersion )
+    {
+      Calibration lCal = Export();
+      lCal.Square          = aSquare;
+      lCal.PipelineVersion = aPipelineVersion;
+      lCal.Save( aPath );
+    }
+
+    public static ScoreModel Load( string aPath ) => FromCalibration( Calibration.Load( aPath ) );
+
+    // ---- Diagnostics ----
+
+    public double  RejectThreshold  => mRejectThreshold;
+    public bool    IsCalibrated     => mCalibrated;
+    public int     NoiseInputCount  => mNoiseInputCount;
+
+    public long SampleCount( string aFilterName )
+      => mBaselines != null && mBaselines.TryGetValue( aFilterName, out FilterBaseline lBase ) ? lBase.Count : 0;
+
+    // ---- Internals ----
+
+    double Standardize( Score aScore )
+    {
+      if (mBaselines == null || !mBaselines.TryGetValue( aScore.FilterName, out FilterBaseline lBase ))
+        return 0.0;                                  // uncalibrated filter contributes nothing
+      if (lBase.Std < cEpsilon)
+        return 0.0;                                  // constant-on-noise filter contributes nothing
+      return (aScore.Likelihood - lBase.Mean) / lBase.Std;
+    }
+
+    RunningStats GetStats( string aFilterName )
+    {
+      if (!mFilterStats.TryGetValue( aFilterName, out RunningStats lStats ))
+      {
+        lStats = new RunningStats();
+        mFilterStats[aFilterName] = lStats;
+      }
+      return lStats;
+    }
+
+    static List<IReadOnlyList<Score>> ProjectScores( IReadOnlyList<PipelineResult> aBranches )
+    {
+      List<IReadOnlyList<Score>> lLists = new List<IReadOnlyList<Score>>( aBranches.Count );
+      foreach (PipelineResult lBranch in aBranches)
+        lLists.Add( lBranch.FilterScores );          // FilterScores is List<Score> == IReadOnlyList<Score>
+      return lLists;
+    }
+
+    static double Quantile( IReadOnlyList<double> aSorted, double aQ )
+    {
+      if (aSorted == null || aSorted.Count == 0)
+        return double.NegativeInfinity;
+      double  lPos  = Clamp01( aQ ) * (aSorted.Count - 1);
+      int     lLow  = (int) Math.Floor( lPos );
+      int     lHigh = (int) Math.Ceiling( lPos );
+      return aSorted[lLow] + (lPos - lLow) * (aSorted[lHigh] - aSorted[lLow]);
+    }
+
+    static double Clamp01( double aValue ) => Math.Max( 0.0, Math.Min( 1.0, aValue ) );
+
+    const double cEpsilon = 1e-9 ;
+
+    // calibration-time only (never serialized, cleared after Calibrate)
+    Dictionary<string, RunningStats>           mFilterStats   = new Dictionary<string, RunningStats>();
+    List<IReadOnlyList<IReadOnlyList<Score>>>  mNoiseInputs   = new List<IReadOnlyList<IReadOnlyList<Score>>>();
+
+    // runtime essentials (the serialized state)
+    Dictionary<string, FilterBaseline>  mBaselines           ;
+    List<double>                        mNullWinnerScores    ;
+    double                              mRejectThreshold     = double.NegativeInfinity ;
+    double                              mQuantile            = 0.99 ;
+    int                                 mNoiseInputCount     = 0 ;
+    bool                                mCalibrated          = false ;
+  }
 }

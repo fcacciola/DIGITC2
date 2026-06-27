@@ -28,7 +28,6 @@ namespace ENGINE
       FillCC();
 
       mQuitThreshold = Params.GetInt("QuitThreshold");
-      mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     }
 
     //
@@ -71,20 +70,15 @@ namespace ENGINE
 
       WriteLine($"Correlation: {lCorrelation}");
 
-      var lLikelihood = (int)Math.Round(lCorrelation * 100) ; 
+      Score lScore = new Score(Name, lCorrelation, false) ;
 
-      var lFitness = mFitnessMap.Map(lLikelihood) ;
-
-      Score lScore = new Score(Name, lLikelihood,lFitness) ;
-
-      return CreateOutput( LexicalInput, "Byte distribution score for language digits.", lScore, lLikelihood < mQuitThreshold);
+      return CreateOutput( LexicalInput, "Byte distribution score for language digits.", lScore, lCorrelation * 100 < mQuitThreshold);
 
     }
 
     public override string Name => this.GetType().Name ;
 
-    int        mQuitThreshold;
-    FitnessMap mFitnessMap ;
+    int                   mQuitThreshold;
     CorrelationCalculator mCC ;
   }
 

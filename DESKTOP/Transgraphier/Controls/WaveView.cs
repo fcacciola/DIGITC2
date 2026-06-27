@@ -550,7 +550,8 @@ namespace Transgraphier
       var lRedPoly   = new List<Point>();
       var lBluePoly  = new List<Point>();
       var lBlackPoly = new List<Point>();
-      var lGrayPoly  = new List<Point>();
+      var lGreenPoly  = new List<Point>();
+      var lYellowPoly = new List<Point>();
 
       // Aggregate min/max per pixel
       for (int px = 0; px < Width; px++)
@@ -578,7 +579,17 @@ namespace Transgraphier
 
         if ( mColorCoded )
         {
-          var lPoly = mColorCoded ? ( lMin != lMax ? lGrayPoly : ( lMax > .8 ? lBlackPoly : lMax > .5 ? lBluePoly : lRedPoly ) ) : lBluePoly;  
+          List<Point> lPoly = null ;
+
+          switch ( (int)( Math.Ceiling(lMax * 10)  ) )
+          {
+            case  6 : lPoly = lBluePoly; break;  
+            case -5 : lPoly = lRedPoly; break;  
+            case  2 : lPoly = lGreenPoly; break;  
+            case -1 : lPoly = lYellowPoly; break;  
+            default : lPoly = lBlackPoly; break;
+
+          }
 
           lPoly.Add(new Point(px, CenterY));
           lPoly.Add(new Point(px, CenterY - (int)Math.Ceiling(lMin * WaveHalfH)));
@@ -628,10 +639,11 @@ namespace Transgraphier
         // center line
         g.DrawLine(Pens.Black, new Point(0, CenterY), new Point(Width, CenterY));
   
-        if ( lRedPoly  .Count > 0 ) g.DrawLines(Pens.Red     , lRedPoly  .ToArray());
-        if ( lBluePoly .Count > 0 ) g.DrawLines(Pens.Blue    , lBluePoly .ToArray());
-        if ( lBlackPoly.Count > 0 ) g.DrawLines(Pens.Black   , lBlackPoly.ToArray());
-        if ( lGrayPoly .Count > 0 ) g.DrawLines(Pens.DarkGray, lGrayPoly .ToArray());
+        if ( lRedPoly   .Count > 0 ) g.DrawLines(Pens.Red   , lRedPoly   .ToArray());
+        if ( lBluePoly  .Count > 0 ) g.DrawLines(Pens.Blue  , lBluePoly  .ToArray());
+        if ( lBlackPoly .Count > 0 ) g.DrawLines(Pens.Black , lBlackPoly .ToArray());
+        if ( lGreenPoly .Count > 0 ) g.DrawLines(Pens.Green , lGreenPoly .ToArray());
+        if ( lYellowPoly.Count > 0 ) g.DrawLines(Pens.Yellow, lYellowPoly.ToArray());
   
         if ( mIncludeRuler )
           DrawTimeRuler(g);

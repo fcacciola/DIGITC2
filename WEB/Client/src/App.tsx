@@ -1,11 +1,12 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Download, FileAudio, Loader2, Mic, Play, Ruler, Square } from "lucide-react";
+import { AlertCircle, BookOpen, Download, FileAudio, Loader2, Mic, Play, Ruler, Square } from "lucide-react";
 import { flattenFiles, getDefaultConfig, getResult, getTextFile, processFile } from "./api";
 import { loadLocalWaveAsset, loadTimelineAsset, loadWaveAsset } from "./audio";
 import { WaveView } from "./components/WaveView";
 import { TimelineView } from "./components/TimelineView";
 import { ConfigTable } from "./components/ConfigTable";
 import { BlockNavigator } from "./components/BlockNavigator";
+import { UserManual } from "./components/UserManual";
 import { clamp, createInitialController, updateViewportWidth } from "./viewController";
 import type { ConfigParam, MeasureSelection, ResultFileNode, ResultManifest, TimelineAsset, ViewControllerState, WaveAsset } from "./types";
 import { startWavRecorder, type WavRecorderSession } from "./recorder";
@@ -34,6 +35,7 @@ export function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedDownloadUrl, setRecordedDownloadUrl] = useState<string | null>(null);
   const [recordedFileName, setRecordedFileName] = useState<string | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const canProcess = inputFile !== null && !isRecording && state !== "processing" && state !== "loading-results";
   const visibleFileCount = useMemo(() => (manifest ? flattenFiles(manifest.files).length : 0), [manifest]);
@@ -69,6 +71,21 @@ export function App() {
     };
   }, [recordedDownloadUrl]);
 
+  useEffect(() => {
+    if (!manualOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setManualOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [manualOpen]);
+
   async function handleProcess() {
     if (!inputFile) {
       return;
@@ -102,8 +119,8 @@ export function App() {
 
       const loadedResultWaves = await Promise.all(waveFiles.map((file) => loadWaveAsset(file, false)));
       const primaryWave = inputWave ?? loadedResultWaves[0];
-      const colorCodedWave = loadedResultWaves.find((wave) => wave.colorCoded);
-      const blocks = colorCodedWave ? loadBlocks(colorCodedWave.samples) : [];
+      const blockWave = loadedResultWaves.find(isBlockWave);
+      const blocks = blockWave ? loadBlocks(blockWave.samples) : [];
       const resultText = resultFile?.url ? await getTextFile(resultFile.url) : "";
       const logText = logFile?.url ? await getTextFile(logFile.url) : result.messages.join("\n");
 
@@ -265,6 +282,10 @@ export function App() {
             <span>Measure</span>
           </button>
           <div className="measure-readout" aria-live="polite">{measurementText}</div>
+          <button type="button" className="manual-button" onClick={() => setManualOpen(true)} title="Open user manual">
+            <BookOpen size={16} aria-hidden="true" />
+            <span>Manual</span>
+          </button>
           <div className="server-pill">Local server</div>
         </div>
       </header>
@@ -389,39 +410,45 @@ export function App() {
           <pre>{completeLog}</pre>
         </section>
       )}
+
+      {manualOpen && <UserManual onClose={() => setManualOpen(false)} />}
     </main>
   );
 }
 
-function loadBlocks(colorCodedSamples: Float32Array): number[] {
+function loadBlocks(blockSamples: Float32Array): number[] {
   const blockStarts: number[] = [];
+  let insideSeparator = false;
   let separatorFound = false;
-  const zeroThreshold = 0.0001;
+  const separatorThreshold = 0.85;
 
-  for (let i = 0; i < colorCodedSamples.length; i++) {
-    const sample = colorCodedSamples[i];
-    const absSample = Math.abs(sample);
-    if (absSample <= zeroThreshold) {
+  for (let i = 0; i < blockSamples.length; i++) {
+    const sample = blockSamples[i];
+    const isSeparator = sample >= separatorThreshold;
+
+    if (isSeparator) {
+      insideSeparator = true;
+      separatorFound = true;
       continue;
     }
 
-    if (absSample > 0.9) {
-      separatorFound = true;
-    } else {
-      if (separatorFound) {
-        if (blockStarts[blockStarts.length - 1] !== i) {
-          blockStarts.push(i);
-        }
+    if (insideSeparator) {
+      if (blockStarts[blockStarts.length - 1] !== i) {
+        blockStarts.push(i);
       }
-      separatorFound = false;
+      insideSeparator = false;
     }
   }
 
-  if (blockStarts.length === 0) {
+  if (!separatorFound || blockStarts.length === 0) {
     return [];
   }
 
-  return [0, ...blockStarts, colorCodedSamples.length];
+  return [0, ...blockStarts, blockSamples.length];
+}
+
+function isBlockWave(wave: WaveAsset): boolean {
+  return wave.relativePath.toLowerCase().includes("blocks") || wave.title.toLowerCase().includes("blocks");
 }
 
 function compareProcessingFiles(a: ResultFileNode, b: ResultFileNode): number {

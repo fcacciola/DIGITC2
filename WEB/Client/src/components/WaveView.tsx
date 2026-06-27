@@ -194,7 +194,7 @@ function renderWave(
   const centerY = bottomY - waveHalfH;
 
   ctx.clearRect(0, 0, cssWidth, cssHeight);
-  ctx.fillStyle = "#f7ead5";
+  ctx.fillStyle = "#d6d3ce";
   ctx.fillRect(0, 0, cssWidth, cssHeight);
   ctx.strokeStyle = "#111827";
   ctx.lineWidth = 1;
@@ -301,27 +301,32 @@ function drawSamples_ColorCoded(
 
   // Levels: blue/red are DC runs at +/-0.6; black is a +/-0.9 OSCILLATION.
   // Black is identified by amplitude (only it reaches 0.9 on either rail).
-  const LV_BLACK = 0.9;
-  const LV_BLUE  = 0.6;
-  const LV_RED   = -0.6;
-
-  const BLACK_MIN = 0.75;   // |extreme| above this -> part of the +/-0.9 oscillation
-  const POS_MIN   = 0.3;    // max above this -> a +0.6 run is present
-  const NEG_MIN   = -0.3;   // min below this -> a -0.6 run is present
+  const LV_BLACK   = 0.9;
+  const LV_BLUE    = 0.6;
+  const LV_RED     = -0.6;
+  const LV_GREEN   = 0.4;
+  const LV_YELLOW  = - 0.4;
 
   const cy  = Math.round(centerY);
   const yOf = (v: number) => Math.round(centerY - v * waveHalfH);
 
-  const blue  = new Path2D();
-  const red   = new Path2D();
-  const black = new Path2D();
-  const gray  = new Path2D();
+  const blackY  = yOf(-LV_BLACK);
+  const blueY   = yOf(-LV_BLUE);
+  const redY    = yOf(-LV_RED);
+  const greenY  = yOf(-LV_GREEN);
+  const yellowY = yOf(-LV_YELLOW);
 
-  for (let px = 0; px < width; px++) {
+  const blue   = new Path2D();
+  const red    = new Path2D();
+  const yellow = new Path2D();
+  const green  = new Path2D();
+  const black  = new Path2D();
+
+  for (let px = 0; px < width; px++) 
+  {
     const sampleStart = startSample + Math.floor(px * samplesPerPixel);
-    if (sampleStart > endSample || sampleStart >= samples.length) {
+    if (sampleStart > endSample || sampleStart >= samples.length)
       break;
-    }
 
     let sampleEnd = startSample + Math.ceil((px + 1) * samplesPerPixel) - 1;
     sampleEnd = Math.min(sampleEnd, endSample);
@@ -331,39 +336,55 @@ function drawSamples_ColorCoded(
 
     let min = Infinity;
     let max = -Infinity;
-    for (let i = sampleStart; i <= sampleEnd; i++) {
+    for (let i = sampleStart; i <= sampleEnd; i++)
+    {
       const v = samples[i];
       if (v < min) min = v;
       if (v > max) max = v;
     }
 
-    const reachesBlack = max > BLACK_MIN || min < -BLACK_MIN;   // the +/-0.9 oscillation
-    const hasBlue = max > POS_MIN;
-    const hasRed  = min < NEG_MIN;
+    let path : Path2D  | null = null ;
+    let y0 : number = 0 ;
+    let y1 : number = 0 ;
 
-    if (reachesBlack) {
-      // Full symmetric block, regardless of which rail(s) this pixel caught.
-      const top = yOf(LV_BLACK);
-      black.rect(px, top, 1, yOf(-LV_BLACK) - top);
-    } else if (hasBlue && hasRed) {
-      // Genuine blue + red mix -> gray, centre out to both.
-      const top    = yOf(LV_BLUE);
-      const bottom = yOf(LV_RED);
-      gray.rect(px, top, 1, bottom - top);
-    } else if (hasBlue) {
-      const top = yOf(LV_BLUE);     // +0.6 -> centre up
-      blue.rect(px, top, 1, cy - top);
-    } else if (hasRed) {
-      const bottom = yOf(LV_RED);   // -0.6 -> centre down
-      red.rect(px, cy, 1, bottom - cy);
+    switch (Math.ceil(max * 10))
+    {
+      case 6: // Blue
+          path = blue ;
+          y0 = yOf(LV_BLUE) ;
+          y1 = cy - y0 ;
+          break;
+      case -5: // Red
+          path = red ;
+          y0 = cy ;
+          y1 =  yOf(LV_RED) - cy ;
+          break;
+      case 2: // Green
+          path = green ;
+          y0 = yOf(LV_GREEN) ;
+          y1 = cy - y0 ;
+          break;
+      case -1: // Yellow
+          path = yellow ;
+          y0 = cy ;
+          y1 =  yOf(LV_YELLOW) - cy ;
+          break;
+      case 9: // Black
+          path = black ;
+          y0 = yOf(LV_BLACK) ;
+          y1 = yOf(-LV_BLACK) - y0 ;
+          break;
     }
-    // else: silence, nothing to draw
+    
+    if ( path !== null )
+      path.rect(px, y0, 1, y1);
   }
 
-  fillPath(ctx, gray,  "#6b7280");
-  fillPath(ctx, blue,  "#2563eb");
-  fillPath(ctx, red,   "#dc2626");
-  fillPath(ctx, black, "#111827");
+  fillPath(ctx, yellow, "#f1f908");
+  fillPath(ctx, green,  "#3aee08");
+  fillPath(ctx, blue,   "#2563eb");
+  fillPath(ctx, red,    "#dc2626");
+  fillPath(ctx, black,  "#111827");
 }
 
 function fillPath(ctx: CanvasRenderingContext2D, path: Path2D, color: string) {

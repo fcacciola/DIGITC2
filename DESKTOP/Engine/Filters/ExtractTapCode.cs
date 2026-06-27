@@ -25,7 +25,7 @@ namespace ENGINE
       GapIsIntra = false ; 
     }
 
-    public enum TapType { Row, Col, Separator };
+    public enum TapType { Row, Col, Separator, IntraGap, OuterGap };
 
     public void DumpSample(List<float> aSamples, TapType aType )
     {
@@ -33,15 +33,21 @@ namespace ENGINE
       for( int i = lC ; i < Source.Start ; i++ )
         aSamples.Add(0);
 
-      float lEffectveAmplitude = aType == TapType.Separator ? .95f : ( aType == TapType.Row ? 0.65f : - 0.65f );
+      float lEffectiveAmplitude = 0 ;
+      switch ( aType )
+      {
+        case TapType.Row:       lEffectiveAmplitude = 0.6f  ; break ;
+        case TapType.Col:       lEffectiveAmplitude = -0.6f ; break ;
+        case TapType.IntraGap:  lEffectiveAmplitude = 0.2f  ; break ;
+        case TapType.OuterGap: lEffectiveAmplitude = -0.2f ; break ;
+        case TapType.Separator: lEffectiveAmplitude = 0.9f  ; break ;
+      }
 
       foreach ( var lStep in Source.Steps )
       {
         for( int i = 0; i < lStep.Length; i++ ) 
         {
-          aSamples.Add( lEffectveAmplitude );
-          if ( aType == TapType.Separator )
-            lEffectveAmplitude = - lEffectveAmplitude ;
+          aSamples.Add( lEffectiveAmplitude );
         }
       }
     }
@@ -253,6 +259,8 @@ namespace ENGINE
 
       var lPulses = LexicalInput.GetSymbols<PulseSymbol>() ;
 
+      lPulses.SetupGapDurations();
+
       WriteLine2GUI("Extracting Tap Code...");
       Indent();
 
@@ -276,6 +284,11 @@ namespace ENGINE
 
       WriteLine2GUI($"IntraTap Gap High Bound: {lIntraTapGap_HighBound:F2}s");
       lTaps.ForEach( t => t.GapIsIntra = t.Gap <= lIntraTapGap_HighBound );
+
+      List<float> lTapSamples = new List<float>();
+      lTaps.ForEach( t => t.DumpSample(lTapSamples,  t.GapIsIntra ? Tap.TapType.IntraGap: Tap.TapType.OuterGap )) ;
+
+      Plot(lTapSamples, "0_Taps-ColorCoded");
 
       WriteDetailLine("Classified Taps:");
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
@@ -377,7 +390,7 @@ namespace ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      Plot(lSymbols, "TapCodeColorCoded");
+      Plot(lSymbols, "1_TapCode-ColorCoded-Blocks");
 
       string lTapCodeFile = Session.OutputFile("TapCode.txt");
 

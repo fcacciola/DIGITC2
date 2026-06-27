@@ -35,7 +35,6 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     }
 
-    mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     mMinCount      = Params.GetInt("MinCount");
     mQuitThreshold = Params.GetInt("QuitThreshold");
   }
@@ -145,7 +144,6 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
   int            mMinCount ;
   PolybiusSquare mPolybiusSquare ;
-  FitnessMap     mFitnessMap ;
   int            mQuitThreshold ;
 }
 

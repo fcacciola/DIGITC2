@@ -135,11 +135,12 @@ namespace ENGINE
 
     string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
 
-    public string   InputFile ;
-    public string   Name ;
-    public Settings Settings ;
-    public GUI      GUI ;
-    public Config   Config ;
+    public string     InputFile ;
+    public string     Name ;
+    public Settings   Settings ;
+    public GUI        GUI ;
+    public Config     Config ;
+    public ScoreModel ScoreModel = new ScoreModel();
 
     public string   BaseFolder ;
     public string   InputFolder ;

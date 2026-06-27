@@ -12,21 +12,21 @@ namespace ENGINE
 {
   public class PipelineResult
   {
-    public string      Folder         { get; set; }
-    public string      Name           { get; set; }
-    public TextMessage Text           { get; set; }
-    public Fitness     OverallFitness { get; set; }
-    public Config      Config         { get; set; }
+    public string        Folder        { get; set; }
+    public string        Name          { get; set; }
+    public TextMessage   Text          { get; set; }
+    public CombinedScore CombinedScore { get; set; }
+    public Config        Config        { get; set; }
 
     public List<Packet> FilterSequence { get; private set; } = new List<Packet>();
 
-    public List<Score> Scores { get; private set; } = new List<Score>();
+    public List<Score> FilterScores { get; private set; } = new List<Score>();
   }
 
 
   public class PipelineResultBuilder  
   {
-    public PipelineResultBuilder( Config aConfig, string aName, string aOutputFolder ) { Config = aConfig; Name = aName; OutputFolder = aOutputFolder ; }
+    public PipelineResultBuilder( ScoreModel aScoreModel, Config aConfig, string aName, string aOutputFolder ) { ScoreModel = aScoreModel; Config = aConfig; Name = aName; OutputFolder = aOutputFolder ; }
 
     public void Add( Packet aPacket )
     {
@@ -35,32 +35,30 @@ namespace ENGINE
 
     public PipelineResult BuildResult()
     {
-      PipelineResult rProduct = null ;
+      PipelineResult rResult = null ;
 
       if ( Packets.Count == 0 )
-        return rProduct ;
+        return rResult ;
 
-      rProduct = new PipelineResult{ Name = Name, Text= Packets.Last().Data as TextMessage, Config = Config };
-
-      int lOverallFitness = (int)Fitness.Undefined ;
-  
+      rResult = new PipelineResult{ Name = Name, Text= Packets.Last().Data as TextMessage, Config = Config };
+ 
       foreach ( Packet lPacket in Packets )
       {
-        Score lScore = lPacket.Score ;
-        if ( lScore != null ) 
+        Score lFilterScore = lPacket.Score ;
+        if ( lFilterScore != null ) 
         {
-          lOverallFitness = Math.Min( (int)lScore.Fitness, lOverallFitness) ;
-          rProduct.Scores.Add( lScore ); 
+          rResult.FilterScores.Add( lFilterScore ); 
         }
 
-        rProduct.FilterSequence.Add(lPacket) ;
+        rResult.FilterSequence.Add(lPacket) ;
       }
 
-      rProduct.OverallFitness = (Fitness)lOverallFitness ;
+      rResult.CombinedScore = ScoreModel.Combine(rResult.FilterScores);
  
-      return rProduct ; 
+      return rResult ; 
     }
 
+    readonly public ScoreModel   ScoreModel;
     readonly public Config       Config;
     readonly public string       Name ;
     readonly public string       OutputFolder ;
@@ -98,11 +96,11 @@ namespace ENGINE
           lReport.Add( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) ? lPR.Text.Text : "<<<< SORRY! NO MESSAGE WAS DECODED :( >>>>") ;
           lReport.Add( "" ) ;
 
-          lReport.Add( $"Overall Fitness: {lPR.OverallFitness} " ) ;
+          lReport.Add( $"Score: {lPR.CombinedScore.Value} " ) ;
           lReport.Add( "" ) ;
 
           lReport.Add( "Scores:" ) ;
-          lPR.Scores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
+          lPR.FilterScores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
           lReport.Add( "" ) ;
 
           string lCollatedLogsName = $"COMBINED LOG FILE.txt" ;

@@ -569,7 +569,8 @@ namespace Transgraphier
 
           var lResultSignal = SignalLoader.LoadSignal(lWaveResult);
 
-          if ( lColorCoded )
+          bool lBlocks = lWaveFilename.Contains("Blocks") ;
+          if ( lBlocks )
           {
             LoadBlocks(lResultSignal);
           }
@@ -661,7 +662,7 @@ namespace Transgraphier
         if (aColorCodedSignal[i] == 0 )
           continue;
 
-        if ( Math.Abs(aColorCodedSignal[i]) > 0.9 )
+        if ( aColorCodedSignal[i] > 0.8 )
         {
           lSeparatorFound = true;
         }

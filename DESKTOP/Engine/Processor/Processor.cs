@@ -29,6 +29,8 @@ public class Processor
   {
     var rPipelineResults = new List<PipelineResult>();
 
+    int cMinScore = 70 ;
+
     mMainPipeline.Start( aSession, aSettings, aSession.Config, aStartSignal ) ;
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
@@ -57,7 +59,7 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with fitness {lPipelineResult.OverallFitness}.") ;
+          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {lPipelineResult.CombinedScore}.") ;
         }
         else
         {
@@ -71,14 +73,12 @@ public class Processor
           break ;
         }
 
-        if ( lPipelineResult.OverallFitness >= Fitness.EXCELENT)
-          lGoodPipelinesCount += 1 ;
-
         lPipelineIdx += 1 ;
 
-        if ( lGoodPipelinesCount > aSettings.GetInt("MaxGoodBranches") || lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
+        //if ( lGoodPipelinesCount > aSettings.GetInt("MaxGoodBranches") || lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
+        if ( lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
         {
-          aSession.Error($"Too many Pipelines. Aborting.") ;
+          //aSession.Error($"Too many Pipelines. Aborting.") ;
           break ;
         }
       }

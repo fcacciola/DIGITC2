@@ -7,6 +7,7 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 var uploadLimit = builder.Configuration.GetValue<long?>("DigitC2:MaxUploadBytes") ?? 100 * 1024 * 1024;
+var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -110,7 +111,7 @@ app.MapPost("/api/jobs", async (
     {
         var configParams = string.IsNullOrWhiteSpace(config)
             ? null
-            : JsonSerializer.Deserialize<IReadOnlyList<DigitC2.Server.Models.ConfigParamDto>>(config);
+            : JsonSerializer.Deserialize<IReadOnlyList<DigitC2.Server.Models.ConfigParamDto>>(config, jsonOptions);
         var result = await jobs.ProcessAsync(file, name, configParams, cancellationToken);
         return Results.Created(
             $"/api/jobs/{result.JobId}/result",
@@ -119,6 +120,11 @@ app.MapPost("/api/jobs", async (
     catch (InvalidOperationException ex)
     {
         return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (JsonException ex)
+    {
+        app.Logger.LogWarning(ex, "Invalid processing configuration JSON.");
+        return Results.BadRequest(new { error = "Processing configuration could not be read." });
     }
     catch (Exception ex)
     {

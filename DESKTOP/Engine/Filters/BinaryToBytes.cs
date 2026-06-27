@@ -20,7 +20,6 @@ namespace ENGINE
     {
       mBitSize       = Params.GetInt("BitSize");
       mQuitThreshold = Params.GetInt("QuitThreshold");
-      mFitnessMap    = new FitnessMap(Params.GetValue("FitnessMap"));
     }
 
     protected override Packet Process()
@@ -60,7 +59,7 @@ namespace ENGINE
           lBitsLikelihood += 1 ;
         }
 
-        double lByteLikelihood = lBitsLikelihood / 8 ;
+        double lByteLikelihood = lBitsLikelihood / mBitSize ;
 
         lStrength += lByteLikelihood ;
 
@@ -73,16 +72,13 @@ namespace ENGINE
 
       double lSNR = lStrength / (double)lByteSymbols.Count ;
       
-      int lLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
+      double lLikelihood = lSNR  ; 
 
-      Fitness lFitness = mFitnessMap.Map(lLikelihood) ;
-
-      Score lScore = new Score(Name, lLikelihood, lFitness) ;
+      Score lScore = new Score(Name, lLikelihood, true) ;
 
       WriteDetailLine($"Good Bytes SNR: {lSNR}");
       WriteDetailLine($"Score: {lScore}");
       WriteDetailLine($"Likelihood: {lLikelihood}");
-      WriteDetailLine($"Fitness: {lFitness}");
 
       Unindent();
 
@@ -110,9 +106,8 @@ namespace ENGINE
 
     public override string Name => this.GetType().Name ;
 
-    int        mBitSize ;
-    FitnessMap mFitnessMap ;
-    int        mQuitThreshold ;
+    int mBitSize ;
+    int mQuitThreshold ;
   }
 
 }

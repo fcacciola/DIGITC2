@@ -84,6 +84,19 @@ a {
   cursor: pointer;
 }
 
+.manual-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #b8c3cf;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
 .measure-tool.is-active {
   border-color: #0f766e;
   background: #ccfbf1;
@@ -530,6 +543,126 @@ a {
   cursor: default;
 }
 
+.manual-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.manual-dialog {
+  width: min(940px, 100%);
+  max-height: min(860px, calc(100vh - 36px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.24);
+}
+
+.manual-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #d1d9e2;
+  background: #f8fafc;
+}
+
+.manual-header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.manual-header p {
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.manual-close {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #b8c3cf;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.manual-content {
+  overflow: auto;
+  padding: 14px 18px 20px;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.manual-content section {
+  margin: 0 0 18px;
+}
+
+.manual-content h3 {
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: 17px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.manual-content h4 {
+  margin: 14px 0 6px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.manual-content p {
+  margin: 0 0 9px;
+}
+
+.manual-content ol,
+.manual-content ul {
+  margin: 0 0 10px 22px;
+  padding: 0;
+}
+
+.manual-content li {
+  margin: 3px 0;
+}
+
+.manual-content pre {
+  overflow-x: auto;
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  border: 1px solid #d1d9e2;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #334155;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.manual-content code {
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 0.95em;
+  color: #0f766e;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 8px;
@@ -551,5 +684,18 @@ a {
 
   .result-summary {
     grid-template-columns: 1fr;
+  }
+
+  .manual-backdrop {
+    padding: 8px;
+  }
+
+  .manual-dialog {
+    max-height: calc(100vh - 16px);
+  }
+
+  .manual-content {
+    padding: 12px;
+    font-size: 13px;
   }
 }

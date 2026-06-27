@@ -41,7 +41,7 @@ namespace ENGINE
       var rGapDurations = new double[aPulses.Count-1];
 
       var lPulseA = aPulses[0];
-      lPulseA.Gap = 0;  
+      lPulseA.Gap = double.MaxValue;  
 
       for ( int i = 1; i < aPulses.Count ; i++ )
       { 
@@ -238,6 +238,19 @@ namespace ENGINE
           {
             var lFirst = lFilteredGMM.Components[0];
             lMinPulseWidth = Math.Max(lFirst.N_Sigma(-4),0);
+
+            if (lFilteredGMM.Components.Count > 1)
+            {
+              for( int i = 1 ; i < lFilteredGMM.Components.Count ; ++ i )
+              {
+                var lNext = lFilteredGMM.Components[i];
+                if ( lNext.Weight > lFirst.Weight )
+                {
+                  var lMinPulseWidth1 = Math.Max(lNext.N_Sigma(-4),0);
+                  AddBranch("MinPulseWidth",$"{lMinPulseWidth1:F3}");
+                }
+              }
+            }
           }
         }
 

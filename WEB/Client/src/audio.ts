@@ -20,7 +20,7 @@ export async function loadWaveAsset(file: ResultFileNode, includeRuler: boolean)
     relativePath: file.relativePath,
     samples: decoded.samples,
     sampleRate: decoded.sampleRate,
-    colorCoded: file.name.toLowerCase().includes("colorcoded"),
+    colorCoded: isColorCodedWaveFile(file),
     includeRuler
   };
 }
@@ -71,6 +71,11 @@ export async function loadTimelineAsset(file: ResultFileNode): Promise<TimelineA
 function makeWaveTitle(file: ResultFileNode): string {
   const baseName = file.name.replace(/\.wav$/i, "");
   return baseName.includes("_") ? baseName.split("_").slice(1).join("_") : baseName;
+}
+
+function isColorCodedWaveFile(file: ResultFileNode): boolean {
+  const path = `${file.relativePath}/${file.name}`.toLowerCase();
+  return path.includes("colorcoded") || path.includes("blocks");
 }
 
 function decodeWavMono(arrayBuffer: ArrayBuffer): { samples: Float32Array; sampleRate: number } {
