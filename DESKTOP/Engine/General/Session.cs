@@ -17,14 +17,13 @@ namespace ENGINE
 
   public class Session
   {
-    public Session( string aInputFile, string aName, Settings aSettings, DriverApp aDriverApp, Config aConfig, ScoreModel aScoreModel )
+    public Session( string aInputFile, string aName, Settings aSettings, DriverApp aDriverApp, Config aConfig)
     {
       InputFile        = aInputFile ;
       Name             = aName;
       Settings         = aSettings;
       DApp             = aDriverApp;  
       Config           = aConfig ;
-      ScoreModel       = aScoreModel ;
       InputFolder      = aSettings.GetPath("InputFolder");  
       RootOutputFolder = aSettings.GetPath("OutputFolder");
 
@@ -137,18 +136,16 @@ namespace ENGINE
     public bool QuitDisabled => Settings.GetBool("CalibrateScores");
     public bool QuitEnabled  => !QuitDisabled;
 
-    public string     InputFile ;
-    public string     Name ;
-    public Settings   Settings ;
-    public DriverApp        DApp ;
-    public Config     Config ;
-    public ScoreModel ScoreModel ;
-
-    public string   BaseFolder ;
-    public string   InputFolder ;
-    public string   RootOutputFolder ;
-    public string   CurrentPipelineFolder;
-    public string   CurrentOutputFolder ;
+    public string    InputFile ;
+    public string    Name ;
+    public Settings  Settings ;
+    public DriverApp DApp ;
+    public Config    Config ;
+    public string    BaseFolder ;
+    public string    InputFolder ;
+    public string    RootOutputFolder ;
+    public string    CurrentPipelineFolder;
+    public string    CurrentOutputFolder ;
 
     Logger mLogger = new Logger();
 

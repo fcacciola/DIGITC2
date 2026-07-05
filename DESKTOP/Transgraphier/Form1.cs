@@ -98,7 +98,6 @@ namespace Transgraphier
     TransgraphierDesktop_DriverApp   mDriverApp= null; 
     ControlledViews mControlledViews = new ControlledViews();
     MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
-    ScoreModel      mScoreModel      = null;
 
     int mBlockIdx = 0 ;
 
@@ -117,7 +116,6 @@ namespace Transgraphier
       base.OnLoad(e);
 
       mDriverApp = new TransgraphierDesktop_DriverApp(this);
-      mScoreModel = new ScoreModel(mDriverApp);
 
       mSettings = Settings.FromFile(SettingsFile);
 
@@ -290,7 +288,7 @@ namespace Transgraphier
         return;
       }
 
-      var lSession = new Session(mInputFile, mSessionName, mSettings, mDriverApp, mWorkingConfig, mScoreModel);
+      var lSession = new Session(mInputFile, mSessionName, mSettings, mDriverApp, mWorkingConfig);
 
       try
       {
@@ -371,6 +369,9 @@ namespace Transgraphier
 
       public string LastFolder() => mList.Last() ;
 
+      public string Message { get ; set ; }
+      public string Score   { get ; set ; }
+
       List<string> mList = new List<string>();
     }
 
@@ -380,10 +381,9 @@ namespace Transgraphier
       public string       TextResultFileName  { get ; set ; }
       public List<string> WaveResultFileNames { get ; set ; } = new List<string>();
       public List<string> Summary             { get ; set ; } = new List<string>();
-      public string       Message             { get ; set ; }
       public string       TimelineFileName    { get ; set ; } 
 
-      public bool IsEmpty => string.IsNullOrEmpty(TextResultFileName) && WaveResultFileNames.Count == 0 && Summary.Count == 0 && string.IsNullOrEmpty(Message);  
+      public bool IsEmpty => string.IsNullOrEmpty(TextResultFileName) && WaveResultFileNames.Count == 0 && Summary.Count == 0;  
     }
 
     List<PipelineOutcome>  mPipelineOutcomeList = new List<PipelineOutcome>();
@@ -501,14 +501,10 @@ namespace Transgraphier
 
       foreach (var lFolder in aPipelineOutcome.Folders )
       {
-        string lMessageFile  = $"{lFolder}\\Message.txt";
         string lResultFile   = $"{lFolder}\\Result.txt"; 
         string lTimelineFile = $"{lFolder}\\Timeline.json";
 
         var lFilterOutcome = new FilterOutcome();
-
-        if ( File.Exists(lMessageFile))
-          lFilterOutcome.Message = File.ReadAllText(lMessageFile);  
 
         if ( File.Exists(lResultFile))
         {
@@ -545,9 +541,6 @@ namespace Transgraphier
     
       foreach( var lFilterOutcome in lFilterOutcomes )
       {
-        if ( ! string.IsNullOrEmpty(lFilterOutcome.Message) )
-          AddDecodedMessage( aPipelineOutcome.Name, lFilterOutcome.Message );
-
         lFilterOutcome.Summary.ForEach( s => AddGeneralMessage(s) ) ;
 
         lFilterOutcome.WaveResultFileNames.Sort();
@@ -611,37 +604,27 @@ namespace Transgraphier
         }
       }
 
-      // DISABLE the LexicalViews for now.
-      if ( false )
+      string lPipelineResultFile = $"{aPipelineOutcome.LastFolder()}\\Result.txt";
+
+      if (File.Exists(lPipelineResultFile))
       {
-        foreach ( var lFilterOutcome in lFilterOutcomes )
+        var lPipelineResultText = File.ReadAllLines(lPipelineResultFile);
+        foreach (var lLine in lPipelineResultText)
         {
-          string lTextResult = lFilterOutcome.TextResultFileName;
-
-          // Create LexicalView for this file
-          LexicalView lLexicalView = new LexicalView(this);
-          lLexicalView.Location = new Point(0, currentY);
-          lLexicalView.Width = scrollPanel.Width;
-          lLexicalView.Height = 300;
-          lLexicalView.Title = lFilterOutcome.FilterName;
-
-          try
-          {
-            string textContent = File.ReadAllText(lTextResult);
-            lLexicalView.TextContent = textContent;
-            lLexicalView.Invalidate();
-            lLexicalView.Refresh();
-          }
-          catch (Exception ex) 
-          {
-            AddErrorMessage($"Error reading text file {lTextResult}: {ex.Message}");
-          }
-
-          // Add lexical view to content panel
-          contentPanel.Controls.Add(lLexicalView);
-          currentY += lLexicalView.Height;
-        } 
-      }
+           if ( lLine.StartsWith("Decoded Text Message:")) 
+           {
+             string lDecodedText = lLine.Substring("Decoded Text Message:".Length).Trim();
+             aPipelineOutcome.Message = lDecodedText;
+             AddDecodedMessage(aPipelineOutcome.Name, lDecodedText);
+           }
+           else if (lLine.StartsWith("Score:")) 
+           {
+             string lScore = lLine.Substring("Score:".Length).Trim();
+             aPipelineOutcome.Score = lScore;
+             AddScore(aPipelineOutcome.Name, lScore);
+           }
+         }
+       }
 
       // Set the content panel dimensions to accommodate all controls with full width
       contentPanel.Size = new Size(scrollPanel.Width, currentY);
@@ -770,7 +753,12 @@ namespace Transgraphier
     {
       AddMessage( $"DECODED TEXT from {aPipelineName}:{Environment.NewLine}" , Color.Black, FontStyle.Regular, aNewLine, this.resultsTextBox ) ;
 
-      AddMessage( aMsg, Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
+      AddMessage( $"{aMsg}{Environment.NewLine}", Color.Magenta, FontStyle.Bold, aNewLine, this.resultsTextBox ) ;
+    }
+
+    public void AddScore( string aPipelineName, string aScore, bool aNewLine = true )
+    {
+      AddMessage( $"Score from {aPipelineName}: {aScore}{Environment.NewLine}", Color.Black, FontStyle.Regular, aNewLine, this.resultsTextBox ) ;
     }
 
     public void AddEmptyDecodedMessage()
@@ -965,17 +953,6 @@ namespace Transgraphier
       {
         AddErrorMessage($"Could not open the manual PDF.\n\n{ex.Message}");
       }
-    }
-
-    private void Calibrate_Click(object sender, EventArgs e) 
-    {
-      if ( mScoreModel == null) {
-        AddErrorMessage("Score model is not initialized.");
-        return;
-      }
-      mScoreModel.Calibrate();
-      mScoreModel.Save($"{OutputFolder}\\ScoreModel.json");
-      AddGeneralMessage("Score model calibrated and saved.");
     }
   }
 }

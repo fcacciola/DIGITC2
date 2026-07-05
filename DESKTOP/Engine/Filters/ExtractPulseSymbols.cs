@@ -245,7 +245,7 @@ namespace ENGINE
               for( int i = 1 ; i < lFilteredGMM.Components.Count ; ++ i )
               {
                 var lNext = lFilteredGMM.Components[i];
-                if ( lNext.Weight > lFirst.Weight )
+                //if ( lNext.Weight > lFirst.Weight )
                 {
                   var lMinPulseWidth1 = Math.Max(lNext.N_Sigma(-4),0);
                   AddBranch("MinPulseWidth",$"{lMinPulseWidth1:F3}");

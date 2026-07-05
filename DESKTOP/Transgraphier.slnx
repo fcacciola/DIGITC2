@@ -2,7 +2,6 @@
   <Configurations>
     <Platform Name="AnyCPU" />
   </Configurations>
-  <Project Path="Calibrate/Calibrate.csproj" Id="32ba2fdb-7b92-4ae2-a286-eb03fff55761" />
   <Project Path="Engine/Engine.csproj" />
   <Project Path="Transgraphier/Transgraphier.csproj" />
 </Solution>

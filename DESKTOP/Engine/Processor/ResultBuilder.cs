@@ -12,11 +12,11 @@ namespace ENGINE
 {
   public class PipelineResult
   {
-    public string        Folder        { get; set; }
-    public string        Name          { get; set; }
-    public TextMessage   Text          { get; set; }
-    public CombinedScore CombinedScore { get; set; }
-    public Config        Config        { get; set; }
+    public string      Folder { get; set; }
+    public string      Name   { get; set; }
+    public TextMessage Text   { get; set; }
+    public Score       Score  { get; set; }
+    public Config      Config { get; set; }
 
     public List<Packet> FilterSequence { get; private set; } = new List<Packet>();
 
@@ -26,7 +26,7 @@ namespace ENGINE
 
   public class PipelineResultBuilder  
   {
-    public PipelineResultBuilder( ScoreModel aScoreModel, Config aConfig, string aName, string aOutputFolder ) { ScoreModel = aScoreModel; Config = aConfig; Name = aName; OutputFolder = aOutputFolder ; }
+    public PipelineResultBuilder( Config aConfig, string aName, string aOutputFolder ) { Config = aConfig; Name = aName; OutputFolder = aOutputFolder ; }
 
     public void Add( Packet aPacket )
     {
@@ -53,12 +53,11 @@ namespace ENGINE
         rResult.FilterSequence.Add(lPacket) ;
       }
 
-      rResult.CombinedScore = ScoreModel.IsCalibrated ? ScoreModel.Combine(rResult.FilterScores) : null;
+      rResult.Score = Score.Combine(rResult.FilterScores) ;
  
       return rResult ; 
     }
 
-    readonly public ScoreModel   ScoreModel;
     readonly public Config       Config;
     readonly public string       Name ;
     readonly public string       OutputFolder ;
@@ -86,23 +85,20 @@ namespace ENGINE
         {   
           string lResultsFolder = lPR.FilterSequence.Last().OutputFolder ;
 
-          string lReportName = $"Result.txt" ;
-
-          string lReportPath = Path.Combine( lResultsFolder, lReportName ) ; 
+          string lResultPath = Path.Combine( lResultsFolder, "Result.txt" ) ; 
 
           List<string> lReport      = new List<string>() ;
           List<string> lCollatedLogs = new List<string>() ;
 
           if ( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) )
           {
-            lReport.Add( "Decoded Text Message:" ) ;
-            lReport.Add( lPR.Text.Text ) ;
+            lReport.Add( $"Decoded Text Message: {lPR.Text.Text}" ) ;
             lReport.Add( "" ) ;
           }
 
-          if (lPR.CombinedScore == null) 
-               lReport.Add("Score: <<NOT COMPUTED>>");
-          else lReport.Add( $"Score: {lPR.CombinedScore.Value} " ) ;
+          if (lPR.Score == null) 
+               lReport.Add("Score: 0");
+          else lReport.Add( $"Score: {lPR.Score.Value} " ) ;
 
           lReport.Add( "" ) ;
 
@@ -129,7 +125,7 @@ namespace ENGINE
           }
           lReport.Add( "" ) ;
 
-          File.WriteAllLines( lReportPath      , lReport ) ;  
+          File.WriteAllLines( lResultPath      , lReport ) ;  
           File.WriteAllLines( lCollatedLogsPath, lCollatedLogs ) ;  
 
           lPR.Config.Save(Path.Combine(lResultsFolder, $"Config.txt"));

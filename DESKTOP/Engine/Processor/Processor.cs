@@ -55,7 +55,7 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {(lPipelineResult.CombinedScore != null ? lPipelineResult.CombinedScore.Value.ToString() : " <<NOT COMPUTED>>")}") ;
+          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {(lPipelineResult.Score != null ? lPipelineResult.Score.Value.ToString() : " <<NOT COMPUTED>>")}") ;
         }
         else
         {
@@ -72,7 +72,7 @@ public class Processor
         lPipelineIdx += 1 ;
 
         //if ( lGoodPipelinesCount > aSettings.GetInt("MaxGoodBranches") || lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
-        if ( lPipelineIdx > aSettings.GetInt("MaxTotalBranches")  )
+        if ( lPipelineIdx > aSettings.GetInt("MaxBranches")  )
         {
           //aSession.Error($"Too many Pipelines. Aborting.") ;
           break ;

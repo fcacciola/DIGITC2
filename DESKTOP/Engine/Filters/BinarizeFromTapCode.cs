@@ -137,7 +137,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     if (  Session.QuitDisabled || ( lBitBags.Count > mMinCount && lAverageBitBagCoverage >= mQuitThreshold ) )
     {
-      return CreateOutput( new LexicalSignal(lBitBags), Name, new Score(Name,lAverageBitBagCoverage,true) ) ;
+      return CreateOutput( new LexicalSignal(lBitBags), Name, new Score(Name,lAverageBitBagCoverage,1.0,Score.TypeE.Coverage) ) ;
     }
     else
     {
