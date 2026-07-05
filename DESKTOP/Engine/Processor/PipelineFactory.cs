@@ -39,7 +39,8 @@ namespace ENGINE
                .Add( new ScoreBytesAsLanguageDigits())
                .Add( new Tokenize())
                .Add( new ScoreTokenLengthDistribution())
-               .Add( new TokensToWords()) 
+               .Add( new TokensToWords())
+               .Add( new ScoreEnglishWords())
                .Add( new WordsToText()) ;
 
       return rPipeline ;
@@ -61,6 +62,7 @@ namespace ENGINE
                .Add( new Tokenize())
                .Add( new ScoreTokenLengthDistribution())
                .Add( new TokensToWords()) 
+               .Add( new ScoreEnglishWords())
                .Add( new WordsToText()) ;
 
       return rPipeline ;

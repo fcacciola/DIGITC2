@@ -47,6 +47,7 @@ namespace Transgraphier
       PrevBlockButton = new Button();
       NextBlockButton = new Button();
       ShowHelpButton = new Button();
+      CalibrateButton = new Button();
       statusTextBox = new TextBox();
       statusPanel = new Panel();
       resultsTextBox = new RichTextBox();
@@ -73,6 +74,7 @@ namespace Transgraphier
       buttonPanel.Controls.Add(sessionName);
       buttonPanel.Controls.Add(sessionLabel);
       buttonPanel.Controls.Add(loadEVPButton);
+      buttonPanel.Controls.Add(CalibrateButton);
       buttonPanel.Dock = DockStyle.Top;
       buttonPanel.Location = new Point(0, 0);
       buttonPanel.Name = "buttonPanel";
@@ -205,6 +207,17 @@ namespace Transgraphier
       ShowHelpButton.TabIndex = 2;
       ShowHelpButton.Text = "Help";
       ShowHelpButton.Click += Help_Click;
+
+      // 
+      // showButton
+      // 
+      CalibrateButton.Dock = DockStyle.Left;
+      CalibrateButton.Name = "CalibrateButton";
+      CalibrateButton.Size = new Size(200, 30);
+      CalibrateButton.TabIndex = 2;
+      CalibrateButton.Text = "Calibrate";
+      CalibrateButton.Click += Calibrate_Click;
+
       // 
       // resultsPanel
       // 
@@ -317,6 +330,7 @@ namespace Transgraphier
     private Button PrevBlockButton;
     private Button NextBlockButton;
     private Button ShowHelpButton;
+    private Button CalibrateButton;
     private Panel statusPanel;
     private TextBox statusTextBox;
     private Panel resultsPanel;

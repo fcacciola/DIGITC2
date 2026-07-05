@@ -19,7 +19,7 @@ namespace ENGINE
     protected override void OnSetup()
     {
       mBitSize       = Params.GetInt("BitSize");
-      mQuitThreshold = Params.GetInt("QuitThreshold");
+      mQuitThreshold = Params.GetDouble("QuitThreshold");
     }
 
     protected override Packet Process()
@@ -39,7 +39,7 @@ namespace ENGINE
 
       foreach( var lBag in lBags )
       {
-        double lBitsLikelihood = 0 ;
+        double lBitsCoverage = 0 ;
 
         int lLen = lBag.Bits.Count ;
 
@@ -47,7 +47,7 @@ namespace ENGINE
         for ( ; i < lLen && i < mBitSize ; i ++ )
         {
           BitSymbol lBit = lBag.Bits[i] ; 
-          lBitsLikelihood += lBit.Likelihood ;
+          lBitsCoverage += lBit.Coverage ;
           lBitValues[i] = (byte)( lBit.Value ) ;  
         }
 
@@ -56,33 +56,29 @@ namespace ENGINE
         for( int k = i ; k < 8 ; k++ ) 
         {
           lBitValues[k] = 0 ;  
-          lBitsLikelihood += 1 ;
+          lBitsCoverage += 1 ;
         }
 
-        double lByteLikelihood = lBitsLikelihood / mBitSize ;
+        double lByteCoverage   = lBitsCoverage / mBitSize ;
 
-        lStrength += lByteLikelihood ;
+        lStrength += lByteCoverage ;
 
         var lByte = ToByte_MSB_Last(lBitValues);
 
-        lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte, lByteLikelihood, lBag.SamplePos ) ) ;
+        lByteSymbols.Add( new ByteSymbol(lByteSymbols.Count, lByte, lByteCoverage, lBag.SamplePos ) ) ;
       }
 
       WriteLine($"Bytes: {string.Join(", ", lByteSymbols.ConvertAll( b => b.ToString()) ) }" ) ;
 
-      double lSNR = lStrength / (double)lByteSymbols.Count ;
+      double lCoverage = lByteSymbols.Count > 0 ?  lStrength / (double)lByteSymbols.Count : 0 ;
       
-      double lLikelihood = lSNR  ; 
+      Score lScore = new Score(Name, lCoverage, true) ;
 
-      Score lScore = new Score(Name, lLikelihood, true) ;
-
-      WriteDetailLine($"Good Bytes SNR: {lSNR}");
+      WriteDetailLine($"Good Bytes Coverage: {lCoverage}");
       WriteDetailLine($"Score: {lScore}");
-      WriteDetailLine($"Likelihood: {lLikelihood}");
-
       Unindent();
 
-      return CreateOutput( new LexicalSignal(lByteSymbols), $"{mBitSize}_BitsPerByte", lScore, lLikelihood < mQuitThreshold ) ;
+      return CreateOutput( new LexicalSignal(lByteSymbols), $"{mBitSize}_BitsPerByte", lScore, lCoverage < mQuitThreshold ) ;
     }
 
 
@@ -99,15 +95,11 @@ namespace ENGINE
 
       return rByte;
     }
-
-    void Process ( int aBitsPerByte, LexicalSignal aInput, Packet aInputPacket, List<Packet> rOutput )
-    {
-    }
-
+     
     public override string Name => this.GetType().Name ;
 
     int mBitSize ;
-    int mQuitThreshold ;
+    double mQuitThreshold ;
   }
 
 }

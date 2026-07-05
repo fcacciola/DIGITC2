@@ -150,11 +150,11 @@ namespace ENGINE
 
   public class BitSymbol : Symbol
   {
-    public BitSymbol( int aIdx, bool? aOne, double aLikelihood, int aSamplePos ) : base(aIdx) { One = aOne ; Likelihood = aLikelihood ; SamplePos = aSamplePos ; }
+    public BitSymbol( int aIdx, bool? aOne, double aCoverage, int aSamplePos ) : base(aIdx) { One = aOne ; Coverage = aCoverage ; SamplePos = aSamplePos ; }
 
     public override string Type => "Bit" ;
 
-    public override Symbol Copy() { return new BitSymbol( Idx, One, Likelihood, SamplePos ); }  
+    public override Symbol Copy() { return new BitSymbol( Idx, One, Coverage, SamplePos ); }  
 
     public override string ToString() => ( One.HasValue ? ( One.Value ? "1" : "0" ) : "?" ) ;
 
@@ -162,21 +162,21 @@ namespace ENGINE
 
     public bool? One ;
 
-    public double Likelihood ;
+    public double Coverage ;
   }
 
   public class BitBagSymbol : Symbol
   {
-    public BitBagSymbol( int aIdx, List<BitSymbol> aBits, double aLikelihood ) : base(aIdx) 
+    public BitBagSymbol( int aIdx, List<BitSymbol> aBits, double aCoverage ) : base(aIdx) 
     { 
       Bits = aBits; 
-      Likelihood = aLikelihood ;
+      Coverage = aCoverage ;
       SamplePos = Bits[ Bits.Count / 2].SamplePos ;
     }
 
     public override string Type => "BitList" ;
 
-    public override Symbol Copy() { return new BitBagSymbol( Idx, Bits.ConvertAll( b => b.Copy() as BitSymbol), Likelihood ) ; }  
+    public override Symbol Copy() { return new BitBagSymbol( Idx, Bits.ConvertAll( b => b.Copy() as BitSymbol), Coverage ) ; }  
 
     public override string ToString() => string.Join("|", Bits.ConvertAll( s => s.ToString() ) );
     
@@ -184,22 +184,22 @@ namespace ENGINE
 
     public List<BitSymbol> Bits ;
 
-    public double Likelihood ;
+    public double Coverage ;
   }
 
   public class ByteSymbol : Symbol
   {
-    public ByteSymbol( int aIdx, byte aByte, double aLikelihood = 1.0, int aSamplePos = 0) : base(aIdx) { Byte = aByte ; Likelihood = aLikelihood ; SamplePos = aSamplePos ; }
+    public ByteSymbol( int aIdx, byte aByte, double aCoverage = 1.0, int aSamplePos = 0) : base(aIdx) { Byte = aByte ; Coverage = aCoverage ; SamplePos = aSamplePos ; }
 
     public override string Type => "Byte" ;
 
-    public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Likelihood, SamplePos ); }  
+    public override Symbol Copy () { return new ByteSymbol( Idx, Byte, Coverage, SamplePos ); }  
 
     public override string ToString() => $"[{Byte.ToString():x}]" ;
 
     public double Value => Convert.ToDouble(Byte);
 
-    public double Likelihood ;
+    public double Coverage ;
 
     public byte Byte ;
   }

@@ -339,7 +339,7 @@ export function App() {
         </section>
       )}
 
-      {overallResult && <pre className="overall-result">{overallResult}</pre>}
+      {overallResult && <OverallResult result={overallResult} />}
 
       <section className="workspace">
         {!inputWave && resultWaves.length === 0 && state === "idle" && (
@@ -417,34 +417,34 @@ export function App() {
 }
 
 function loadBlocks(blockSamples: Float32Array): number[] {
-  const blockStarts: number[] = [];
-  let insideSeparator = false;
+  const blockBoundaries: number[] = [];
   let separatorFound = false;
   const separatorThreshold = 0.85;
+  const pulseThreshold = 0.05;
 
   for (let i = 0; i < blockSamples.length; i++) {
     const sample = blockSamples[i];
     const isSeparator = sample >= separatorThreshold;
 
     if (isSeparator) {
-      insideSeparator = true;
       separatorFound = true;
       continue;
     }
 
-    if (insideSeparator) {
-      if (blockStarts[blockStarts.length - 1] !== i) {
-        blockStarts.push(i);
+    const isPulseAfterSeparator = separatorFound && Math.abs(sample) >= pulseThreshold;
+    if (isPulseAfterSeparator) {
+      if (blockBoundaries[blockBoundaries.length - 1] !== i) {
+        blockBoundaries.push(i);
       }
-      insideSeparator = false;
+      separatorFound = false;
     }
   }
 
-  if (!separatorFound || blockStarts.length === 0) {
+  if (blockBoundaries.length === 0) {
     return [];
   }
 
-  return [0, ...blockStarts, blockSamples.length];
+  return [0, ...blockBoundaries, blockSamples.length];
 }
 
 function isBlockWave(wave: WaveAsset): boolean {
@@ -496,10 +496,10 @@ function pickDeepestFile(files: ResultFileNode[], name: string): ResultFileNode 
 function formatOverallResult(resultText: string): string {
   const lines = resultText.split(/\r?\n/);
   const decodedIndex = lines.findIndex((line) => line.trim().toLowerCase() === "decoded text message:");
-  const fitnessLine = lines.find((line) => line.trim().toLowerCase().startsWith("overall fitness:"));
+  const score = lines.find((line) => line.trim().toLowerCase().startsWith("score:"));
   const decodedText = decodedIndex >= 0 ? lines[decodedIndex + 1]?.trim() ?? "" : "";
 
-  if (!decodedText || decodedText.includes("SORRY") || decodedText.includes("NO MESSAGE")) {
+  if (!decodedText ) {
     return "<<<< NO MESSAGE COULD BE DECODED >>>";
   }
 
@@ -507,8 +507,48 @@ function formatOverallResult(resultText: string): string {
     "Decoded Text Message:",
     decodedText,
     "",
-    fitnessLine?.trim() ?? "Overall Fitness: Undefined"
+    score?.trim() ?? "Score: Undefined"
   ].join("\n");
+}
+
+function OverallResult({ result }: { result: string }) {
+  const lines = result.split("\n");
+  const decodedLineIndex = getDecodedMessageLineIndex(result);
+
+  if (decodedLineIndex < 0) {
+    return <pre className={isNoMessageResult(result) ? "overall-result no-message-result" : "overall-result"}>{result}</pre>;
+  }
+
+  return (
+    <pre className="overall-result">
+      {lines.map((line, index) => (
+        <span key={`${index}-${line}`} className={index === decodedLineIndex ? "decoded-message-line" : undefined}>
+          {line}
+          {index < lines.length - 1 ? "\n" : ""}
+        </span>
+      ))}
+    </pre>
+  );
+}
+
+function getDecodedMessageLineIndex(result: string): number {
+  const lines = result.split("\n");
+  const headerIndex = lines.findIndex((line) => line.trim().toLowerCase() === "decoded text message:");
+  if (headerIndex < 0) {
+    return -1;
+  }
+
+  const decodedLineIndex = headerIndex + 1;
+  const decodedText = lines[decodedLineIndex]?.trim() ?? "";
+  if (!decodedText || result.toLowerCase().includes("no message could be decoded")) {
+    return -1;
+  }
+
+  return decodedLineIndex;
+}
+
+function isNoMessageResult(result: string): boolean {
+  return result.toLowerCase().includes("no message could be decoded");
 }
 
 function formatMeasurement(selection: MeasureSelection | null, sampleRate: number | null): string {

@@ -84,6 +84,17 @@ export function UserManual({ onClose }: UserManualProps) {
               This does not necessarily mean the recording has no interesting structure. It only means that this
               processing run did not produce a valid decoded message according to the current settings.
             </p>
+            <figure className="manual-figure">
+              <img
+                src="/manual/positive-result.png"
+                alt="A positive Transgraphier processing result showing a decoded Hello World message, waveform stages, block navigation, and timeline letters."
+              />
+              <figcaption>
+                A positive processing result. The decoded message appears at the top, followed by the input waveform,
+                calculated parameters, intermediate processing waveforms, color-coded tap-code views, and the final
+                timeline.
+              </figcaption>
+            </figure>
           </section>
 
           <section>

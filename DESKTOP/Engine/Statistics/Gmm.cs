@@ -35,6 +35,9 @@ namespace ENGINE
 
     public double Calculate( IList<double> aXs, Func<double,double,double> aWeightFunction = null ) 
     { 
+      if ( aXs.Count == 0)
+        return 0.0;
+
       double lW = ComputeWeight( aXs, aWeightFunction  ); 
       double rC = lW / (double)aXs.Count;
       return rC ; 

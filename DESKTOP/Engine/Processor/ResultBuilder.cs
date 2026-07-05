@@ -53,7 +53,7 @@ namespace ENGINE
         rResult.FilterSequence.Add(lPacket) ;
       }
 
-      rResult.CombinedScore = ScoreModel.Combine(rResult.FilterScores);
+      rResult.CombinedScore = ScoreModel.IsCalibrated ? ScoreModel.Combine(rResult.FilterScores) : null;
  
       return rResult ; 
     }
@@ -67,8 +67,9 @@ namespace ENGINE
 
   public class SessionResult
   {
-    public SessionResult( List<PipelineResult> aPRs,  string aName)
+    public SessionResult( Session aSession, List<PipelineResult> aPRs,  string aName)
     {
+      Session         = aSession;
       PipelineResults = aPRs;
       Name            = aName;
     }
@@ -92,11 +93,17 @@ namespace ENGINE
           List<string> lReport      = new List<string>() ;
           List<string> lCollatedLogs = new List<string>() ;
 
-          lReport.Add( "Decoded Text Message:" ) ;
-          lReport.Add( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) ? lPR.Text.Text : "<<<< SORRY! NO MESSAGE WAS DECODED :( >>>>") ;
-          lReport.Add( "" ) ;
+          if ( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) )
+          {
+            lReport.Add( "Decoded Text Message:" ) ;
+            lReport.Add( lPR.Text.Text ) ;
+            lReport.Add( "" ) ;
+          }
 
-          lReport.Add( $"Score: {lPR.CombinedScore.Value} " ) ;
+          if (lPR.CombinedScore == null) 
+               lReport.Add("Score: <<NOT COMPUTED>>");
+          else lReport.Add( $"Score: {lPR.CombinedScore.Value} " ) ;
+
           lReport.Add( "" ) ;
 
           lReport.Add( "Scores:" ) ;
@@ -140,37 +147,9 @@ namespace ENGINE
       }
     }
 
+    public Session              Session         { get; private set; }
     public List<PipelineResult> PipelineResults { get; private set; }  
     public string               Name            { get; private set; }  
-  }
-
-  public class ResultBuilder 
-  {
-    public ResultBuilder() {}
-
-    public void Add( PipelineResultBuilder aPRBuilder )
-    {
-      mPRBuilders.Add( aPRBuilder );
-    }
-
-    public SessionResult BuildResult( string aName )
-    {
-      List<PipelineResult> lPResults = new List<PipelineResult>();  
-
-      foreach( var lPR in mPRBuilders )
-      {
-        PipelineResult lPP = lPR.BuildResult();
-        if ( lPP != null )
-          lPResults.Add( lPP );
-      }
-
-      if ( lPResults.Count > 0 ) 
-        return new SessionResult(lPResults,aName);
-
-      return null ;
-    }
-
-    List<PipelineResultBuilder> mPRBuilders = new List<PipelineResultBuilder>(); 
   }
 
   

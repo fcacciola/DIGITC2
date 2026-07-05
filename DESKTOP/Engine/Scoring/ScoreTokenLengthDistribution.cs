@@ -24,7 +24,7 @@ namespace ENGINE
     {
       FillCC();
 
-      mQuitThreshold = Params.GetInt("QuitThreshold");
+      mQuitThreshold = Params.GetDouble("QuitThreshold");
     }
 
     // According to Claude Sonnet 4:
@@ -80,12 +80,12 @@ namespace ENGINE
 
       Score lScore = new Score(Name, lCorrelation, false) ;
 
-      return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lCorrelation * 100 < mQuitThreshold);
+      return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lCorrelation < mQuitThreshold);
     }
 
     public override string Name => this.GetType().Name ;
 
-    int                   mQuitThreshold;
+    double                mQuitThreshold;
     CorrelationCalculator mCC = null ;
   }
 }

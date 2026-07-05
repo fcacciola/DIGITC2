@@ -6,27 +6,21 @@ using Newtonsoft.Json;
 
 namespace ENGINE
 {
-  // ---------------------------------------------------------------------------
-  //  Raw per-filter score. Likelihood is a double in the filter's own units
-  //  (correlation -1..1, coverage fraction 0..1, etc.); the combiner standardizes
-  //  each filter against its noise baseline, so values are NOT clamped to 0..1.
-  //  The coverage score is flagged via IsCoverage, not by filter name.
-  // ---------------------------------------------------------------------------
+  
   public class Score
   {
-    public Score( string aFilterName, double aLikelihood, bool aIsCoverage = false )
+    public Score( string aFilterName, double aValue, bool aIsCoverage = false )
     {
       FilterName = aFilterName;
-      Likelihood = aLikelihood;
-      IsCoverage = aIsCoverage;
+      Value      = aValue;
+      IsCoverage = aIsCoverage; // Values are either a coverage fraction (0..1) or a likelihood score (unbounded)
     }
 
-    public override string ToString()
-      => $"{FilterName}: {Likelihood:F4}{(IsCoverage ? "  (coverage)" : "")}";
+    public override string ToString() => $"{FilterName}: {Value:F4}{(IsCoverage ? " Coverage" : " Likelihood")}";
 
-    public string  FilterName  ;
-    public double  Likelihood = 0.0 ;
-    public bool    IsCoverage  { get; set; }
+    public string  FilterName ;
+    public double  Value        = 0.0 ;
+    public bool    IsCoverage ;
   }
 
 
@@ -44,7 +38,7 @@ namespace ENGINE
       mM2    += lDelta * lDelta2;
     }
 
-    public FilterBaseline Snapshot() => new FilterBaseline( mMean, StdDev, mCount );
+    public FilterScoreBaseline Snapshot() => new FilterScoreBaseline( mMean, StdDev, mCount );
 
     public long    Count     => mCount;
     public double  Mean      => mMean;
@@ -56,17 +50,13 @@ namespace ENGINE
     double  mM2     = 0.0 ;
   }
 
-
-  // ---------------------------------------------------------------------------
-  //  Frozen per-filter baseline (mean/std), the runtime form of RunningStats.
-  // ---------------------------------------------------------------------------
-  public class FilterBaseline
+  public class FilterScoreBaseline
   {
-    public FilterBaseline()
+    public FilterScoreBaseline()
     {
     }
 
-    public FilterBaseline( double aMean, double aStd, long aCount )
+    public FilterScoreBaseline( double aMean, double aStd, long aCount )
     {
       Mean   = aMean;
       Std    = aStd;
@@ -110,15 +100,13 @@ namespace ENGINE
   // ---------------------------------------------------------------------------
   public class Calibration
   {
-    public int                                 SchemaVersion     { get; set; } = 1;
-    public Dictionary<string, FilterBaseline>  Baselines         { get; set; } = new Dictionary<string, FilterBaseline>();
-    public double[]                            NullWinnerScores  { get; set; }   // sorted; threshold derivable at any quantile
-    public double                              RejectThreshold   { get; set; }
-    public double                              Quantile          { get; set; }
-    public string                              Square            { get; set; }
-    public string                              PipelineVersion   { get; set; }
-    public int                                 NoiseInputCount   { get; set; }
-    public string                              CalibratedUtc     { get; set; }
+    public int                                      SchemaVersion     { get; set; } = 1;
+    public Dictionary<string, FilterScoreBaseline>  Baselines         { get; set; } = new Dictionary<string, FilterScoreBaseline>();
+    public double[]                                 NullWinnerScores  { get; set; }   // sorted; threshold derivable at any quantile
+    public double                                   RejectThreshold   { get; set; }
+    public double                                   Quantile          { get; set; }
+    public int                                      RefInputCount     { get; set; }
+    public string                                   CalibratedUtc     { get; set; }
 
     public string ToJson() => JsonConvert.SerializeObject( this, Formatting.Indented );
 
@@ -132,7 +120,7 @@ namespace ENGINE
 
   // ---------------------------------------------------------------------------
   //  Combines per-filter scores into a single standardized score, selects the
-  //  winning branch, and decides accept/reject against a noise-calibrated null.
+  //  winning branch, and decides accept/reject against a reference-calibrated null.
   //
   //    S = coverage * Σ z_i      (coverage is a 0..1 reliability multiplier)
   //
@@ -141,35 +129,50 @@ namespace ENGINE
   // ---------------------------------------------------------------------------
   public class ScoreModel
   {
+    public ScoreModel( DriverApp aGUI )
+    {
+      mDriverApp = aGUI;
+    }
+
     // ---- Calibration: feed NOISE inputs. Each input produced a set of candidate
     //      branches; each branch is its list of raw per-filter Scores. ----
 
-    public void AddNoiseInput( IReadOnlyList<IReadOnlyList<Score>> aBranches )
+    public void AddRefInput( IReadOnlyList<IReadOnlyList<Score>> aBranches )
     {
+      mDriverApp?.AddMessage($"ScoreModel.AddRefInput: {aBranches.Count} branches");
+
       // Per-filter baseline is taken over ALL branches (more samples is better);
       // the winner-selection bias is handled separately, on the combined score.
       foreach (IReadOnlyList<Score> lBranch in aBranches)
+      {
         foreach (Score lScore in lBranch)
-          if (!lScore.IsCoverage)
-            GetStats( lScore.FilterName ).Add( lScore.Likelihood );
+        {
+          mDriverApp?.AddMessage( $"  {lScore}" );
 
-      mNoiseInputs.Add( aBranches );
+          if (!lScore.IsCoverage)
+            GetStats( lScore.FilterName ).Add( lScore.Value );
+
+        }
+
+        mRefInputs.Add( aBranches );
+      }
     }
 
-    public void AddNoiseInput( IReadOnlyList<PipelineResult> aBranches )
-      => AddNoiseInput( ProjectScores( aBranches ) );
+    public void AddRefInput( IReadOnlyList<PipelineResult> aBranches ) => AddRefInput( ProjectScores( aBranches ) );
 
     public void Calibrate( double aRejectQuantile = 0.99 )
     {
+      mDriverApp?.AddMessage($"ScoreModel.Calibrate: {mRefInputs.Count} inputs");
+
       // 1) Freeze per-filter baselines from the accumulators.
-      mBaselines = new Dictionary<string, FilterBaseline>();
+      mBaselines = new Dictionary<string, FilterScoreBaseline>();
       foreach (KeyValuePair<string, RunningStats> lKV in mFilterStats)
         mBaselines[lKV.Key] = lKV.Value.Snapshot();
 
-      // 2) With baselines known, take the WINNER's combined score per noise input.
+      // 2) With baselines known, take the WINNER's combined score per reference input.
       //    Thresholding the max-over-branches corrects the selection bias.
-      List<double> lWinners = new List<double>( mNoiseInputs.Count );
-      foreach (IReadOnlyList<IReadOnlyList<Score>> lBranches in mNoiseInputs)
+      List<double> lWinners = new List<double>( mRefInputs.Count );
+      foreach (IReadOnlyList<IReadOnlyList<Score>> lBranches in mRefInputs)
       {
         CombinedScore lWinner = SelectWinner( lBranches );
         if (lWinner != null)
@@ -178,14 +181,14 @@ namespace ENGINE
       lWinners.Sort();
 
       mNullWinnerScores = lWinners;
-      mNoiseInputCount  = lWinners.Count;
+      mRefInputCount    = lWinners.Count;
       mQuantile         = aRejectQuantile;
       mRejectThreshold  = Quantile( lWinners, aRejectQuantile );
       mCalibrated       = true;
 
       // 3) Calibration scaffolding is no longer needed; free it.
       mFilterStats.Clear();
-      mNoiseInputs.Clear();
+      mRefInputs.Clear();
     }
 
     // ---- Runtime ----
@@ -240,7 +243,7 @@ namespace ENGINE
       {
         if (lScore.IsCoverage)
         {
-          lCoverage = Clamp01( lScore.Likelihood );   // coverage filter emits a 0..1 fraction
+          lCoverage = Clamp01( lScore.Value );   // coverage filter emits a 0..1 fraction
           continue;
         }
         double lZ = Standardize( lScore );
@@ -280,52 +283,49 @@ namespace ENGINE
         NullWinnerScores = mNullWinnerScores?.ToArray(),
         RejectThreshold  = mRejectThreshold,
         Quantile         = mQuantile,
-        NoiseInputCount  = mNoiseInputCount,
+        RefInputCount    = mRefInputCount,
         CalibratedUtc    = DateTime.UtcNow.ToString( "o" ),
       };
     }
 
-    public static ScoreModel FromCalibration( Calibration aCal )
+    public static ScoreModel FromCalibration( Calibration aCal, DriverApp aDriverApp  )
     {
-      ScoreModel lModel = new ScoreModel();
-      lModel.mBaselines        = aCal.Baselines ?? new Dictionary<string, FilterBaseline>();
+      ScoreModel lModel = new ScoreModel(aDriverApp);
+      lModel.mBaselines        = aCal.Baselines ?? new Dictionary<string, FilterScoreBaseline>();
       lModel.mNullWinnerScores = aCal.NullWinnerScores?.ToList();
       lModel.mRejectThreshold  = aCal.RejectThreshold;
       lModel.mQuantile         = aCal.Quantile;
-      lModel.mNoiseInputCount  = aCal.NoiseInputCount;
+      lModel.mRefInputCount    = aCal.RefInputCount;
       lModel.mCalibrated       = true;
       return lModel;
     }
 
-    // Provenance is required so a stale model can be detected later.
-    public void Save( string aPath, string aSquare, string aPipelineVersion )
+    public void Save( string aPath )
     {
       Calibration lCal = Export();
-      lCal.Square          = aSquare;
-      lCal.PipelineVersion = aPipelineVersion;
       lCal.Save( aPath );
     }
 
-    public static ScoreModel Load( string aPath ) => FromCalibration( Calibration.Load( aPath ) );
+    public static ScoreModel Load( string aPath, DriverApp aDriverApp ) => FromCalibration( Calibration.Load( aPath ), aDriverApp );
 
     // ---- Diagnostics ----
 
     public double  RejectThreshold  => mRejectThreshold;
     public bool    IsCalibrated     => mCalibrated;
-    public int     NoiseInputCount  => mNoiseInputCount;
+    public int     RefInputCount    => mRefInputCount;
 
     public long SampleCount( string aFilterName )
-      => mBaselines != null && mBaselines.TryGetValue( aFilterName, out FilterBaseline lBase ) ? lBase.Count : 0;
+      => mBaselines != null && mBaselines.TryGetValue( aFilterName, out FilterScoreBaseline lBase ) ? lBase.Count : 0;
 
     // ---- Internals ----
 
     double Standardize( Score aScore )
     {
-      if (mBaselines == null || !mBaselines.TryGetValue( aScore.FilterName, out FilterBaseline lBase ))
+      if (mBaselines == null || !mBaselines.TryGetValue( aScore.FilterName, out FilterScoreBaseline lBase ))
         return 0.0;                                  // uncalibrated filter contributes nothing
       if (lBase.Std < cEpsilon)
         return 0.0;                                  // constant-on-noise filter contributes nothing
-      return (aScore.Likelihood - lBase.Mean) / lBase.Std;
+      return (aScore.Value - lBase.Mean) / lBase.Std;
     }
 
     RunningStats GetStats( string aFilterName )
@@ -362,14 +362,15 @@ namespace ENGINE
 
     // calibration-time only (never serialized, cleared after Calibrate)
     Dictionary<string, RunningStats>           mFilterStats   = new Dictionary<string, RunningStats>();
-    List<IReadOnlyList<IReadOnlyList<Score>>>  mNoiseInputs   = new List<IReadOnlyList<IReadOnlyList<Score>>>();
+    List<IReadOnlyList<IReadOnlyList<Score>>>  mRefInputs   = new List<IReadOnlyList<IReadOnlyList<Score>>>();
 
     // runtime essentials (the serialized state)
-    Dictionary<string, FilterBaseline>  mBaselines           ;
-    List<double>                        mNullWinnerScores    ;
-    double                              mRejectThreshold     = double.NegativeInfinity ;
-    double                              mQuantile            = 0.99 ;
-    int                                 mNoiseInputCount     = 0 ;
-    bool                                mCalibrated          = false ;
+    Dictionary<string, FilterScoreBaseline>  mBaselines           ;
+    List<double>                             mNullWinnerScores    ;
+    double                                   mRejectThreshold     = double.NegativeInfinity ;
+    double                                   mQuantile            = 0.99 ;  
+    int                                      mRefInputCount       = 0 ;
+    bool                                     mCalibrated          = false ;
+    DriverApp                                mDriverApp           = null;
   }
 }

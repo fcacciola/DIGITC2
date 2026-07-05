@@ -5,3 +5,5 @@ SamplesFolder=C:\Users\User\AppData\Local\Varanormal\Transgraphier\Input\Samples
 DisableBranching=false
 MaxBranches=4
 # SaveReference=true 
+CalibrateScores=true
+

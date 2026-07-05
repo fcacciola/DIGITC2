@@ -10,9 +10,9 @@ using NWaves.Signals ;
 namespace Transgraphier
 {
 
-  public class MainWindowGUI : GUI
+  public class TransgraphierDesktop_DriverApp : DriverApp
   {
-    public MainWindowGUI( Form1 aMainWindow)
+    public TransgraphierDesktop_DriverApp( Form1 aMainWindow)
     { 
       mMainWindow = aMainWindow ; 
     }
@@ -95,9 +95,10 @@ namespace Transgraphier
     string          mInputFile = null ; 
     string          mSessionName = null ;
     string          mSessionFolder = null ; 
-    MainWindowGUI   mMWGUI     = null; 
+    TransgraphierDesktop_DriverApp   mDriverApp= null; 
     ControlledViews mControlledViews = new ControlledViews();
     MeasureTimeTool mMeasureTimeTool = new MeasureTimeTool();
+    ScoreModel      mScoreModel      = null;
 
     int mBlockIdx = 0 ;
 
@@ -115,7 +116,8 @@ namespace Transgraphier
     {
       base.OnLoad(e);
 
-      mMWGUI = new MainWindowGUI(this); 
+      mDriverApp = new TransgraphierDesktop_DriverApp(this);
+      mScoreModel = new ScoreModel(mDriverApp);
 
       mSettings = Settings.FromFile(SettingsFile);
 
@@ -127,7 +129,7 @@ namespace Transgraphier
 
       mBaseConfig = LoadConfig();  
 
-      AddGeneralMessage("Transgraphier 1.0 started.");
+      AddGeneralMessage("Transgraphier started.");
       AddGeneralMessage($"Input Folder: {InputFolder}.");
       AddGeneralMessage($"Output Folder: {OutputFolder}.");
       AddGeneralMessage($"Input WAV Samples Folder: {mSettings.GetPath("SamplesFolder") ?? InputFolder}.");
@@ -288,7 +290,7 @@ namespace Transgraphier
         return;
       }
 
-      var lSession = new Session(mInputFile, mSessionName, mSettings, mMWGUI, mWorkingConfig);
+      var lSession = new Session(mInputFile, mSessionName, mSettings, mDriverApp, mWorkingConfig, mScoreModel);
 
       try
       {
@@ -311,7 +313,6 @@ namespace Transgraphier
           lStartSignal = mInputLexicalSignal;
           lPipeline = PipelineFactory.FromTapCode() ;
         }
-
 
         var lResult = Processor.Process( lSession, mSettings, lSession.Name, lPipeline, lStartSignal);
 
@@ -966,6 +967,15 @@ namespace Transgraphier
       }
     }
 
+    private void Calibrate_Click(object sender, EventArgs e) 
+    {
+      if ( mScoreModel == null) {
+        AddErrorMessage("Score model is not initialized.");
+        return;
+      }
+      mScoreModel.Calibrate();
+      mScoreModel.Save($"{OutputFolder}\\ScoreModel.json");
+      AddGeneralMessage("Score model calibrated and saved.");
+    }
   }
-
 }

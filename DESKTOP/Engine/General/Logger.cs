@@ -11,9 +11,9 @@ namespace ENGINE
 
   public class Logger : IDisposable
   {
-    public void SetGUI ( GUI aGUI ) 
+    public void SetDriverApp ( DriverApp aDriverApp ) 
     {
-      mGUI = aGUI ;
+      mDriverApp = aDriverApp ;
     }
 
     public void Open( string aLogFile, string aDetailLogFile )
@@ -76,14 +76,14 @@ namespace ENGINE
     public void WriteLine2GUI( string aS )
     {
       string lS = AddIndentation(aS);
-      mGUI?.AddMessage(lS);
+      mDriverApp?.AddMessage(lS);
       DoWriteLine(lS);
     }
 
     public void WriteError2GUI( string aS )
     {
       string lS = AddIndentation(aS);
-      mGUI?.AddErrorMessage(lS);
+      mDriverApp?.AddErrorMessage(lS);
       DoWriteLine(lS);
     }
 
@@ -125,7 +125,7 @@ namespace ENGINE
 
     int mIndentation = 0; 
 
-    GUI        mGUI          = null ; 
+    DriverApp        mDriverApp          = null ; 
     FileStream mStream       = null ;
     TextWriter mWriter       = null ; 
     FileStream mDetailStream = null ;

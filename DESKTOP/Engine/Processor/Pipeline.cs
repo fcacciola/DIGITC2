@@ -156,7 +156,7 @@ public class Pipeline
             aProcessor.BranchOut( this, lPacket, lBranch, lSN) ;
           }
 
-          if ( lPacket.ShouldQuit )
+          if ( lPacket.ShouldQuit && Session.QuitEnabled)
           {
             Session.WriteLine2GUI("Filter asked to Quit Processor.");
             break ;

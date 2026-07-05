@@ -35,8 +35,9 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     }
 
+    mBitSize       = Params.GetInt("BitSize");
     mMinCount      = Params.GetInt("MinCount");
-    mQuitThreshold = Params.GetInt("QuitThreshold");
+    mQuitThreshold = Params.GetDouble("QuitThreshold");
   }
 
   public class DecodedTapCode
@@ -80,6 +81,9 @@ public class BinarizeFromTapCode : FileLexicalFilter
       bool lIsSeparator = lDecoded.IsSeparator || lCurrRawDecodedBag.Count >= 8 ;
       if ( lIsSeparator )
       {
+        if ( ! lDecoded.IsSeparator )
+          lCurrRawDecodedBag.Add(lDecoded);
+
         lCurrRawDecodedBag = new List<DecodedTapCode>();  
         lRawDecodedBags.Add(lCurrRawDecodedBag);
       }
@@ -90,6 +94,8 @@ public class BinarizeFromTapCode : FileLexicalFilter
     }
 
     WriteDetailLine($"RAW Decoded Bags count: {lRawDecodedBags.Count}" );
+
+    List<double> lBitBagCoverages = new List<double>();
 
     foreach ( var lRawDecodedBag in lRawDecodedBags )
     {
@@ -107,32 +113,31 @@ public class BinarizeFromTapCode : FileLexicalFilter
         if ( lRawDecodedTapCode.DecodedValue != "?" )
         {
           bool lOne = lRawDecodedTapCode.DecodedValue[0]=='1';
-          double lBitLikelihood = mPolybiusSquare.HasExtendedBitSymbols ? ( lRawDecodedTapCode.DecodedValue.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
-          lStrength += lBitLikelihood ;
-          lBits.Add( new BitSymbol(lBits.Count, lOne, lBitLikelihood, lRawDecodedTapCode.Symbol.SamplePos)) ;
+          double lBitCoverage = mPolybiusSquare.HasExtendedBitSymbols ? ( lRawDecodedTapCode.DecodedValue.Length == 2 ? 1.0 : 0.8 ) : 1.0 ;
+          lStrength += lBitCoverage ;
+          lBits.Add( new BitSymbol(lBits.Count, lOne, lBitCoverage, lRawDecodedTapCode.Symbol.SamplePos)) ;
         }
         else lBits.Add( new BitSymbol(lBits.Count, null, 0, lRawDecodedTapCode.Symbol.SamplePos)) ;
       }
 
-      double lSNR = lStrength / (double)lRawDecodedBag.Count ;
-      
-      int lBagLikelihood = (int)Math.Ceiling(lSNR * 100) ; 
+      double lBitBagCoverage = lStrength / (double)mBitSize ;
+      lBitBagCoverages.Add(lBitBagCoverage);
 
-      BitBagSymbol lBag = new BitBagSymbol(lBitBags.Count, lBits, lBagLikelihood);
+      BitBagSymbol lBag = new BitBagSymbol(lBitBags.Count, lBits, lBitBagCoverage);
 
       WriteLine($"Bits: {lBag}");
-      WriteDetailLine($"Known Bits SNR: {lSNR}");
-      WriteDetailLine($"Bag Likelihood: {lBagLikelihood}");
-
+      WriteDetailLine($"BitBag Coverage: {lBitBagCoverage}");
 
       lBitBags.Add(lBag); 
     }
 
     Unindent();
 
-    if ( lBitBags.Count > mMinCount)
+    double lAverageBitBagCoverage = lBitBagCoverages.Count > 0 ? lBitBagCoverages.Average() : 0.0;
+
+    if (  Session.QuitDisabled || ( lBitBags.Count > mMinCount && lAverageBitBagCoverage >= mQuitThreshold ) )
     {
-      return CreateOutput( new LexicalSignal(lBitBags), mPolybiusSquare.Name ) ;
+      return CreateOutput( new LexicalSignal(lBitBags), Name, new Score(Name,lAverageBitBagCoverage,true) ) ;
     }
     else
     {
@@ -142,9 +147,10 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
   public override string Name => this.GetType().Name ;
 
+  int            mBitSize ;
   int            mMinCount ;
   PolybiusSquare mPolybiusSquare ;
-  int            mQuitThreshold ;
+  double         mQuitThreshold ;
 }
 
 }

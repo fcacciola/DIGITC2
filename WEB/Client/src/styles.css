@@ -28,7 +28,7 @@ a {
 }
 
 .app-shell {
-  width: min(1440px, 100%);
+  width: min(max(1440px, 96vw), 100%);
   margin: 0 auto;
   padding: 8px 12px;
 }
@@ -125,7 +125,7 @@ a {
 
 .upload-panel {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(180px, 280px) auto auto;
+  grid-template-columns: minmax(260px, 1fr) minmax(360px, 560px) auto auto;
   gap: 6px;
   align-items: stretch;
   margin-bottom: 6px;
@@ -332,6 +332,17 @@ a {
   font-size: 13px;
   line-height: 1.35;
   white-space: pre-wrap;
+}
+
+.decoded-message-line {
+  color: #1d4ed8;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.overall-result.no-message-result {
+  color: #b91c1c;
 }
 
 .complete-log {
@@ -543,6 +554,26 @@ a {
   cursor: default;
 }
 
+@media (max-width: 1180px) {
+  .top-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .top-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .upload-panel {
+    grid-template-columns: minmax(260px, 1fr) minmax(320px, 1fr);
+  }
+
+  .primary-button {
+    min-width: 0;
+  }
+}
+
 .manual-backdrop {
   position: fixed;
   inset: 0;
@@ -657,6 +688,27 @@ a {
   line-height: 1.45;
 }
 
+.manual-figure {
+  margin: 12px 0 4px;
+}
+
+.manual-figure img {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  border: 1px solid #d1d9e2;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.manual-figure figcaption {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .manual-content code {
   font-family: Consolas, "Liberation Mono", monospace;
   font-size: 0.95em;
@@ -665,21 +717,59 @@ a {
 
 @media (max-width: 760px) {
   .app-shell {
-    padding: 8px;
+    width: 100%;
+    padding: 6px;
   }
 
-  .top-bar {
-    align-items: flex-start;
-    flex-direction: column;
+  .top-bar h1 {
+    font-size: 18px;
+  }
+
+  .top-bar p {
+    font-size: 11px;
   }
 
   .top-actions {
     width: 100%;
     justify-content: flex-start;
+    gap: 5px;
+  }
+
+  .block-navigator {
+    width: 100%;
+  }
+
+  .block-navigator button {
+    flex: 1 1 92px;
+    padding: 0 6px;
+  }
+
+  .block-count {
+    width: 100%;
   }
 
   .upload-panel {
     grid-template-columns: 1fr;
+  }
+
+  .recording-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .measure-readout {
+    min-width: 0;
+    flex: 1 1 170px;
+  }
+
+  .manual-button,
+  .measure-tool,
+  .server-pill {
+    min-height: 30px;
+  }
+
+  .workspace {
+    padding: 4px;
   }
 
   .result-summary {

@@ -19,16 +19,16 @@ ExtractTapCode_MinTapCount=16
 ExtractTapCode_IntraCountGap=-1|Intra Count Gap
 
 BinarizeFromTapCode_PSquare=Binary
+BinarizeFromTapCode_BitSize=8
 BinarizeFromTapCode_MinCount=2
-BinarizeFromTapCode_QuitThreshold=1
+BinarizeFromTapCode_QuitThreshold=0.01
 
 BinaryToBytes_BitSize=8
-BinaryToBytes_FitnessMap=50,80,90,97
-BinaryToBytes_QuitThreshold=1
+BinaryToBytes_QuitThreshold=0.01
 
 TapCodeToBytes_PSquare=LatinAlphabet_Extended
 
-ScoreBytesAsLanguageDigits_QuitThreshold=30
-
-ScoreTokenLengthDistribution_QuitThreshold=5
-
+ScoreBytesAsLanguageDigits_QuitThreshold=0.30
+ScoreTokenLengthDistribution_QuitThreshold=0.05
+ScoreEnglishWords_QuitThreshold=0.05
+ScoreEnglishWords_MinWordLen=2

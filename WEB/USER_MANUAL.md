@@ -60,6 +60,12 @@ If no message can be decoded, the app shows:
 
 This does not necessarily mean the recording has no interesting structure. It only means that this processing run did not produce a valid decoded message according to the current settings.
 
+### Positive Result Example
+
+![Positive processing result](Client/public/manual/positive-result.png)
+
+This example shows a successful processing run. The decoded message appears at the top, followed by the input waveform, calculated parameters, intermediate processing waveforms, color-coded tap-code views, and the final timeline.
+
 ## 5. The Waveform Views
 
 The app displays the input waveform and the intermediate processing results as wave views.

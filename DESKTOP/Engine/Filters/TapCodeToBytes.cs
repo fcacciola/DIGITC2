@@ -56,7 +56,7 @@ public class TapCodeToBytes : LexicalFilter
 
     Unindent();
 
-    if ( lByteSymbols.Count > 0 )
+    if ( Session.QuitDisabled || lByteSymbols.Count > 0 )
          return CreateOutput( new LexicalSignal(lByteSymbols), mPSquare.Name ) ;
     else return CreateQuitOutput();
 

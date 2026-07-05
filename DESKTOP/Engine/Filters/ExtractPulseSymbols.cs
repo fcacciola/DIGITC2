@@ -38,7 +38,8 @@ namespace ENGINE
   {
     static public void SetupGapDurations( this List<PulseSymbol> aPulses )
     {
-      var rGapDurations = new double[aPulses.Count-1];
+      if (aPulses.Count == 0)
+        return;
 
       var lPulseA = aPulses[0];
       lPulseA.Gap = double.MaxValue;  
@@ -231,11 +232,11 @@ namespace ENGINE
 
           var lFilteredGMM = lGMM.DiscardMeaningless() ;
 
-          lFilteredGMM.Save(Session, "GMM_For_MinPulseWidth_Calculation");
-          lFilteredGMM.Plot(Session, "Gaps_Histogram_For_MinPulseWidth_Calculation"); 
-
-          if (lFilteredGMM.Components.Count > 0)
+          if ( lFilteredGMM != null && lFilteredGMM.Components.Count > 0 )
           {
+            lFilteredGMM.Save(Session, "GMM_For_MinPulseWidth_Calculation");
+            lFilteredGMM.Plot(Session, "Gaps_Histogram_For_MinPulseWidth_Calculation"); 
+
             var lFirst = lFilteredGMM.Components[0];
             lMinPulseWidth = Math.Max(lFirst.N_Sigma(-4),0);
 
@@ -251,10 +252,10 @@ namespace ENGINE
                 }
               }
             }
+
+            Params.ChangeValue("MinPulseWidth",$"{lMinPulseWidth:F3}");
           }
         }
-
-        Params.ChangeValue("MinPulseWidth",$"{lMinPulseWidth:F3}");
 
         return lMinPulseWidth;
       }

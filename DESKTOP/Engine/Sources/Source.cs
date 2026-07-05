@@ -7,8 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using NWaves.Audio;
+using NWaves.Operations;
 using NWaves.Signals;
-using NWaves.Utils;
 
 
 namespace ENGINE
@@ -75,7 +75,8 @@ namespace ENGINE
         {
           var waveContainer = new WaveFile(stream);
           rS = waveContainer[Channels.Average];
-          Guard.AgainstInequality(rS.SamplingRate, SIG.SamplingRate, "Sampling rate");
+          if (rS.SamplingRate != SIG.SamplingRate)
+            rS = Operation.Resample(rS, SIG.SamplingRate);
         }
       }
       return rS ;

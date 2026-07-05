@@ -1,15 +1,8 @@
 <Solution>
   <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="ARM" />
-    <Platform Name="ARM64" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
+    <Platform Name="AnyCPU" />
   </Configurations>
-  <Project Path="Engine/Engine.csproj">
-    <Platform Project="x64" />
-  </Project>
-  <Project Path="Transgraphier/Transgraphier.csproj">
-    <Platform Project="x64" />
-  </Project>
+  <Project Path="Calibrate/Calibrate.csproj" Id="32ba2fdb-7b92-4ae2-a286-eb03fff55761" />
+  <Project Path="Engine/Engine.csproj" />
+  <Project Path="Transgraphier/Transgraphier.csproj" />
 </Solution>

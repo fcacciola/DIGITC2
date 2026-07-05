@@ -56,8 +56,7 @@ namespace ENGINE
           } 
         }
 
-        if (  rSymbols.Count > 0 )
-          return new LexicalSignal(rSymbols.Cast<Symbol>());
+        return new LexicalSignal(rSymbols.Cast<Symbol>());
       }
       return null ;
     }

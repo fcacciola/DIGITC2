@@ -17,7 +17,7 @@ public class Processor
     var lProcessor = new Processor(aMainPipeline);
     var lPipelineResults = lProcessor.Process( aSession, aSettings, aStartSignal ) ;
 
-    return new SessionResult(lPipelineResults,aName);
+    return new SessionResult(aSession, lPipelineResults,aName);
   }
 
   public Processor( MainPipeline aMainPipeline )
@@ -29,8 +29,6 @@ public class Processor
   {
     var rPipelineResults = new List<PipelineResult>();
 
-    int cMinScore = 70 ;
-
     mMainPipeline.Start( aSession, aSettings, aSession.Config, aStartSignal ) ;
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
@@ -41,8 +39,6 @@ public class Processor
       mPipelines.Enqueue( mMainPipeline ) ;  
 
       int lPipelineIdx = 0 ;
-
-      int lGoodPipelinesCount = 0;
 
       do
       {
@@ -59,7 +55,7 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {lPipelineResult.CombinedScore}.") ;
+          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {(lPipelineResult.CombinedScore != null ? lPipelineResult.CombinedScore.Value.ToString() : " <<NOT COMPUTED>>")}") ;
         }
         else
         {

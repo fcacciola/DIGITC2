@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 namespace ENGINE
 {
 
-
-
-  public abstract class GUI
+  public abstract class DriverApp
   {
     public abstract void AddMessage     ( string aMsg ) ;
     public abstract void AddErrorMessage( string aMsg ) ;
@@ -19,19 +17,20 @@ namespace ENGINE
 
   public class Session
   {
-    public Session( string aInputFile, string aName, Settings aSettings, GUI aGUI, Config aConfig )
+    public Session( string aInputFile, string aName, Settings aSettings, DriverApp aDriverApp, Config aConfig, ScoreModel aScoreModel )
     {
       InputFile        = aInputFile ;
       Name             = aName;
       Settings         = aSettings;
-      GUI              = aGUI;  
+      DApp             = aDriverApp;  
       Config           = aConfig ;
+      ScoreModel       = aScoreModel ;
       InputFolder      = aSettings.GetPath("InputFolder");  
       RootOutputFolder = aSettings.GetPath("OutputFolder");
 
       SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
 
-      mLogger.SetGUI(GUI);
+      mLogger.SetDriverApp(DApp);
 
       Utils.SetupFolder(InputFolder);
       Utils.SetupFolder(RootOutputFolder);
@@ -135,12 +134,15 @@ namespace ENGINE
 
     string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
 
+    public bool QuitDisabled => Settings.GetBool("CalibrateScores");
+    public bool QuitEnabled  => !QuitDisabled;
+
     public string     InputFile ;
     public string     Name ;
     public Settings   Settings ;
-    public GUI        GUI ;
+    public DriverApp        DApp ;
     public Config     Config ;
-    public ScoreModel ScoreModel = new ScoreModel();
+    public ScoreModel ScoreModel ;
 
     public string   BaseFolder ;
     public string   InputFolder ;

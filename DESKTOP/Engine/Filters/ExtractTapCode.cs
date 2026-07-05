@@ -36,11 +36,11 @@ namespace ENGINE
       float lEffectiveAmplitude = 0 ;
       switch ( aType )
       {
-        case TapType.Row:       lEffectiveAmplitude = 0.6f  ; break ;
-        case TapType.Col:       lEffectiveAmplitude = -0.6f ; break ;
-        case TapType.IntraGap:  lEffectiveAmplitude = 0.2f  ; break ;
-        case TapType.OuterGap: lEffectiveAmplitude = -0.2f ; break ;
-        case TapType.Separator: lEffectiveAmplitude = 0.9f  ; break ;
+        case TapType.Row:       lEffectiveAmplitude = 0.6f  ; break ; // BLUE
+        case TapType.Col:       lEffectiveAmplitude = -0.6f ; break ; // RED
+        case TapType.IntraGap:  lEffectiveAmplitude = 0.2f  ; break ; // DARK-GRAY
+        case TapType.OuterGap : lEffectiveAmplitude = -0.2f ; break ; // 
+        case TapType.Separator: lEffectiveAmplitude = 0.9f  ; break ; // BLACK
       }
 
       foreach ( var lStep in Source.Steps )
@@ -200,6 +200,12 @@ namespace ENGINE
       {
         double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
 
+        if (aGaps.Count < 2)
+        {
+          WriteLine("Not enough gaps to calculate Intra Tap Gap.");
+          return rIntraCountGap_HighBound;
+        }
+
         FilterHelper.DumpValues(Session, "Pulses_Gaps",aGaps);
         var lRawGMM = GmmFitter.Fit(aGaps) ;
 
@@ -208,36 +214,39 @@ namespace ENGINE
           lRawGMM.Save(Session, "Raw GMM_For_IntraTapGap_Calculation");
           lRawGMM.Plot(Session, "Raw Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
-          var lGMM = lRawGMM.DiscardMeaningless().ChooseBest(3);
+          var lGMM = lRawGMM.DiscardMeaningless()?.ChooseBest(3);
 
-          lGMM.Save(Session, "GMM_For_IntraTapGap_Calculation");
-          lGMM.Plot(Session, "Gaps_Histogram_For_IntraTapGap_Calculation"); 
-
-          if ( lGMM.Components.Count == 1 )
+          if ( lGMM != null && lGMM.Components.Count > 0 )
           {
-            rIntraCountGap_HighBound = lGMM.Components[0].N_Sigma(3);
-          }
-          else if ( lGMM.Components.Count > 1 )
-          {
-            double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
+            lGMM.Save(Session, "GMM_For_IntraTapGap_Calculation");
+            lGMM.Plot(Session, "Gaps_Histogram_For_IntraTapGap_Calculation"); 
 
-            double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
-
-            rIntraCountGap_HighBound = MathX.LERP(lK0_2_Sigma,lK0_K1_Midpoint,0.2)  ;
-
-            double lIntraTapCode2 = lGMM.Intersection(0,1) ;
-            AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
-
-            if ( lGMM.Components.Count > 2 )
+            if ( lGMM.Components.Count == 1 )
             {
-              double lIntraTapCode3 = lGMM.Intersection(1,2) ;
-
-              AddBranch("IntraCountGap",$"{lIntraTapCode3:F3}");
+              rIntraCountGap_HighBound = lGMM.Components[0].N_Sigma(3);
             }
-          }
-          else
-          {
-            WriteLine("Not enough components in GMM to calculate Intra Tap Gap.");
+            else if ( lGMM.Components.Count > 1 )
+            {
+              double lK0_K1_Midpoint = lGMM.InterpolateMean(0,1); 
+
+              double lK0_2_Sigma = lGMM.Components[0].N_Sigma(3);
+
+              rIntraCountGap_HighBound = MathX.LERP(lK0_2_Sigma,lK0_K1_Midpoint,0.2)  ;
+
+              double lIntraTapCode2 = lGMM.Intersection(0,1) ;
+              AddBranch("IntraCountGap",$"{lIntraTapCode2:F3}");
+
+              if ( lGMM.Components.Count > 2 )
+              {
+                double lIntraTapCode3 = lGMM.Intersection(1,2) ;
+
+                AddBranch("IntraCountGap",$"{lIntraTapCode3:F3}");
+              }
+            }
+            else
+            {
+              WriteLine("Not enough components in GMM to calculate Intra Tap Gap.");
+            }
           }
         }
         else
@@ -266,7 +275,7 @@ namespace ENGINE
 
       WriteLine("Getting Raw Taps..");
       var lTaps = GetTaps(lPulses);
-      if ( lTaps.Count < mOptions.MinNumberOfTaps )
+      if ( lTaps.Count < mOptions.MinNumberOfTaps && Session.QuitEnabled )
       {
         WriteLine2GUI("Not enough Taps. Quitting.");
         return CreateQuitOutput();
@@ -277,7 +286,7 @@ namespace ENGINE
 
       WriteDetailLine("Classifying Raw Taps...");
       double lIntraTapGap_HighBound = ComputeIntraCountGap_HighBound( lTaps.ConvertAll( t => t.Gap ).Skip(1).ToList() );
-      if ( lIntraTapGap_HighBound == 0 )
+      if ( lIntraTapGap_HighBound == 0 && Session.QuitEnabled )
       {
         return CreateQuitOutput();
       }
@@ -312,7 +321,7 @@ namespace ENGINE
       if ( lCurrTC != null && lCurrTC.Taps.Count > 0 )
         lRawCounts.Add(lCurrTC);
 
-      if ( lRawCounts.Count <  2 * mOptions.MinNumberOfTaps )
+      if ( lRawCounts.Count <  2 * mOptions.MinNumberOfTaps && Session.QuitEnabled )
       {
         WriteLine("Not enough Taps. Quitting.") ;
         return CreateQuitOutput();

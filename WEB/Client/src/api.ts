@@ -5,7 +5,7 @@ export async function getDefaultConfig(): Promise<ConfigParam[]> {
   const payload = await readJsonResponse<ConfigParam[]>(response, "Could not load configuration.");
 
   if (!response.ok) {
-    throw new Error(readErrorMessage(payload, "Could not load configuration."));
+    throw new Error(formatHttpError(response, payload, "Could not load configuration."));
   }
 
   return payload;
@@ -24,7 +24,7 @@ export async function processFile(file: File, sessionName: string, configParams:
 
   const payload = await readJsonResponse<ProcessJobResponse>(response, "Processing failed.");
   if (!response.ok) {
-    throw new Error(readErrorMessage(payload, "Processing failed."));
+    throw new Error(formatHttpError(response, payload, "Processing failed."));
   }
 
   return payload;
@@ -35,7 +35,7 @@ export async function getResult(resultUrl: string): Promise<ResultManifest> {
   const payload = await readJsonResponse<ResultManifest>(response, "Could not load result.");
 
   if (!response.ok) {
-    throw new Error(readErrorMessage(payload, "Could not load result."));
+    throw new Error(formatHttpError(response, payload, "Could not load result."));
   }
 
   return payload;
@@ -45,7 +45,7 @@ export async function getTextFile(url: string): Promise<string> {
   const response = await fetchApi(resolveServerUrl(url), undefined, "Could not reach the local server while loading a result file.");
 
   if (!response.ok) {
-    throw new Error("Could not load text file.");
+    throw new Error(formatHttpError(response, null, "Could not load text file."));
   }
 
   return response.text();
@@ -94,23 +94,72 @@ async function fetchApi(url: string, init: RequestInit | undefined, networkError
 
 async function readJsonResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   const contentType = response.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("json");
 
-  if (contentType.includes("application/json")) {
-    return response.json();
+  if (isJson) {
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(formatHttpError(response, payload, fallbackMessage));
+    }
+
+    return payload;
   }
 
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(extractPlainTextError(text) || fallbackMessage);
+    const payload = tryParseJson(text) ?? extractPlainTextError(text);
+    throw new Error(formatHttpError(response, payload, fallbackMessage));
   }
 
   throw new Error(fallbackMessage);
 }
 
-function readErrorMessage(payload: unknown, fallbackMessage: string): string {
+function tryParseJson(text: string): unknown | null {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function formatHttpError(response: Response, payload: unknown, fallbackMessage: string): string {
+  const detail = readErrorDetail(payload, fallbackMessage);
+
+  if (response.status >= 500) {
+    return `Server error: ${detail}`;
+  }
+
+  switch (response.status) {
+    case 400:
+      return `Request error: ${detail}`;
+    case 401:
+      return `Password required: ${detail}`;
+    case 403:
+      return `Access denied: ${detail}`;
+    case 404:
+      return `Not found: ${detail}`;
+    case 413:
+      return `Upload too large: ${detail}`;
+    default: {
+      const statusText = response.statusText ? ` ${response.statusText}` : "";
+      return `Request failed (${response.status}${statusText}): ${detail}`;
+    }
+  }
+}
+
+function readErrorDetail(payload: unknown, fallbackMessage: string): string {
+  if (typeof payload === "string" && payload.trim().length > 0) {
+    return payload.trim();
+  }
+
   if (payload && typeof payload === "object") {
     const errorPayload = payload as { error?: unknown; detail?: unknown; title?: unknown };
-    for (const candidate of [errorPayload.error, errorPayload.detail, errorPayload.title]) {
+    for (const candidate of [errorPayload.detail, errorPayload.error, errorPayload.title]) {
       if (typeof candidate === "string" && candidate.trim().length > 0) {
         return candidate;
       }
