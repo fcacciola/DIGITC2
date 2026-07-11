@@ -58,6 +58,8 @@ public sealed class ResultCatalogService {
         metadata.SessionName,
         metadata.Status,
         metadata.CreatedAt,
+        winningBranch.Name,
+        winningBranch.BranchCount,
         files,
         GetWinningConfigParams(winningBranch),
         metadata.Messages,
@@ -216,7 +218,13 @@ public sealed class ResultCatalogService {
         ? Path.GetDirectoryName(winner.ResultFilePath)!
         : sessionRoot;
 
-    return new WinningBranch(sessionRoot, Path.GetFullPath(finalFolder), winner?.Score);
+    var fullFinalFolder = Path.GetFullPath(finalFolder);
+    var branchName = Path.GetRelativePath(sessionRoot, fullFinalFolder).Replace('\\', '/');
+    if (branchName == ".") {
+      branchName = Path.GetFileName(sessionRoot);
+    }
+
+    return new WinningBranch(sessionRoot, fullFinalFolder, branchName, candidates.Count, winner?.Score);
   }
 
   private static double? TryReadScore(string resultFile) {
@@ -255,5 +263,5 @@ public sealed class ResultCatalogService {
 
   private sealed record ResultCandidate(string ResultFilePath, double? Score);
 
-  private sealed record WinningBranch(string SessionRoot, string FinalFolder, double? Score);
+  private sealed record WinningBranch(string SessionRoot, string FinalFolder, string Name, int BranchCount, double? Score);
 }

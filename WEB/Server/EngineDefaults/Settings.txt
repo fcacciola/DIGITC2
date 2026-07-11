@@ -2,5 +2,5 @@ OutputDetails=false
 InputFolder=.
 OutputFolder=.
 SamplesFolder=.
-DisableBranching=true
+DisableBranching=false
 MaxBranches=4

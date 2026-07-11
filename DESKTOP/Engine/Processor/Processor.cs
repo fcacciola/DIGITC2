@@ -55,7 +55,7 @@ public class Processor
           lPipelineResult.Folder = lPipelineFolder; 
           rPipelineResults.Add(lPipelineResult) ; 
 
-          aSession.WriteLine2GUI($"Pipeline {lPipelineIdx} finished with Score {(lPipelineResult.Score != null ? lPipelineResult.Score.Value.ToString() : " <<NOT COMPUTED>>")}") ;
+          aSession.WriteLine2DriverApp($"Pipeline {lPipelineIdx} finished with Score {(lPipelineResult.Score != null ? lPipelineResult.Score.Value.ToString() : " <<NOT COMPUTED>>")}") ;
         }
         else
         {
@@ -63,9 +63,20 @@ public class Processor
           break ;
         }
 
+        var lScoreEnglishWordsFilter = lPipelineResult.FilterScores.Find(fs => fs.FilterName == "ScoreEnglishWords");
+
+        if ( lScoreEnglishWordsFilter != null )
+        {
+          if ( lScoreEnglishWordsFilter.Value == 1 )
+          {
+            aSession.WriteLine2DriverApp($"English words perfectly extracted. Skipping other branches.") ;
+            break ;
+          }  
+        }
+
         if ( aSettings.GetBool("DisableBranching") )
         {
-          aSession.WriteLine2GUI($"Skipping branch-out pipelines.") ;
+          aSession.WriteLine2DriverApp($"Skipping branch-out pipelines.") ;
           break ;
         }
 

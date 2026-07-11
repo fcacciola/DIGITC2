@@ -94,7 +94,7 @@ namespace ENGINE
 
     protected void WriteDetailLine( string aLine ) => Session.WriteDetailLine( aLine ) ;
     protected void WriteLine      ( string aLine ) => Session.WriteLine      ( aLine ) ;
-    protected void WriteLine2GUI  ( string aLine ) => Session.WriteLine2GUI  ( aLine ) ;
+    protected void WriteLine2GUI  ( string aLine ) => Session.WriteLine2DriverApp  ( aLine ) ;
     protected void Indent                       () => Session.Indent() ;  
     protected void Unindent                     () => Session.Unindent() ;  
 

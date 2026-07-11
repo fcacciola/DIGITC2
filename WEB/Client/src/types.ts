@@ -20,6 +20,8 @@ export type ResultManifest = {
   sessionName: string;
   status: string;
   createdAt: string;
+  winningBranchName: string;
+  branchCount: number;
   files: ResultFileNode[];
   configParams: ConfigParam[];
   messages: string[];

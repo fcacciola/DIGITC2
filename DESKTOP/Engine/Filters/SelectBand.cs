@@ -86,7 +86,7 @@ namespace ENGINE
 
     public List<Band> Split(DiscreteSignal aSignal)
     {
-      mSession.WriteLine2GUI($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
+      mSession.WriteLine2DriverApp($"Splitting input signal into {mFrequencies.Length} Frequency Bands...");
 
       List<Band> rBands = new List<Band>();
 

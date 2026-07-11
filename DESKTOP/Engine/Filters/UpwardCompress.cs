@@ -61,8 +61,8 @@ namespace ENGINE
     {
       var lArgs = new Args{BaseFloor=Params.GetFloat("BaseFloor"), TargetFloor= Params.GetFloat("TargetFloor") };
 
-      AddBranch("BaseFloor",$"{(lArgs.BaseFloor * .8)}");
-      AddBranch("BaseFloor",$"{(lArgs.BaseFloor * 1.2)}");
+      //AddBranch("BaseFloor",$"{(lArgs.BaseFloor * .8)}");
+      //AddBranch("BaseFloor",$"{(lArgs.BaseFloor * 1.2)}");
 
       WriteLine2GUI($"Applying Upward Compression. BaseFloor: {lArgs.BaseFloor} TargetFloor:{lArgs.TargetFloor}");
 

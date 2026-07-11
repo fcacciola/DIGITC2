@@ -16,4 +16,10 @@
     <Content Include="..\..\DESKTOP\Engine\Input\References\**\*" LinkBase="EngineDefaults\References" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="EngineDefaults\frequency_dictionary_en_82_765.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

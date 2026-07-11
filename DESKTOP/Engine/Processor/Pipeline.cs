@@ -158,13 +158,13 @@ public class Pipeline
 
           if ( lPacket.ShouldQuit && Session.QuitEnabled)
           {
-            Session.WriteLine2GUI("Filter asked to Quit Processor.");
+            Session.WriteLine2DriverApp("Filter asked to Quit Processor.");
             break ;
           }
         }
         else
         {
-          Session.WriteLine2GUI("Filter returned NO result. Quitting.");
+          Session.WriteLine2DriverApp("Filter returned NO result. Quitting.");
           break ;
         }
       }

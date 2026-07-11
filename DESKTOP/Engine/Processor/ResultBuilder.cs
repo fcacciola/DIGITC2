@@ -102,6 +102,8 @@ namespace ENGINE
 
           lReport.Add( "" ) ;
 
+          lReport.Add($"Branch: {lPR.Name}");
+
           lReport.Add( "Scores:" ) ;
           lPR.FilterScores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
           lReport.Add( "" ) ;

@@ -263,7 +263,6 @@ a {
 .messages-panel,
 .overall-result,
 .complete-log,
-.result-summary,
 .result-files,
 .workspace {
   border: 1px solid #d1d9e2;
@@ -283,36 +282,6 @@ a {
   border-color: #fca5a5;
   background: #fff5f5;
   color: #991b1b;
-}
-
-.result-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  margin-bottom: 6px;
-  background: #d1d9e2;
-}
-
-.result-summary > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  padding: 7px 10px;
-  background: #ffffff;
-}
-
-.summary-label {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.result-summary strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
 }
 
 .messages-panel {
@@ -770,10 +739,6 @@ a {
 
   .workspace {
     padding: 4px;
-  }
-
-  .result-summary {
-    grid-template-columns: 1fr;
   }
 
   .manual-backdrop {

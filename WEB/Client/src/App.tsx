@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { AlertCircle, BookOpen, Download, FileAudio, Loader2, Mic, Play, Ruler, Square } from "lucide-react";
 import { flattenFiles, getDefaultConfig, getResult, getTextFile, processFile } from "./api";
 import { loadLocalWaveAsset, loadTimelineAsset, loadWaveAsset } from "./audio";
@@ -39,7 +39,6 @@ export function App() {
   const [manualOpen, setManualOpen] = useState(false);
 
   const canProcess = inputFile !== null && !isRecording && state !== "processing" && state !== "loading-results";
-  const visibleFileCount = useMemo(() => (manifest ? flattenFiles(manifest.files).length : 0), [manifest]);
   const measurementSampleRate = inputWave?.sampleRate ?? resultWaves[0]?.sampleRate ?? null;
   const measurementText = formatMeasurement(measureSelection, measurementSampleRate);
 
@@ -127,7 +126,7 @@ export function App() {
       const logText = logFile?.url ? await getTextFile(logFile.url) : result.messages.join("\n");
 
       setManifest(result);
-      setOverallResult(formatOverallResult(resultText));
+      setOverallResult(formatOverallResult(resultText, result.winningBranchName, result.branchCount));
       setCompleteLog(logText);
       if (result.configParams.length > 0) {
         setConfigParams(result.configParams);
@@ -392,23 +391,6 @@ export function App() {
         )}
       </section>
 
-      {manifest && (
-        <section className="result-summary">
-          <div>
-            <span className="summary-label">Job</span>
-            <strong>{manifest.jobId}</strong>
-          </div>
-          <div>
-            <span className="summary-label">Session</span>
-            <strong>{manifest.sessionName}</strong>
-          </div>
-          <div>
-            <span className="summary-label">Visible files</span>
-            <strong>{visibleFileCount}</strong>
-          </div>
-        </section>
-      )}
-
       {completeLog && (
         <section className="complete-log">
           <div className="log-title">Complete Log</div>
@@ -498,7 +480,7 @@ function pickDeepestFile(files: ResultFileNode[], name: string): ResultFileNode 
     [0];
 }
 
-function formatOverallResult(resultText: string): string {
+function formatOverallResult(resultText: string, winningBranchName: string, branchCount: number): string {
   const lines = resultText.split(/\r?\n/);
 
   const decodedTextLine = lines.find((line) =>
@@ -508,6 +490,9 @@ function formatOverallResult(resultText: string): string {
   const scoreLine = lines.find((line) =>
     line.trim().toLowerCase().startsWith("score:")
   );
+  const branchLine = lines.find((line) =>
+    line.trim().toLowerCase().startsWith("branch:")
+  );
 
   const decodedText = decodedTextLine
     ? decodedTextLine.substring(decodedTextLine.indexOf(":") + 1).trim()
@@ -516,16 +501,26 @@ function formatOverallResult(resultText: string): string {
   const score = scoreLine
     ? scoreLine.trim()
     : "Score: Undefined";
+  const branchName = branchLine
+    ? branchLine.substring(branchLine.indexOf(":") + 1).trim()
+    : winningBranchName;
+  const branch = `Branch: ${branchName || "Unknown"} (${branchCount} ${branchCount === 1 ? "branch" : "branches"}).`;
 
   if (!decodedText ) {
-    return "<<<< NO MESSAGE COULD BE DECODED >>>";
+    return [
+      "<<<< NO MESSAGE COULD BE DECODED >>>",
+      "",
+      score,
+      branch
+    ].join("\n");
   }
 
   return [
     "Decoded Text Message:",
     decodedText,
     "",
-    score
+    score,
+    branch
   ].join("\n");
 }
 

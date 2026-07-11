@@ -11,6 +11,8 @@ public sealed record ResultManifest(
     string SessionName,
     string Status,
     DateTimeOffset CreatedAt,
+    string WinningBranchName,
+    int BranchCount,
     IReadOnlyList<ResultFileNode> Files,
     IReadOnlyList<ConfigParamDto> ConfigParams,
     IReadOnlyList<string> Messages,

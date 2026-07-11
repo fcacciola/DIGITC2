@@ -85,7 +85,7 @@ namespace ENGINE
       mLogger.WriteErrorLine( aS );
     }
 
-    public void WriteLine2GUI( string aS )
+    public void WriteLine2DriverApp( string aS )
     {
       mLogger.WriteLine2GUI( aS );
     }
