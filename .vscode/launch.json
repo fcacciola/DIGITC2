@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Client",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/WEB/Client",
+      "preLaunchTask": "client: dev"
+    }
+  ]
+}

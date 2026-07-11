@@ -24,6 +24,7 @@ export function App() {
   const [resultWaves, setResultWaves] = useState<WaveAsset[]>([]);
   const [timeline, setTimeline] = useState<TimelineAsset | null>(null);
   const [controller, setController] = useState<ViewControllerState | null>(null);
+  const [defaultConfigParams, setDefaultConfigParams] = useState<ConfigParam[] | null>(null);
   const [configParams, setConfigParams] = useState<ConfigParam[]>([]);
   const [overallResult, setOverallResult] = useState<string | null>(null);
   const [completeLog, setCompleteLog] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export function App() {
     getDefaultConfig()
       .then((params) => {
         if (!cancelled) {
+          setDefaultConfigParams(params);
           setConfigParams(params);
         }
       })
@@ -153,7 +155,7 @@ export function App() {
       setRecordedFileName(null);
     }
 
-    await loadInputFile(file, !sessionName);
+    await loadInputFile(file, true);
   }
 
   async function handleStartRecording() {
@@ -194,6 +196,9 @@ export function App() {
 
   async function loadInputFile(file: File | null, updateSessionName: boolean) {
     setInputFile(file);
+    if (defaultConfigParams) {
+      setConfigParams(defaultConfigParams.map((param) => ({ ...param })));
+    }
     setManifest(null);
     setResultWaves([]);
     setTimeline(null);
@@ -495,9 +500,22 @@ function pickDeepestFile(files: ResultFileNode[], name: string): ResultFileNode 
 
 function formatOverallResult(resultText: string): string {
   const lines = resultText.split(/\r?\n/);
-  const decodedIndex = lines.findIndex((line) => line.trim().toLowerCase() === "decoded text message:");
-  const score = lines.find((line) => line.trim().toLowerCase().startsWith("score:"));
-  const decodedText = decodedIndex >= 0 ? lines[decodedIndex + 1]?.trim() ?? "" : "";
+
+  const decodedTextLine = lines.find((line) =>
+    line.trim().toLowerCase().startsWith("decoded text message:")
+  );
+
+  const scoreLine = lines.find((line) =>
+    line.trim().toLowerCase().startsWith("score:")
+  );
+
+  const decodedText = decodedTextLine
+    ? decodedTextLine.substring(decodedTextLine.indexOf(":") + 1).trim()
+    : "";
+
+  const score = scoreLine
+    ? scoreLine.trim()
+    : "Score: Undefined";
 
   if (!decodedText ) {
     return "<<<< NO MESSAGE COULD BE DECODED >>>";
@@ -507,7 +525,7 @@ function formatOverallResult(resultText: string): string {
     "Decoded Text Message:",
     decodedText,
     "",
-    score?.trim() ?? "Score: Undefined"
+    score
   ].join("\n");
 }
 

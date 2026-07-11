@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Calibrate": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\User\\AppData\\Local\\Varanormal\\Transgraphier\\Input\\Samples\\Artificial\\Calibration1\r\n \r\n"
-    }
-  }
-}

@@ -131,9 +131,9 @@ namespace ENGINE
     //  }
     //}
 
-    public static void SaveTo( this DiscreteSignal aDS, string aFilename, Session aSession )  
+    public static void SaveTo( this DiscreteSignal aDS, string aFilename, Session aSession = null )  
     {
-      aSession.WriteDetailLine($"Saving signal to file: [{aFilename}]");
+      aSession?.WriteDetailLine($"Saving signal to file: [{aFilename}]");
 
       try
       {
@@ -145,7 +145,7 @@ namespace ENGINE
       }
       catch( Exception ex )
       {
-        aSession.Error(ex);
+        aSession?.Error(ex);
       }
     }
 

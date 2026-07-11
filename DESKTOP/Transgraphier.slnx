@@ -3,5 +3,6 @@
     <Platform Name="AnyCPU" />
   </Configurations>
   <Project Path="Engine/Engine.csproj" />
+  <Project Path="GenerateTestSample/GenerateTestSample.csproj" Id="1e72e59f-6cc7-406a-9b40-98daa8566b3d" />
   <Project Path="Transgraphier/Transgraphier.csproj" />
 </Solution>

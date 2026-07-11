@@ -64,7 +64,7 @@ public sealed class EngineJobService
         var config = Config.FromFile(configPath) ?? throw new InvalidOperationException($"Engine config file was not found: {configPath}");
         ConfigDtoMapper.ApplyOverrides(config, configParams);
         var settings = CreateSettings(defaultsRoot, uploadFolder, outputRoot);
-        var gui = new CapturingGui();
+        var gui = new CapturingApp();
         var session = new Session(inputPath, sessionName, settings, gui, config);
 
         try

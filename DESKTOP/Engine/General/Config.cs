@@ -204,6 +204,20 @@ public class Settings : Params
     return rSettings;
   }
 
+  public static Settings FromCommandLine(string[] aArgs) 
+  {
+    Settings rSettings = new Settings();
+    foreach (string lArg in aArgs) 
+    {
+      if (ConfigHelper.IsValidLine(lArg)) 
+      {
+        var lKV = lArg.Split('=');
+        rSettings.Set(lKV[0].Trim(), lKV[1].Trim(), null);
+      }
+    }
+    return rSettings;
+  }
+
   public void Save( string aFilename )
   {
     var lLines = new List<string>();

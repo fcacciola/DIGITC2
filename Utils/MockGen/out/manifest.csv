@@ -1,0 +1,3 @@
+filename,klass,square,bit_order,temperature,noise_floor,tap_ms,gap_intra_ms,message,duration_s,seed
+00000_positive_Binary.wav,positive,Binary,lsb,97.7,0.6,50.0,50.0,said his down was had are all out for people or people all p,325.0,1234
+00001_positive_Binary.wav,positive,Binary,lsb,17.7,0.6,50.0,50.0,they their each some,108.5,1235
