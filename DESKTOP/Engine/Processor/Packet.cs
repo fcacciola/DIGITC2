@@ -11,8 +11,19 @@ namespace ENGINE
 {
   public abstract class PacketData
   {
-
   }
+
+  public class PartialResultMessage : PacketData
+  {
+    public PartialResultMessage( string aText ) { Lines = new List<string> { aText } ; }  
+
+    public PartialResultMessage( IEnumerable<string> aLines ) { Lines = new List<string>(aLines) ; }  
+
+    public override string ToString() { return string.Join(Environment.NewLine, Lines) ; } 
+
+    public List<string> Lines {  get; private set; }
+  }
+
 
   public class Packet 
   {

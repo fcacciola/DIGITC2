@@ -12,6 +12,10 @@ import type { ConfigParam, MeasureSelection, ResultFileNode, ResultManifest, Tim
 import { startWavRecorder, type WavRecorderSession } from "./recorder";
 
 type LoadState = "idle" | "processing" | "loading-results" | "ready" | "error";
+type OverallResultContent = {
+  main: string;
+  partial: string[];
+};
 
 export function App() {
   const recorderRef = useRef<WavRecorderSession | null>(null);
@@ -26,7 +30,7 @@ export function App() {
   const [controller, setController] = useState<ViewControllerState | null>(null);
   const [defaultConfigParams, setDefaultConfigParams] = useState<ConfigParam[] | null>(null);
   const [configParams, setConfigParams] = useState<ConfigParam[]>([]);
-  const [overallResult, setOverallResult] = useState<string | null>(null);
+  const [overallResult, setOverallResult] = useState<OverallResultContent | null>(null);
   const [completeLog, setCompleteLog] = useState<string | null>(null);
   const [blockStartSamples, setBlockStartSamples] = useState<number[]>([]);
   const [blockIndex, setBlockIndex] = useState(0);
@@ -343,7 +347,12 @@ export function App() {
         </section>
       )}
 
-      {overallResult && <OverallResult result={overallResult} />}
+      {overallResult && (
+        <section className={overallResult.partial.length > 0 ? "result-panel has-partial-results" : "result-panel"}>
+          <OverallResult result={overallResult.main} />
+          {overallResult.partial.length > 0 && <PartialResults results={overallResult.partial} />}
+        </section>
+      )}
 
       <section className="workspace">
         {!inputWave && resultWaves.length === 0 && state === "idle" && (
@@ -480,7 +489,7 @@ function pickDeepestFile(files: ResultFileNode[], name: string): ResultFileNode 
     [0];
 }
 
-function formatOverallResult(resultText: string, winningBranchName: string, branchCount: number): string {
+function formatOverallResult(resultText: string, winningBranchName: string, branchCount: number): OverallResultContent {
   const lines = resultText.split(/\r?\n/);
 
   const decodedTextLine = lines.find((line) =>
@@ -493,6 +502,11 @@ function formatOverallResult(resultText: string, winningBranchName: string, bran
   const branchLine = lines.find((line) =>
     line.trim().toLowerCase().startsWith("branch:")
   );
+  const partialResultLines = lines
+    .map((line) => line.trim())
+    .filter((line) => line.toLowerCase().startsWith("partial result:"))
+    .map((line) => line.substring(line.indexOf(":") + 1).trim())
+    .filter((line) => line.length > 0);
 
   const decodedText = decodedTextLine
     ? decodedTextLine.substring(decodedTextLine.indexOf(":") + 1).trim()
@@ -505,23 +519,28 @@ function formatOverallResult(resultText: string, winningBranchName: string, bran
     ? branchLine.substring(branchLine.indexOf(":") + 1).trim()
     : winningBranchName;
   const branch = `Branch: ${branchName || "Unknown"} (${branchCount} ${branchCount === 1 ? "branch" : "branches"}).`;
+  const resultDetailLines = [score, "", branch];
 
   if (!decodedText ) {
-    return [
+    return {
+      main: [
       "<<<< NO MESSAGE COULD BE DECODED >>>",
       "",
-      score,
-      branch
-    ].join("\n");
+      ...resultDetailLines
+      ].join("\n"),
+      partial: partialResultLines
+    };
   }
 
-  return [
+  return {
+    main: [
     "Decoded Text Message:",
     decodedText,
     "",
-    score,
-    branch
-  ].join("\n");
+    ...resultDetailLines
+    ].join("\n"),
+    partial: partialResultLines
+  };
 }
 
 function OverallResult({ result }: { result: string }) {
@@ -540,6 +559,14 @@ function OverallResult({ result }: { result: string }) {
           {index < lines.length - 1 ? "\n" : ""}
         </span>
       ))}
+    </pre>
+  );
+}
+
+function PartialResults({ results }: { results: string[] }) {
+  return (
+    <pre className="partial-results">
+      {results.join("\n")}
     </pre>
   );
 }

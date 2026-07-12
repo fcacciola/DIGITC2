@@ -192,9 +192,9 @@ public static class ExactPercentile
       var lEnvelopeParams = new Envelope.Args{ AttackTime = mOptions.EnvelopeAttackTime, ReleaseTime = mOptions.EnvelopeReleaseTime};
       var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
 
-      string lEnvelopeLabel = $"First Envelope";
+      //string lEnvelopeLabel = $"First Envelope";
       
-      Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
+      //Save( lEnvelope, $"{lEnvelopeLabel}.wav" ) ;
 
       var (lFloor,lNewSamples) = EstimateFloor(lEnvelope.Samples);
 

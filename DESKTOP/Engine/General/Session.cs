@@ -6,148 +6,194 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ENGINE
+namespace ENGINE ;
+
+public abstract class DriverApp
 {
-
-  public abstract class DriverApp
-  {
-    public abstract void AddMessage     ( string aMsg ) ;
-    public abstract void AddErrorMessage( string aMsg ) ;
-  }
-
-  public class Session
-  {
-    public Session( string aInputFile, string aName, Settings aSettings, DriverApp aDriverApp, Config aConfig)
-    {
-      InputFile        = aInputFile ;
-      Name             = aName;
-      Settings         = aSettings;
-      DApp             = aDriverApp;  
-      Config           = aConfig ;
-      InputFolder      = aSettings.GetPath("InputFolder");  
-      RootOutputFolder = aSettings.GetPath("OutputFolder");
-
-      SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
-
-      mLogger.SetDriverApp(DApp);
-
-      Utils.SetupFolder(InputFolder);
-      Utils.SetupFolder(RootOutputFolder);
-
-      WriteLine("DIGITC 2 - " + DateTime.Now.ToString() );
-    }  
-
-    public void Shutdown()
-    {
-      mLogger.Close();
-    }
-
-    public void SetCurrentOutputFolder ( string aOutputFolder  )
-    {
-      CurrentOutputFolder = aOutputFolder; 
-
-      Utils.SetupFolder(CurrentOutputFolder);
-    }
-
-    public void SetupLogFile ( string aLogName = null )
-    {
-      mLogger.Close();
-      mLogger.Open( OutputFile($"{aLogName}.txt"), OutputFile($"{aLogName}_detail.txt") ) ;
-    }
-
-    public void OpenLogger ( string aLogFile, string aDetailLogFile )
-    {
-      mLogger.Open( aLogFile, aDetailLogFile );
-    }
-
-    public void CloseLogger ()
-    {
-      mLogger.Close();  
-    }
-
-    public void Write( string aS )
-    {
-      mLogger.Write( aS );  
-    }
-
-    public void WriteDetailLine( string aS )
-    {
-      mLogger.WriteDetailLine( aS );
-    }
-
-    public void WriteLine( string aS )
-    {
-      mLogger.WriteLine( aS );
-    }
-
-    public void WriteErrorLine( string aS )
-    {
-      mLogger.WriteErrorLine( aS );
-    }
-
-    public void WriteLine2DriverApp( string aS )
-    {
-      mLogger.WriteLine2GUI( aS );
-    }
-
-    public void WriteError2GUI( string aS )
-    {
-      mLogger.WriteError2GUI( aS );
-    }
-
-    public void Indent()
-    {
-      mLogger.Indent();
-    }
-
-    public void Unindent()
-    {
-      mLogger.Unindent();
-    }
-
-    public void Error( string aText )
-    {
-      WriteErrorLine( aText ); 
-      WriteError2GUI( aText ); 
-    }
-
-    public void Error( Exception e ) => Error(e.ToString());
-
-    public void Assert( bool aCond, string aText )
-    {
-      if ( ! aCond )
-        Throw( new Exception("ASSERTION FAILED: " + aText) );
-    }
-
-    public void Throw ( Exception e )
-    {
-      Error( "EXCEPTION: " + e.ToString() ); 
-      throw e ;
-    }
-
-    public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
-
-    public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
-
-    public string PrevOutputFile( string aFilename ) => $"{ComputePrevOutputFolder()}/{aFilename}";
-
-    string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
-
-    public bool QuitDisabled => Settings.GetBool("CalibrateScores");
-    public bool QuitEnabled  => !QuitDisabled;
-
-    public string    InputFile ;
-    public string    Name ;
-    public Settings  Settings ;
-    public DriverApp DApp ;
-    public Config    Config ;
-    public string    BaseFolder ;
-    public string    InputFolder ;
-    public string    RootOutputFolder ;
-    public string    CurrentPipelineFolder;
-    public string    CurrentOutputFolder ;
-
-    Logger mLogger = new Logger();
-
-  }
+  public abstract void AddMessage     ( string aMsg ) ;
+  public abstract void AddErrorMessage( string aMsg ) ;
 }
+
+public record TimeStamp( string Text ) 
+{
+  //public string Text { get; init; }
+}
+
+public class ElapsedTime
+{
+  public ElapsedTime() 
+  { 
+    Start();
+  }
+
+  public TimeStamp Start( string aCaption = null )
+  { 
+    if ( !mStarted )
+    {
+      mCaption = aCaption ?? mCaption;
+      mStarted = true;
+      mS = mSS = DateTime.Now; 
+    }
+
+    return new TimeStamp(mCaption + " STARTED.");
+  }
+
+  public TimeStamp Check( string aStep )
+  {
+    var lE = DateTime.Now ;
+
+    var lTT = lE-mS ;
+    var lST = lE-mSS ;
+    mSS = lE; 
+
+    if ( lST != lTT )
+         return new TimeStamp( $"{mCaption} -> {aStep} time: {lST}. TOTAL time: {lTT}." );
+    else return new TimeStamp( $"{mCaption} -> {aStep} time: {lST}." );
+  }
+
+  public TimeStamp Done()
+  {
+    return Check("END");
+  }
+
+  string mCaption ;
+  DateTime mS, mSS ;
+  bool mStarted = false ;
+}
+
+public class Session
+{
+  public Session( string aInputFile, string aName, Settings aSettings, DriverApp aDriverApp, Config aConfig)
+  {
+    InputFile        = aInputFile ;
+    Name             = aName;
+    Settings         = aSettings;
+    DApp             = aDriverApp;  
+    Config           = aConfig ;
+    InputFolder      = aSettings.GetPath("InputFolder");  
+    RootOutputFolder = aSettings.GetPath("OutputFolder");
+
+    SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
+
+    mLogger.SetDriverApp(DApp);
+
+    Utils.SetupFolder(InputFolder);
+    Utils.SetupFolder(RootOutputFolder);
+
+    WriteLine("DIGITC 2 - " + DateTime.Now.ToString() );
+  }  
+
+  public void Shutdown()
+  {
+    mLogger.Close();
+  }
+
+  public void SetCurrentOutputFolder ( string aOutputFolder  )
+  {
+    CurrentOutputFolder = aOutputFolder; 
+
+    Utils.SetupFolder(CurrentOutputFolder);
+  }
+
+  public void SetupLogFile ( string aLogName = null )
+  {
+    mLogger.Close();
+    mLogger.Open( OutputFile($"{aLogName}.txt"), OutputFile($"{aLogName}_detail.txt") ) ;
+  }
+
+  public void OpenLogger ( string aLogFile, string aDetailLogFile )
+  {
+    mLogger.Open( aLogFile, aDetailLogFile );
+  }
+
+  public void CloseLogger ()
+  {
+    mLogger.Close();  
+  }
+
+  public void Write( string aS )
+  {
+    mLogger.Write( aS );  
+  }
+
+  public void WriteDetailLine( string aS )
+  {
+    mLogger.WriteDetailLine( aS );
+  }
+
+  public void WriteLine( string aS )
+  {
+    mLogger.WriteLine( aS );
+  }
+
+  public void WriteErrorLine( string aS )
+  {
+    mLogger.WriteErrorLine( aS );
+  }
+
+  public void WriteLine2DriverApp( string aS )
+  {
+    mLogger.WriteLine2GUI( aS );
+  }
+
+  public void WriteError2GUI( string aS )
+  {
+    mLogger.WriteError2GUI( aS );
+  }
+
+  public void Indent()
+  {
+    mLogger.Indent();
+  }
+
+  public void Unindent()
+  {
+    mLogger.Unindent();
+  }
+
+  public void Error( string aText )
+  {
+    WriteErrorLine( aText ); 
+    WriteError2GUI( aText ); 
+  }
+
+  public void Error( Exception e ) => Error(e.ToString());
+
+  public void Assert( bool aCond, string aText )
+  {
+    if ( ! aCond )
+      Throw( new Exception("ASSERTION FAILED: " + aText) );
+  }
+
+  public void Throw ( Exception e )
+  {
+    Error( "EXCEPTION: " + e.ToString() ); 
+    throw e ;
+  }
+
+  public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
+
+  public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
+
+  public string PrevOutputFile( string aFilename ) => $"{ComputePrevOutputFolder()}/{aFilename}";
+
+  string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
+
+  public bool QuitDisabled => Settings.GetBool("CalibrateScores");
+  public bool QuitEnabled  => !QuitDisabled;
+
+  public string    InputFile ;
+  public string    Name ;
+  public Settings  Settings ;
+  public DriverApp DApp ;
+  public Config    Config ;
+  public string    BaseFolder ;
+  public string    InputFolder ;
+  public string    RootOutputFolder ;
+  public string    CurrentPipelineFolder;
+  public string    CurrentOutputFolder ;
+
+  Logger mLogger = new Logger();
+
+}
+

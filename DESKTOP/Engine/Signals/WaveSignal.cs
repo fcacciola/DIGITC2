@@ -133,8 +133,6 @@ namespace ENGINE
 
     public static void SaveTo( this DiscreteSignal aDS, string aFilename, Session aSession = null )  
     {
-      aSession?.WriteDetailLine($"Saving signal to file: [{aFilename}]");
-
       try
       {
         using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))

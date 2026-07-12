@@ -55,6 +55,8 @@ public class BinarizeFromTapCode : FileLexicalFilter
     public TapCodeSymbol Symbol { get; }
 
     public string DecodedValue { get; }
+
+    public override string ToString() => $"[{Symbol.Code}]=>{DecodedValue}";
   }
 
   protected override Packet Process()
@@ -137,7 +139,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     if (  Session.QuitDisabled || ( lBitBags.Count > mMinCount && lAverageBitBagCoverage >= mQuitThreshold ) )
     {
-      return CreateOutput( new LexicalSignal(lBitBags), Name, new Score(Name,lAverageBitBagCoverage,1.0,Score.TypeE.Coverage) ) ;
+      return CreateOutput( new LexicalSignal(lBitBags), Name, new Score(Name,lAverageBitBagCoverage,Score.TypeE.Coverage) ) ;
     }
     else
     {

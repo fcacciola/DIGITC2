@@ -162,7 +162,7 @@ namespace ENGINE
       CreatePulses();
       FilterShortPulses();
 
-      return CreateOutput( new LexicalSignal(CurrPulses), Name, null, false) ;
+      return CreateOutput( new LexicalSignal(CurrPulses), Name, new Score(Name, CurrPulses.Count, Score.TypeE.Boundless), false, new PartialResultMessage($"{CurrPulses.Count} pulses.") ) ;
     }
    
     public override string Name => this.GetType().Name ;

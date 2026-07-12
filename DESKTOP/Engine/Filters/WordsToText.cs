@@ -13,11 +13,11 @@ namespace ENGINE
 {
   public class TextMessage : PacketData
   {
-    public TextMessage( string aText ) { Text = aText ; }  
+    public TextMessage( string aText ) { Value = aText ; }  
 
-    public override string ToString() { return Text ; } 
+    public override string ToString() { return Value ; } 
 
-    public string Text {  get; private set; }
+    public string Value {  get; private set; }
   }
 
   public class WordsToText : LexicalFilter

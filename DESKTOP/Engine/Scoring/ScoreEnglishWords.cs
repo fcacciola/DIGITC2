@@ -103,7 +103,7 @@ public class ScoreEnglishWords : LexicalFilter
     {
       WriteLine2GUI("No dictionary loaded, skipping scoring.");
 
-      return CreateOutput(LexicalInput, "English Words score.", new Score(Name, 1.0, 1.0, Score.TypeE.Coverage), false);
+      return CreateOutput(LexicalInput, "English Words score.");
     }
 
     WriteLine2GUI( "Scoring Bytes against dictionary..." );
@@ -124,7 +124,7 @@ public class ScoreEnglishWords : LexicalFilter
 
     double lCoverage = lWordSymbols.Count > 0 ? lScoreSum / lWordSymbols.Count : 0.0 ;
 
-    Score lScore = new Score( Name, lCoverage, 1.5, Score.TypeE.Coverage ) ;
+    Score lScore = new Score( Name, lCoverage, Score.TypeE.Coverage ) ;
       
     WriteDetailLine( $"Score: {lScore}" );
 

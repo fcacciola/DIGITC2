@@ -72,7 +72,7 @@ namespace ENGINE
 
       double lCoverage = lByteSymbols.Count > 0 ?  lStrength / (double)lByteSymbols.Count : 0 ;
       
-      Score lScore = new Score(Name, lCoverage, 1.0, Score.TypeE.Coverage) ;
+      Score lScore = new Score(Name, lCoverage, Score.TypeE.Coverage) ;
 
       WriteDetailLine($"Good Bytes Coverage: {lCoverage}");
       WriteDetailLine($"Score: {lScore}");

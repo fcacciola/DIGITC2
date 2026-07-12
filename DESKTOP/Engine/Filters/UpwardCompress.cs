@@ -75,7 +75,7 @@ namespace ENGINE
         lNewRep[i] = MathF.Pow(WaveInput.Rep[i], lGamma);;
       }
 
-      Save(lNewRep, $"UpwardCompress.wav") ;
+      //Save(lNewRep, $"UpwardCompress.wav") ;
 
       var rR = WaveInput.CopyWith(lNewRep);
 

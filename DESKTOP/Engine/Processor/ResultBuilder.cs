@@ -20,7 +20,8 @@ namespace ENGINE
 
     public List<Packet> FilterSequence { get; private set; } = new List<Packet>();
 
-    public List<Score> FilterScores { get; private set; } = new List<Score>();
+    public List<Score>                FilterScores          { get; private set; } = new List<Score>();
+    public List<PartialResultMessage> PartialResultMessages { get; private set; } = new List<PartialResultMessage>();
   }
 
 
@@ -40,7 +41,7 @@ namespace ENGINE
       if ( Packets.Count == 0 )
         return rResult ;
 
-      rResult = new PipelineResult{ Name = Name, Text= Packets.Last().Data as TextMessage, Config = Config };
+      rResult = new PipelineResult{ Name = Name, Text = Packets.LastOrDefault()?.Data as TextMessage, Config = Config };
  
       foreach ( Packet lPacket in Packets )
       {
@@ -48,6 +49,11 @@ namespace ENGINE
         if ( lFilterScore != null ) 
         {
           rResult.FilterScores.Add( lFilterScore ); 
+        }
+
+        if (lPacket.Data is PartialResultMessage lPRM) 
+        {
+          rResult.PartialResultMessages.Add(lPRM);
         }
 
         rResult.FilterSequence.Add(lPacket) ;
@@ -90,9 +96,9 @@ namespace ENGINE
           List<string> lReport      = new List<string>() ;
           List<string> lCollatedLogs = new List<string>() ;
 
-          if ( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Text) )
+          if ( lPR.Text != null && ! string.IsNullOrEmpty(lPR.Text.Value) )
           {
-            lReport.Add( $"Decoded Text Message: {lPR.Text.Text}" ) ;
+            lReport.Add( $"Decoded Text Message: {lPR.Text.Value}" ) ;
             lReport.Add( "" ) ;
           }
 
@@ -103,6 +109,8 @@ namespace ENGINE
           lReport.Add( "" ) ;
 
           lReport.Add($"Branch: {lPR.Name}");
+
+          lPR.PartialResultMessages.ForEach( lPRM => lPRM.Lines.ForEach( line => lReport.Add($"Partial Result: {line}") ) ) ; 
 
           lReport.Add( "Scores:" ) ;
           lPR.FilterScores.ForEach( lSC => lReport.Add( lSC.ToString() ) ) ; 
@@ -139,7 +147,7 @@ namespace ENGINE
 
     void CollateAllLogFiles (string aFolder, List<string> aLogs )
     {
-      foreach( var lLogFile in Directory.EnumerateFiles( aFolder, "*.txt") )
+      foreach( var lLogFile in Directory.EnumerateFiles( aFolder, "*_detail.txt") )
       {
         aLogs.AddRange( File.ReadAllLines( lLogFile ) ) ; 
       }

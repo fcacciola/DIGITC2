@@ -262,6 +262,7 @@ a {
 .status-panel,
 .messages-panel,
 .overall-result,
+.partial-results,
 .complete-log,
 .result-files,
 .workspace {
@@ -293,8 +294,22 @@ a {
   line-height: 1.45;
 }
 
+.result-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.result-panel.has-partial-results {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+  align-items: start;
+}
+
 .overall-result {
-  margin: 0 0 6px;
+  height: calc(8 * 1.35em + 16px);
+  overflow: auto;
+  margin: 0;
   padding: 8px 10px;
   color: #111827;
   font-family: Consolas, "Liberation Mono", monospace;
@@ -312,6 +327,18 @@ a {
 
 .overall-result.no-message-result {
   color: #b91c1c;
+}
+
+.partial-results {
+  height: calc(8 * 1.35em + 16px);
+  overflow: auto;
+  margin: 0;
+  padding: 8px 10px;
+  color: #334155;
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: pre;
 }
 
 .complete-log {
@@ -536,6 +563,10 @@ a {
 
   .upload-panel {
     grid-template-columns: minmax(260px, 1fr) minmax(320px, 1fr);
+  }
+
+  .result-panel.has-partial-results {
+    grid-template-columns: 1fr;
   }
 
   .primary-button {

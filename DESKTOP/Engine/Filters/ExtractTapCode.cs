@@ -273,6 +273,8 @@ namespace ENGINE
       WriteLine2GUI("Extracting Tap Code...");
       Indent();
 
+      List<string> lPartialResultMessages = new List<string>();
+
       WriteLine("Getting Raw Taps..");
       var lTaps = GetTaps(lPulses);
       if ( lTaps.Count < mOptions.MinNumberOfTaps && Session.QuitEnabled )
@@ -360,17 +362,18 @@ namespace ENGINE
 
       List<TapCode> lAllCodes = new List<TapCode>();
 
-      WriteLine($"Bag Count:{lBags.Count}");
+      WriteLine($"Tap Bag Count:{lBags.Count}");
+      lPartialResultMessages.Add($"Tap Bag Count:{lBags.Count}");
 
       foreach( var lBag in lBags ) 
       {  
         if ( lBag.Count == 0 )
           continue ;
 
-        WriteDetailLine("Bag:");
-        Indent();
-        lBag.ForEach( g => WriteDetailLine(g.ToString()));
-        Unindent();
+        //lBag.ForEach( g => WriteDetailLine(g.ToString()));
+        //var lTapsToString = string.Join(",", lBag.ConvertAll( b => $"{b.Count}"));
+        //lPartialResultMessages.Add($"Taps: {lTapsToString}");
+        //WriteDetailLine($"Taps: {lTapsToString}");
 
         List<TapCode> lCodes = new List<TapCode>();
 
@@ -390,8 +393,9 @@ namespace ENGINE
           }
         }
 
-
-        WriteDetailLine( $"Code: {string.Join(",", lCodes )}");
+        string lPartialResultMessage = $"Tap Code: {string.Join(",", lCodes )}";
+        WriteDetailLine( lPartialResultMessage );
+        lPartialResultMessages.Add(lPartialResultMessage);
 
         lAllCodes.AddRange( lCodes ) ;  
       }
@@ -407,8 +411,7 @@ namespace ENGINE
 
       Unindent();
 
-
-      return CreateOutput( new FileSignal(lTapCodeFile), "TapCodes") ;
+      return CreateOutput( new FileSignal(lTapCodeFile), "TapCodes", new Score(Name, lAllCodes.Count, Score.TypeE.Boundless), false, new PartialResultMessage(lPartialResultMessages) ) ;
     }
 
     public override string Name => this.GetType().Name ;

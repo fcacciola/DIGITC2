@@ -78,7 +78,7 @@ namespace ENGINE
 
       WriteLine($"Correlation: {lCorrelation}");
 
-      Score lScore = new Score(Name, lCorrelation, 1.0, Score.TypeE.Correlation) ;
+      Score lScore = new Score(Name, lCorrelation, Score.TypeE.Correlation) ;
 
       return CreateOutput( LexicalInput, "Token-length distribution score.", lScore, lCorrelation < mQuitThreshold);
     }
