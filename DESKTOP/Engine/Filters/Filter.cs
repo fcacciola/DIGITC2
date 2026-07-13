@@ -45,6 +45,8 @@ namespace ENGINE
 
       Unindent();
 
+      Session.MarkTime($"Filter finished");
+
       return (rPacket,Branches); 
     }
 
@@ -88,6 +90,8 @@ namespace ENGINE
       List<float> lSamples = new List<float> ();
       aSymbols.ForEach( s => s.DumpSamples(lSamples ) );
       Plot(lSamples, aLabel);
+
+      Session.MarkTime($"PLOT done.");
     }
 
     public override string ToString() => Name ;

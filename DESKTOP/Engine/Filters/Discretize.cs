@@ -31,8 +31,8 @@ namespace ENGINE
 
       WriteLine2GUI($"Applying Discretization...");
 
-      var lDiscretizer =  EnvelopeDiscretizer.CreateAuto(lSignal.Rep.Samples, 0,  mOptions.MergeProminence);
-      var lNewSamples = lDiscretizer.Discretize(lSignal.Rep.Samples);
+      var lDiscretizer =  EnvelopeDiscretizer.CreateAuto(lSignal.Rep.Samples, 0,  mOptions.MergeProminence, Session);
+      var lNewSamples = lDiscretizer.Discretize(lSignal.Rep.Samples, Session );
 
       var rR = lSignal.CopyWith( new DiscreteSignal( SIG.SamplingRate, lNewSamples) );
 

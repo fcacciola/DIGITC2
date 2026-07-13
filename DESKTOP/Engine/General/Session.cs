@@ -14,11 +14,6 @@ public abstract class DriverApp
   public abstract void AddErrorMessage( string aMsg ) ;
 }
 
-public record TimeStamp( string Text ) 
-{
-  //public string Text { get; init; }
-}
-
 public class ElapsedTime
 {
   public ElapsedTime() 
@@ -26,19 +21,29 @@ public class ElapsedTime
     Start();
   }
 
-  public TimeStamp Start( string aCaption = null )
+  public void Start()
   { 
     if ( !mStarted )
     {
-      mCaption = aCaption ?? mCaption;
       mStarted = true;
       mS = mSS = DateTime.Now; 
     }
-
-    return new TimeStamp(mCaption + " STARTED.");
   }
 
-  public TimeStamp Check( string aStep )
+  public void PushSection( string section )
+  {
+    mSections.Push(section);
+    BuildCaption();
+  }
+
+
+  public void PopSection() 
+  {
+    mSections.Pop();
+    BuildCaption();
+  }
+
+  public string Check( string aCheckpoint )
   {
     var lE = DateTime.Now ;
 
@@ -47,16 +52,19 @@ public class ElapsedTime
     mSS = lE; 
 
     if ( lST != lTT )
-         return new TimeStamp( $"{mCaption} -> {aStep} time: {lST}. TOTAL time: {lTT}." );
-    else return new TimeStamp( $"{mCaption} -> {aStep} time: {lST}." );
+         return $"{mCaption} {aCheckpoint} time: {lST}. TOTAL time: {lTT}.";
+    else return $"{mCaption} {aCheckpoint} time: {lST}.";
   }
 
-  public TimeStamp Done()
+  public void BuildCaption()
   {
-    return Check("END");
+    mCaption = mSections.Count > 0 ? string.Join(" -> ", mSections.Reverse()) : "";
   }
 
-  string mCaption ;
+  Stack<string> mSections = new Stack<string>();
+
+  string mCaption = "";
+
   DateTime mS, mSS ;
   bool mStarted = false ;
 }
@@ -81,6 +89,8 @@ public class Session
     Utils.SetupFolder(RootOutputFolder);
 
     WriteLine("DIGITC 2 - " + DateTime.Now.ToString() );
+
+    mElapsedTime.Start();
   }  
 
   public void Shutdown()
@@ -171,6 +181,21 @@ public class Session
     throw e ;
   }
 
+  public void PushTimeSection(string aCaption) 
+  {
+    mElapsedTime.PushSection(aCaption);
+  }
+
+  public void PopTimeSection() 
+  {
+    mElapsedTime.PopSection();
+  }
+
+  public void MarkTime( string aCheckpoint ) 
+  {
+    WriteLine2DriverApp(mElapsedTime.Check(aCheckpoint));
+  }
+
   public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
 
   public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
@@ -193,7 +218,8 @@ public class Session
   public string    CurrentPipelineFolder;
   public string    CurrentOutputFolder ;
 
-  Logger mLogger = new Logger();
+  ElapsedTime mElapsedTime = new ElapsedTime();
+  Logger      mLogger      = new Logger();
 
 }
 

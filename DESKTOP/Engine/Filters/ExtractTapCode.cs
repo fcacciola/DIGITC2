@@ -191,6 +191,9 @@ namespace ENGINE
         for( int i = 0 ; i < aPulses.Count; ++ i )
           rTaps.Add( TapFromPulse(aPulses[i]) ) ;
       }
+
+      Session.MarkTime("Taps extracted");
+
       return rTaps ; 
     }
 
@@ -256,6 +259,8 @@ namespace ENGINE
 
         Params.ChangeValue("IntraCountGap",$"{rIntraCountGap_HighBound:F3}");
 
+        Session.MarkTime($"IntraCountGap_HighBound calculated");
+
         return rIntraCountGap_HighBound ;
       }
 
@@ -295,6 +300,7 @@ namespace ENGINE
 
       WriteLine2GUI($"IntraTap Gap High Bound: {lIntraTapGap_HighBound:F2}s");
       lTaps.ForEach( t => t.GapIsIntra = t.Gap <= lIntraTapGap_HighBound );
+      Session.MarkTime("Taps classified");
 
       List<float> lTapSamples = new List<float>();
       lTaps.ForEach( t => t.DumpSample(lTapSamples,  t.GapIsIntra ? Tap.TapType.IntraGap: Tap.TapType.OuterGap )) ;
@@ -328,7 +334,9 @@ namespace ENGINE
         WriteLine("Not enough Taps. Quitting.") ;
         return CreateQuitOutput();
       }
-      
+
+      Session.MarkTime("Raw Tap Counts built");
+
       // A TapCount Bag contains a sequence of Tap Counts that should
       // correspond to a byte. It can contain at most 16 counts (for 8 bits)
       // BUT it can cotain less if Tap are missing
@@ -359,6 +367,8 @@ namespace ENGINE
           lCurrBag.Add(lRawCount);
         }
       }
+
+      Session.MarkTime("Tap Count Bags created");
 
       List<TapCode> lAllCodes = new List<TapCode>();
 
@@ -399,6 +409,8 @@ namespace ENGINE
 
         lAllCodes.AddRange( lCodes ) ;  
       }
+
+      Session.MarkTime("Tap Codes extracted");
 
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 

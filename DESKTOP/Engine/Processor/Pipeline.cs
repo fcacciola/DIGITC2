@@ -130,6 +130,8 @@ public class Pipeline
 
     foreach( var lFilter in mFilters )
     {
+      Session.PushTimeSection(lFilter.Name);
+
       try
       {
         // ONLY use the Filter name as a bucket Subfolder at the first filter, then use
@@ -174,7 +176,11 @@ public class Pipeline
       }
         
       mFilterIdx = mFilterIdx + 1  ;
+
+      Session.PopTimeSection();
     }
+
+    Session.MarkTime("Pipeline finished");
 
     return rRB.BuildResult() ;  
   }
@@ -211,6 +217,8 @@ public class Pipeline
   public void SetupFilters( ) 
   {
     mFilters.ForEach( filter => filter.Setup( Session, Settings, Config) ) ;
+
+    Session.MarkTime("Filters Setup");
   }
 
   public void AddSlot( OutputSlot aSlot )

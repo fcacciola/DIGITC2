@@ -189,8 +189,11 @@ public static class ExactPercentile
 
       WaveInput.Rep.Sanitize() ;
 
+      Session.MarkTime("Input signal Sanitized");
+
       var lEnvelopeParams = new Envelope.Args{ AttackTime = mOptions.EnvelopeAttackTime, ReleaseTime = mOptions.EnvelopeReleaseTime};
       var lEnvelope = Envelope.Apply(WaveInput.Rep, lEnvelopeParams);
+      Session.MarkTime("Envelope Applied");
 
       //string lEnvelopeLabel = $"First Envelope";
       
@@ -229,6 +232,7 @@ public static class ExactPercentile
       if ( rFloor == -1 )
       {
         rFloor = EstimateBaseline(aEnvelope,mOptions);
+        Session.MarkTime("Floor Baseline Estimated");
 
         int lGates = 0 ;
 
@@ -242,7 +246,9 @@ public static class ExactPercentile
           rFloor *= 1.05f ;
           WriteLine2GUI($"Applying Noise Gate at: {rFloor}");
           rNewSamples = RawApplyGate(aEnvelope, rFloor);
+          Session.MarkTime($"Noise Gate {i}Applied");
           lGates = CountGates(rNewSamples);
+          Session.MarkTime($"Gates {i} Counted");
         }
 
         if ( rFloor > 0 && lGates < cMinGates )
@@ -326,6 +332,7 @@ public static class ExactPercentile
     }
 
     Options mOptions = new Options();
+
 
     public override string Name => this.GetType().Name ;
 

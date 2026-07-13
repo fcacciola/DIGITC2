@@ -201,7 +201,9 @@ namespace ENGINE
 
       AddPulse();
 
-      CurrPulses.SetupGapDurations(); 
+      CurrPulses.SetupGapDurations();
+
+      Session.MarkTime($"Pulses Created.");
     }
 
     void AddPulse()
@@ -257,6 +259,8 @@ namespace ENGINE
           }
         }
 
+        Session.MarkTime($"MinPulseWidth calculated");
+
         return lMinPulseWidth;
       }
 
@@ -269,6 +273,9 @@ namespace ENGINE
 
       var lPulses = CurrPulses;
       lPulses.RemoveAll(p => p.Duration < lMinpulseWidth);
+
+      Session.MarkTime($"Short Pulses Filtered.");
+
       Plot(CurrPulses,"Pulses");
     }
 

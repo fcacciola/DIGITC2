@@ -66,33 +66,41 @@ namespace ENGINE
     ///   - near 0.0 -> only near-flat valleys merge (splits aggressively)
     ///   - near 1.0 -> almost everything merges (a valley must reach background to split)
     ///   - 0.5      -> a valley must descend past halfway (peak -> background) to count as a gap
-    public static EnvelopeDiscretizer CreateAuto(
-      float[] aEnvelope,
-      int     aMinWidth,
-      float   aMergeProminence = 0.5f)
+    public static EnvelopeDiscretizer CreateAuto( float[] aEnvelope, int aMinWidth, float aMergeProminence, Session aSession)
     {
       float lLo;
       float lHi;
       float lBackground;
       EstimateHysteresisBand(aEnvelope, out lLo, out lHi, out lBackground);
 
+      aSession.MarkTime($"Discretizer auto thresholds computed");
+
       float lMinArea = aMinWidth * (lHi - lLo);   // area of a minimal "just reaches hi" pulse
       return new EnvelopeDiscretizer(lHi, lLo, aMinWidth, lMinArea, aMergeProminence, lBackground);
     }
 
     /// Full pipeline. Returns a 0/1 square wave the same length as the input.
-    public float[] Discretize(float[] aEnvelope)
+    public float[] Discretize(float[] aEnvelope, Session aSession)
     {
-      List<PulseRun> lRuns = FindPulses(aEnvelope);
+      List<PulseRun> lRuns = FindPulses(aEnvelope, aSession);
       return Render(lRuns, aEnvelope.Length);
     }
 
     /// Same pipeline, but returns the intervals (for downstream pulse-symbol work).
-    public List<PulseRun> FindPulses(float[] aEnvelope)
+    public List<PulseRun> FindPulses(float[] aEnvelope, Session aSession)
     {
       List<PulseRun> lRuns = FindRunsAboveLo(aEnvelope);
+
+      aSession.MarkTime($"FindRunsAboveLo completed");
+
       lRuns                = BridgeByProminence(lRuns, aEnvelope);
+
+      aSession.MarkTime($"BridgeByProminence completed");
+
       lRuns                = FilterWeakRuns(lRuns);
+
+      aSession.MarkTime($"FilterWeakRuns completed");
+
       return lRuns;
     }
 

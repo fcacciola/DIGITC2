@@ -41,6 +41,8 @@ namespace ENGINE
 
       var lNewRep = Apply(WaveInput.Rep, lArgs); 
 
+      Session.MarkTime($"Envelope applied.");
+
       Save(lNewRep, $"Envelope.wav") ;
 
       var rR = WaveInput.CopyWith(lNewRep);

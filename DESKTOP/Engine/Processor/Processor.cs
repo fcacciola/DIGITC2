@@ -33,6 +33,9 @@ public class Processor
 
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 
+    aSession.PushTimeSection(aSession.Name);
+    aSession.MarkTime("Processing Stating");
+
     try
     {
 
@@ -44,12 +47,17 @@ public class Processor
       {
         var lPipeline = mPipelines.Peek(); mPipelines.Dequeue();
 
+        aSession.PushTimeSection(lPipeline.Name);
+
         lPipeline.SetupFilters();
 
         lPipeline.AddSlot(OutputSlot.WithoutLogFile(lPipeline.Name));
         string lPipelineFolder = lPipeline.OutputBucket.CurrFullOutputFolder; 
         aSession.CurrentPipelineFolder = lPipelineFolder;
         var lPipelineResult = lPipeline.Process(this);
+
+        aSession.PopTimeSection();
+
         if ( lPipelineResult != null )
         {
           lPipelineResult.Folder = lPipelineFolder; 
@@ -91,6 +99,8 @@ public class Processor
       }
       while (mPipelines.Count > 0);
 
+      aSession.MarkTime("Processing Finished");
+
       mMainPipeline.End();
     }
     catch( Exception x )
@@ -98,6 +108,7 @@ public class Processor
       aSession.Error(x);
     }
 
+    aSession.PopTimeSection();
     aSession.SetCurrentOutputFolder(lMainPipelineFolder);
     aSession.CloseLogger();
 
