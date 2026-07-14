@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 using ENGINE ;
 using NWaves.Signals ;
-
+{}
 namespace Transgraphier
 {
 
@@ -17,9 +17,14 @@ namespace Transgraphier
       mMainWindow = aMainWindow ; 
     }
 
+#if DEBUG
     public override void AddMessage     ( string aMsg ) => mMainWindow.AddGeneralMessage(aMsg,true);
     public override void AddErrorMessage( string aMsg ) => mMainWindow.AddErrorMessage  (aMsg,true);
-   
+#else
+    public override void AddMessage     ( string aMsg ) {}
+    public override void AddErrorMessage( string aMsg ) {}
+#endif
+
     Form1 mMainWindow; 
   }
 

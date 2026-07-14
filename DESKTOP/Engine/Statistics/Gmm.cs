@@ -108,6 +108,7 @@ namespace ENGINE
       }
     }
 
+#if DEBUG 
     public Plotter CreatePlot( Session aSession, string aName )
     {
       Plotter rPlot = new Plotter( aSession, new Plotter.Options{Title=aName} );
@@ -127,9 +128,11 @@ namespace ENGINE
 
       return rPlot;
     }
+#endif
 
     public void Plot( Session aSession, string aName )
     {
+#if DEBUG 
       if (Components.Count == 0)
         return;
 
@@ -139,9 +142,10 @@ namespace ENGINE
         lPlot.SavePNG(aSession.OutputFile($"{aName}.png"));
         lPlot.SaveSVG(aSession.OutputFile($"{aName}.svg"));
       }
+#endif
     }
 
-    public void Save( Session aSession, string aName )
+    [Conditional("DEBUG")] public void Save( Session aSession, string aName )
     {
       if (Components.Count == 0)
         return;

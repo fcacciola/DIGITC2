@@ -78,20 +78,23 @@ namespace ENGINE
 
     protected void Save( WaveSignal aWS, string aName ) => Save(aWS.Rep, aName);  
 
-    protected void Plot( List<float> aSamples, string aLabel )
+    protected void SaveFloatsAsWAV( List<float> aSamples, string aLabel )
     {
+      Session.MarkTime($"Saving floats as WAV started.");
       DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, aSamples);
       WaveSignal lWave = new WaveSignal(lWaveRep);
       lWave.SaveTo( Session.OutputFile( aLabel + ".wav"), Session ) ;
+      Session.MarkTime($"Saving floats as WAV finished.");
     }
 
-    protected void Plot<SYM>( List<SYM> aSymbols, string aLabel ) where SYM : Symbol
+    protected void SaveSymbolsAsWAV<SYM>( List<SYM> aSymbols, string aLabel ) where SYM : Symbol
     {
+      Session.MarkTime($"Saving symbols as WAV started.");
       List<float> lSamples = new List<float> ();
       aSymbols.ForEach( s => s.DumpSamples(lSamples ) );
-      Plot(lSamples, aLabel);
+      SaveFloatsAsWAV(lSamples, aLabel);
 
-      Session.MarkTime($"PLOT done.");
+      Session.MarkTime($"Saving symbols as WAV finished.");
     }
 
     public override string ToString() => Name ;

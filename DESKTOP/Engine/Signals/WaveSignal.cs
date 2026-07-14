@@ -133,12 +133,15 @@ namespace ENGINE
 
     public static void SaveTo( this DiscreteSignal aDS, string aFilename, Session aSession = null )  
     {
+      aSession.MarkTime("DS Signal SaveTo started");
       try
       {
         using (var lStream = new FileStream(aFilename, FileMode.OpenOrCreate, FileAccess.Write))
         {
           var lWF = new WaveFile(aDS);
+          aSession.MarkTime("WaveFile created");
           lWF.SaveTo( lStream );  
+          aSession.MarkTime("WaveFile Saved");
         }
       }
       catch( Exception ex )
@@ -215,7 +218,7 @@ namespace ENGINE
     {
       signal.Rectify();
       signal.ClampOutliers(aFloor, aCeiling); 
-      signal.NormalizeMaxWithPeak(aOrder, aCeiling);
+      //signal.NormalizeMaxWithPeak(aOrder, aCeiling);
     }
 
     /// <summary>

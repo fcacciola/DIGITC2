@@ -1,10 +1,17 @@
-# Terminal 1
-dotnet run --project WEB\Server\DigitC2.Server.csproj --urls http://127.0.0.1:5188
+Open the solution on VS and run the server as usual
+Open Visual Studio code at rhe REPO root, the choose Run Client
 
-# Terminal 2
-cd WEB\Client
-npm.cmd run build
-npm.cmd run dev
+----
 
-Open:
-http://localhost:5173
+Publish and run the published server:
+
+On a PS shell at the REPO root:
+
+1 - Re-publish
+
+powershell -ExecutionPolicy Bypass -File WEB\Publish-Web.ps1
+
+
+2 - Run published
+
+powershell -ExecutionPolicy Bypass -File WEB\Start-Published.ps1 -WorkspaceRoot "C:\Users\User\AppData\Local\Varanormal\Transgraphier\WebData" -SharedPassword "ITC"

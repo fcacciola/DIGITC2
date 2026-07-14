@@ -83,31 +83,6 @@ public class OutputBucket
   List<OutputSlot> mSlots = new List<OutputSlot>();
 }
 
-
-public class PipelineSelection
-{
-  public PipelineSelection( string aActivePipelines )
-  {
-    if ( ! string.IsNullOrEmpty(aActivePipelines) )
-    {
-      foreach( string lActivePipeline in aActivePipelines.Split(',') )  
-        if ( !lActivePipeline.StartsWith("!") )
-          mActive.Add( lActivePipeline ); 
-    }
-  }
-
-  public bool IsActive( string aPipeline )
-  {
-    if ( mActive.Count > 0 )
-    {
-      return ( mActive.Find( s => s == aPipeline ) != null ) ;
-    }
-    else return true ;
-  }
-
-  List<string> mActive = new List<string>();
-}
-
 public class Pipeline
 {
   public Pipeline BranchOut( OutputSlot aStartSlot, Packet aStartPacket, Config aConfig, string aSubName )

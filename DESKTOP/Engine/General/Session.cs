@@ -88,7 +88,7 @@ public class Session
     Utils.SetupFolder(InputFolder);
     Utils.SetupFolder(RootOutputFolder);
 
-    WriteLine("DIGITC 2 - " + DateTime.Now.ToString() );
+    WriteLine("Transgraphier - " + DateTime.Now.ToString() );
 
     mElapsedTime.Start();
   }  

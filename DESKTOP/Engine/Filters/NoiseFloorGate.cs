@@ -210,7 +210,7 @@ public static class ExactPercentile
 
       var lGated = new DiscreteSignal(SIG.SamplingRate, lNewSamples);
 
-      lGated.Sanitize();
+      //lGated.Sanitize();
 
       string lLabel = $"NoiseGate-{(int)(lFloor*100000)}";
 

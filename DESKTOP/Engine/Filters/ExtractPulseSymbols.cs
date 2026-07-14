@@ -15,7 +15,7 @@ namespace ENGINE
 
   public class FilterHelper
   {
-    static public void DumpValues<T>( Session aSession, string aName, List<T> aValues )
+    [Conditional("DEBUG")] static public void DumpValues<T>( Session aSession, string aName, List<T> aValues )
     {
       try
       {
@@ -64,15 +64,6 @@ namespace ENGINE
     static public List<double> Durations( this List<PulseSymbol> aPulses )
     {
       return aPulses.Select( p => p.Duration ).ToList();
-    }
-
-    static public void Plot( this List<PulseSymbol> aPulses, string aLabel, Session aSession )
-    {
-      List<float> lSamples = new List<float> ();
-      aPulses.ForEach( s => s.DumpSamples(lSamples ) );
-      DiscreteSignal lWaveRep = new DiscreteSignal(SIG.SamplingRate, lSamples);
-      WaveSignal lWave = new WaveSignal(lWaveRep);
-      lWave.SaveTo( aSession.OutputFile( aLabel + ".wav"), aSession ) ;
     }
   }
 
@@ -220,12 +211,17 @@ namespace ENGINE
     {
       if ( mOptions.MinPulseWidth == -1 )
       {
+        Session.MarkTime($"CalculateMinPulseWidth Started");
+
         double lMinPulseWidth = 0 ;
 
         var lDurations = CurrPulses.Durations();
+        Session.MarkTime($"Durations Calculated");
 
         FilterHelper.DumpValues(Session, "Pulse_Durations",lDurations);
+
         var lGMM = GmmFitter.Fit(lDurations) ;
+        Session.MarkTime($"GMM Fitted");
 
         if ( lGMM != null && lGMM.Components.Count > 0 )
         {
@@ -276,7 +272,7 @@ namespace ENGINE
 
       Session.MarkTime($"Short Pulses Filtered.");
 
-      Plot(CurrPulses,"Pulses");
+      SaveSymbolsAsWAV(CurrPulses,"Pulses");
     }
 
     class Options

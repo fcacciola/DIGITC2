@@ -34,7 +34,7 @@ public class Processor
     string lMainPipelineFolder = mMainPipeline.OutputBucket.CurrFullOutputFolder; 
 
     aSession.PushTimeSection(aSession.Name);
-    aSession.MarkTime("Processing Stating");
+    aSession.MarkTime("Processing Started");
 
     try
     {

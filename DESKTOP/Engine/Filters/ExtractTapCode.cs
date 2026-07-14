@@ -201,6 +201,8 @@ namespace ENGINE
     {
       if ( mOptions.IntraCountGap_HighBound == -1 )
       {
+        Session.MarkTime($"ComputeIntraCountGap_HighBound Started");
+
         double rIntraCountGap_HighBound = 0.04; // Wild guess if all statistical analysis fails. This is a very high bound, but it is better to have some false positives than to miss real intra counts.
 
         if (aGaps.Count < 2)
@@ -211,6 +213,7 @@ namespace ENGINE
 
         FilterHelper.DumpValues(Session, "Pulses_Gaps",aGaps);
         var lRawGMM = GmmFitter.Fit(aGaps) ;
+        Session.MarkTime($"GMM Fitted");
 
         if ( lRawGMM != null )
         {
@@ -305,7 +308,7 @@ namespace ENGINE
       List<float> lTapSamples = new List<float>();
       lTaps.ForEach( t => t.DumpSample(lTapSamples,  t.GapIsIntra ? Tap.TapType.IntraGap: Tap.TapType.OuterGap )) ;
 
-      Plot(lTapSamples, "0_Taps-ColorCoded");
+      SaveFloatsAsWAV(lTapSamples, "0_Taps-ColorCoded");
 
       WriteDetailLine("Classified Taps:");
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
@@ -415,7 +418,7 @@ namespace ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      Plot(lSymbols, "1_TapCode-ColorCoded-Blocks");
+      SaveSymbolsAsWAV(lSymbols, "1_TapCode-ColorCoded-Blocks");
 
       string lTapCodeFile = Session.OutputFile("TapCode.txt");
 

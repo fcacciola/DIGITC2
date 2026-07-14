@@ -56,7 +56,7 @@ namespace ENGINE
 
       var rNewRep = lEnvelopeFollower.ApplyTo( aSignal );
 
-      rNewRep.Sanitize(); 
+      //rNewRep.Sanitize(); 
 
       return rNewRep ;
     }
