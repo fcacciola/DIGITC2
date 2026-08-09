@@ -11,7 +11,12 @@ namespace ENGINE
 {
   public delegate (string,double) GetSymbolMeaningAndValue( Symbol aSymbol );
 
-  public abstract class Symbol 
+  public interface IWithSamples
+  {
+    void DumpSamples( List<float> aSamples ) ;
+  }
+
+  public abstract class Symbol : IWithSamples
   {
     public Symbol( int aIdx ) { Idx = aIdx ; }
 
@@ -206,26 +211,25 @@ namespace ENGINE
 
   public class ArraySymbol : Symbol
   {
-    public ArraySymbol( int aIdx, List<Symbol> aSymbols ) : base(aIdx) 
-    { 
-      Symbols = aSymbols ;
+    public ArraySymbol( int aIdx, IReadOnlyList<Symbol> aSymbols) : base(aIdx)
+    {
+      Symbols = aSymbols.ToList();
       SamplePos = Symbols[Symbols.Count / 2].SamplePos;
     }
 
-    public override string Type => "Token" ;
+    public int Count => Symbols.Count;
 
-    public override Symbol Copy() { return new ArraySymbol( Idx, Symbols.ConvertAll( s => s.Copy() ) ); }  
+    public override string Type => "Array";
 
-    public override string ToString() => string.Join("|", Symbols.ConvertAll( s => s.ToString() ) );
-    
-    //public int UpperBound => Math.Max(Symbols.Count,DContext.Session.Settings.GetInt("MaxWordLength")) ;
-    
-    public double Value => Symbols.Count ;
+    public override Symbol Copy() => new ArraySymbol(Idx, Symbols.Select(s => s.Copy()).ToList());
 
-    public List<Symbol> Symbols ;
+    public override string ToString() => string.Join("|", Symbols.Select(s => s.ToString()));
 
-    public List<SYM> GetSymbols<SYM>() => Symbols.Cast<SYM>().ToList();
+    public double Value => Symbols.Count;
 
+    public IReadOnlyList<Symbol> Symbols { get; }
+
+    public List<TSymbol> GetSymbols<TSymbol>() where TSymbol : Symbol => Symbols.Cast<TSymbol>().ToList();
   }
 
   public class WordSymbol : Symbol

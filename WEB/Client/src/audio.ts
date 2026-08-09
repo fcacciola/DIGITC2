@@ -1,6 +1,13 @@
 import type { ResultFileNode, TimelineAsset, TimelineEntry, WaveAsset } from "./types";
 import { resolveServerUrl } from "./api";
 
+const engineSampleRate = 44100;
+
+export type PreparedAudioInput = {
+  file: File;
+  wave: WaveAsset;
+};
+
 export async function loadWaveAsset(file: ResultFileNode, includeRuler: boolean): Promise<WaveAsset> {
   if (!file.url) {
     throw new Error(`Wave file has no URL: ${file.relativePath}`);
@@ -25,18 +32,37 @@ export async function loadWaveAsset(file: ResultFileNode, includeRuler: boolean)
   };
 }
 
-export async function loadLocalWaveAsset(file: File): Promise<WaveAsset> {
-  const decoded = decodeWavMono(await file.arrayBuffer());
+export async function prepareAudioInput(file: File): Promise<PreparedAudioInput> {
+  const arrayBuffer = await file.arrayBuffer();
+  let samples: Float32Array;
+
+  if (file.name.toLowerCase().endsWith(".wav")) {
+    try {
+      const decoded = decodeWavMono(arrayBuffer);
+      if (decoded.sampleRate === engineSampleRate) {
+        return {
+          file,
+          wave: makeLocalWaveAsset(file, decoded.samples)
+        };
+      }
+
+      samples = await resampleMono(decoded.samples, decoded.sampleRate, engineSampleRate);
+    } catch {
+      samples = await decodeBrowserAudioMono(arrayBuffer);
+    }
+  } else {
+    samples = await decodeBrowserAudioMono(arrayBuffer);
+  }
+
+  const wav = encodePcm16Wav(samples, engineSampleRate);
+  const normalizedFile = new File([wav], `${file.name.replace(/\.[^.]+$/, "")}.wav`, {
+    type: "audio/wav",
+    lastModified: file.lastModified
+  });
 
   return {
-    id: `local:${file.name}:${file.lastModified}`,
-    title: file.name.replace(/\.wav$/i, ""),
-    url: null,
-    relativePath: file.name,
-    samples: decoded.samples,
-    sampleRate: decoded.sampleRate,
-    colorCoded: false,
-    includeRuler: true
+    file: normalizedFile,
+    wave: makeLocalWaveAsset(file, samples)
   };
 }
 
@@ -76,6 +102,71 @@ function makeWaveTitle(file: ResultFileNode): string {
 function isColorCodedWaveFile(file: ResultFileNode): boolean {
   const path = `${file.relativePath}/${file.name}`.toLowerCase();
   return path.includes("colorcoded") || path.includes("blocks");
+}
+
+function makeLocalWaveAsset(file: File, samples: Float32Array): WaveAsset {
+  return {
+    id: `local:${file.name}:${file.lastModified}`,
+    title: file.name.replace(/\.[^.]+$/, ""),
+    url: null,
+    relativePath: file.name,
+    samples,
+    sampleRate: engineSampleRate,
+    colorCoded: false,
+    includeRuler: true
+  };
+}
+
+async function decodeBrowserAudioMono(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
+  const context = new OfflineAudioContext(1, 1, engineSampleRate);
+  let audioBuffer: AudioBuffer;
+
+  try {
+    audioBuffer = await context.decodeAudioData(arrayBuffer);
+  } catch {
+    throw new Error("This browser could not decode the selected audio file.");
+  }
+
+  const samples = downmixToMono(audioBuffer);
+  return audioBuffer.sampleRate === engineSampleRate
+    ? samples
+    : resampleMono(samples, audioBuffer.sampleRate, engineSampleRate);
+}
+
+function downmixToMono(audioBuffer: AudioBuffer): Float32Array {
+  const samples = new Float32Array(audioBuffer.length);
+
+  for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+    const channelSamples = audioBuffer.getChannelData(channel);
+    for (let i = 0; i < samples.length; i++) {
+      samples[i] += channelSamples[i] / audioBuffer.numberOfChannels;
+    }
+  }
+
+  return samples;
+}
+
+async function resampleMono(
+  samples: Float32Array,
+  sourceSampleRate: number,
+  targetSampleRate: number
+): Promise<Float32Array> {
+  if (sourceSampleRate === targetSampleRate || samples.length === 0) {
+    return samples;
+  }
+
+  const targetLength = Math.max(1, Math.round(samples.length * targetSampleRate / sourceSampleRate));
+  const context = new OfflineAudioContext(1, targetLength, targetSampleRate);
+  const sourceBuffer = context.createBuffer(1, samples.length, sourceSampleRate);
+  sourceBuffer.getChannelData(0).set(samples);
+
+  const source = context.createBufferSource();
+  source.buffer = sourceBuffer;
+  source.connect(context.destination);
+  source.start();
+
+  const rendered = await context.startRendering();
+  return new Float32Array(rendered.getChannelData(0));
 }
 
 function decodeWavMono(arrayBuffer: ArrayBuffer): { samples: Float32Array; sampleRate: number } {
@@ -122,8 +213,13 @@ function decodeWavMono(arrayBuffer: ArrayBuffer): { samples: Float32Array; sampl
   const bytesPerSample = bitsPerSample / 8;
 
   for (let frame = 0; frame < frameCount; frame++) {
-    const sampleOffset = dataOffset + frame * blockAlign;
-    samples[frame] = readSample(view, sampleOffset, audioFormat, bitsPerSample, bytesPerSample);
+    let sample = 0;
+    for (let channel = 0; channel < channelCount; channel++) {
+      const sampleOffset = dataOffset + frame * blockAlign + channel * bytesPerSample;
+      sample += readSample(view, sampleOffset, audioFormat, bitsPerSample, bytesPerSample);
+    }
+
+    samples[frame] = sample / channelCount;
   }
 
   return { samples, sampleRate };
@@ -174,4 +270,41 @@ function readAscii(view: DataView, offset: number, length: number): string {
   }
 
   return result;
+}
+
+function encodePcm16Wav(samples: Float32Array, sampleRate: number): Blob {
+  const bytesPerSample = 2;
+  const dataSize = samples.length * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * bytesPerSample, true);
+  view.setUint16(32, bytesPerSample, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  for (const sample of samples) {
+    const clamped = Math.max(-1, Math.min(1, sample));
+    const value = clamped < 0 ? clamped * 32768 : clamped * 32767;
+    view.setInt16(offset, value, true);
+    offset += bytesPerSample;
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+function writeAscii(view: DataView, offset: number, value: string) {
+  for (let i = 0; i < value.length; i++) {
+    view.setUint8(offset + i, value.charCodeAt(i));
+  }
 }

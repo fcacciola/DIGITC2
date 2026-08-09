@@ -1,4 +1,11 @@
-import type { ConfigParam, ProcessJobResponse, ResultFileNode, ResultManifest } from "./types";
+import type {
+  ConfigParam,
+  ProcessJobResponse,
+  ResultFileNode,
+  ResultManifest,
+  SavedJobResponse,
+  SavedJobSummary
+} from "./types";
 
 export async function getDefaultConfig(): Promise<ConfigParam[]> {
   const response = await fetchApi("/api/config", undefined, "Could not reach the local server while loading configuration.");
@@ -36,6 +43,100 @@ export async function getResult(resultUrl: string): Promise<ResultManifest> {
 
   if (!response.ok) {
     throw new Error(formatHttpError(response, payload, "Could not load result."));
+  }
+
+  return payload;
+}
+
+export async function getSavedJobs(): Promise<SavedJobSummary[]> {
+  const response = await fetchApi(
+    "/api/saved-jobs",
+    { cache: "no-store" },
+    "Could not reach the local server while loading saved results."
+  );
+  const payload = await readJsonResponse<SavedJobSummary[]>(
+    response,
+    "Could not load saved results."
+  );
+
+  if (!response.ok) {
+    throw new Error(formatHttpError(response, payload, "Could not load saved results."));
+  }
+
+  return payload;
+}
+
+export async function saveJob(jobId: string): Promise<SavedJobResponse> {
+  const response = await fetchApi(
+    `/api/jobs/${encodeURIComponent(jobId)}/saved`,
+    { method: "PUT" },
+    "Could not reach the local server while saving the result."
+  );
+  const payload = await readJsonResponse<SavedJobResponse>(response, "Could not save the result.");
+
+  if (!response.ok) {
+    throw new Error(formatHttpError(response, payload, "Could not save the result."));
+  }
+
+  return payload;
+}
+
+export async function getSavedResult(jobId: string): Promise<ResultManifest> {
+  return getResult(`/api/saved-jobs/${encodeURIComponent(jobId)}/result`);
+}
+
+export async function deleteSavedJob(jobId: string): Promise<void> {
+  const response = await fetchApi(
+    `/api/saved-jobs/${encodeURIComponent(jobId)}`,
+    { method: "DELETE" },
+    "Could not reach the local server while deleting the saved result."
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    const payload = tryParseJson(text) ?? extractPlainTextError(text);
+    throw new Error(formatHttpError(response, payload, "Could not delete the saved result."));
+  }
+}
+
+export async function exportJob(jobId: string): Promise<{ blob: Blob; fileName: string }> {
+  const response = await fetchApi(
+    `/api/jobs/${encodeURIComponent(jobId)}/export`,
+    undefined,
+    "Could not reach the local server while exporting the result."
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    const payload = tryParseJson(text) ?? extractPlainTextError(text);
+    throw new Error(formatHttpError(response, payload, "Could not export the result."));
+  }
+
+  return {
+    blob: await response.blob(),
+    fileName: readDownloadFileName(response.headers.get("content-disposition")) ?? `${jobId}.digitc2.zip`
+  };
+}
+
+export async function importSavedJob(file: File): Promise<SavedJobResponse> {
+  const form = new FormData();
+  form.append("file", file);
+
+  const response = await fetchApi(
+    "/api/saved-jobs/import",
+    {
+      method: "POST",
+      body: form
+    },
+    "Could not reach the local server while importing the saved result."
+  );
+  const payload = await readJsonResponse<SavedJobResponse>(
+    response,
+    "Could not import the saved result."
+  );
+
+  if (!response.ok) {
+    throw new Error(formatHttpError(response, payload, "Could not import the saved result."));
   }
 
   return payload;
@@ -187,4 +288,18 @@ function extractPlainTextError(text: string): string {
   }
 
   return normalized.length > 280 ? `${normalized.slice(0, 277)}...` : normalized;
+}
+
+function readDownloadFileName(contentDisposition: string | null): string | null {
+  if (!contentDisposition) {
+    return null;
+  }
+
+  const encodedMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (encodedMatch?.[1]) {
+    return decodeURIComponent(encodedMatch[1].replace(/^"|"$/g, ""));
+  }
+
+  const plainMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  return plainMatch?.[1] ?? null;
 }

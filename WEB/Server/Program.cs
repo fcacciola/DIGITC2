@@ -20,6 +20,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 builder.Services.AddSingleton<EngineJobService>();
 builder.Services.AddSingleton<ResultCatalogService>();
+builder.Services.AddSingleton<SavedJobService>();
 builder.Services.AddHostedService<JobCleanupService>();
 
 var app = builder.Build();
@@ -148,6 +149,23 @@ app.MapGet("/api/jobs/{jobId}/result", (string jobId, ResultCatalogService catal
     }
 });
 
+app.MapGet("/api/jobs/{jobId}/input", (string jobId, ResultCatalogService catalog) =>
+{
+  try
+  {
+    var file = catalog.GetInputFile(jobId);
+    return Results.File(file.Path, file.ContentType, file.DownloadName);
+  }
+  catch (FileNotFoundException)
+  {
+    return Results.NotFound(new { error = "Job input file was not found." });
+  }
+  catch (DirectoryNotFoundException)
+  {
+    return Results.NotFound(new { error = "Result job was not found." });
+  }
+});
+
 app.MapGet("/api/jobs/{jobId}/files/{**relativePath}", (string jobId, string relativePath, ResultCatalogService catalog) =>
 {
     try
@@ -164,6 +182,125 @@ app.MapGet("/api/jobs/{jobId}/files/{**relativePath}", (string jobId, string rel
         return Results.NotFound(new { error = "Result job was not found." });
     }
 });
+
+app.MapPut("/api/jobs/{jobId}/saved", async (
+  string jobId,
+  SavedJobService savedJobs,
+  CancellationToken cancellationToken) =>
+{
+  try
+  {
+    return Results.Ok(await savedJobs.SaveAsync(jobId, cancellationToken));
+  }
+  catch (DirectoryNotFoundException)
+  {
+    return Results.NotFound(new { error = "Result job was not found." });
+  }
+  catch (InvalidOperationException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+});
+
+app.MapGet("/api/saved-jobs", async (
+  SavedJobService savedJobs,
+  CancellationToken cancellationToken) =>
+{
+  return Results.Ok(await savedJobs.GetSavedJobsAsync(cancellationToken));
+});
+
+app.MapGet("/api/saved-jobs/{jobId}/result", async (
+  string jobId,
+  SavedJobService savedJobs,
+  ResultCatalogService catalog,
+  HttpRequest request,
+  CancellationToken cancellationToken) =>
+{
+  try
+  {
+    await savedJobs.EnsureSavedAsync(jobId, cancellationToken);
+    return Results.Ok(catalog.GetManifest(jobId, request));
+  }
+  catch (DirectoryNotFoundException)
+  {
+    return Results.NotFound(new { error = "Saved job was not found." });
+  }
+  catch (InvalidOperationException)
+  {
+    return Results.NotFound(new { error = "Saved job was not found." });
+  }
+});
+
+app.MapDelete("/api/saved-jobs/{jobId}", async (
+  string jobId,
+  SavedJobService savedJobs,
+  CancellationToken cancellationToken) =>
+{
+  try
+  {
+    await savedJobs.DeleteAsync(jobId, cancellationToken);
+    return Results.NoContent();
+  }
+  catch (DirectoryNotFoundException)
+  {
+    return Results.NotFound(new { error = "Saved job was not found." });
+  }
+  catch (InvalidOperationException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+});
+
+app.MapGet("/api/jobs/{jobId}/export", async (
+  string jobId,
+  SavedJobService savedJobs,
+  HttpContext context,
+  CancellationToken cancellationToken) =>
+{
+  try
+  {
+    var archive = await savedJobs.CreateExportArchiveAsync(jobId, cancellationToken);
+    context.Response.OnCompleted(() =>
+    {
+      SavedJobService.DeleteExportArchive(archive.Path);
+      return Task.CompletedTask;
+    });
+
+    return Results.File(archive.Path, "application/zip", archive.DownloadName);
+  }
+  catch (DirectoryNotFoundException)
+  {
+    return Results.NotFound(new { error = "Result job was not found." });
+  }
+  catch (InvalidOperationException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+});
+
+app.MapPost("/api/saved-jobs/import", async (
+  [FromForm] IFormFile file,
+  SavedJobService savedJobs,
+  CancellationToken cancellationToken) =>
+{
+  try
+  {
+    var importedJob = await savedJobs.ImportAsync(file, cancellationToken);
+    return Results.Created(importedJob.ResultUrl, importedJob);
+  }
+  catch (InvalidDataException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+  catch (InvalidOperationException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+  catch (JsonException ex)
+  {
+    return Results.BadRequest(new { error = ex.Message });
+  }
+}).DisableAntiforgery();
 
 app.MapFallbackToFile("index.html");
 

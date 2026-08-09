@@ -87,11 +87,12 @@ namespace ENGINE
       Session.MarkTime($"Saving floats as WAV finished.");
     }
 
-    protected void SaveSymbolsAsWAV<SYM>( List<SYM> aSymbols, string aLabel ) where SYM : Symbol
+    protected void SaveAsWAV( IReadOnlyList<IWithSamples> aItems, string aLabel )
     {
       Session.MarkTime($"Saving symbols as WAV started.");
       List<float> lSamples = new List<float> ();
-      aSymbols.ForEach( s => s.DumpSamples(lSamples ) );
+      foreach (var item in aItems)
+        item.DumpSamples(lSamples);
       SaveFloatsAsWAV(lSamples, aLabel);
 
       Session.MarkTime($"Saving symbols as WAV finished.");

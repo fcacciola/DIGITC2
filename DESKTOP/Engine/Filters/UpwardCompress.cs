@@ -77,7 +77,7 @@ namespace ENGINE
 
       Session.MarkTime($"Upward Compression applied.");
 
-      //Save(lNewRep, $"UpwardCompress.wav") ;
+      Save(lNewRep, $"UpwardCompress.wav") ;
 
       var rR = WaveInput.CopyWith(lNewRep);
 

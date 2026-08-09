@@ -43,8 +43,6 @@ namespace ENGINE
 
       Session.MarkTime($"Envelope applied.");
 
-      Save(lNewRep, $"Envelope.wav") ;
-
       var rR = WaveInput.CopyWith(lNewRep);
 
       return CreateOutput(rR,"Envelope");

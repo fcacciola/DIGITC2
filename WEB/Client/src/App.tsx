@@ -1,17 +1,38 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { AlertCircle, BookOpen, Download, FileAudio, Loader2, Mic, Play, Ruler, Square } from "lucide-react";
-import { flattenFiles, getDefaultConfig, getResult, getTextFile, processFile } from "./api";
-import { loadLocalWaveAsset, loadTimelineAsset, loadWaveAsset } from "./audio";
+import { AlertCircle, BookOpen, Download, FileAudio, FileDown, FileUp, Loader2, Mic, Play, Ruler, Save, Square } from "lucide-react";
+import {
+  exportJob,
+  flattenFiles,
+  getDefaultConfig,
+  getResult,
+  getSavedJobs,
+  getSavedResult,
+  getTextFile,
+  importSavedJob,
+  processFile,
+  saveJob
+} from "./api";
+import { loadTimelineAsset, loadWaveAsset, prepareAudioInput } from "./audio";
 import { WaveView } from "./components/WaveView";
 import { TimelineView } from "./components/TimelineView";
 import { ConfigTable } from "./components/ConfigTable";
 import { BlockNavigator } from "./components/BlockNavigator";
 import { UserManual } from "./components/UserManual";
 import { clamp, createInitialController, updateViewportWidth } from "./viewController";
-import type { ConfigParam, MeasureSelection, ResultFileNode, ResultManifest, TimelineAsset, ViewControllerState, WaveAsset } from "./types";
+import type {
+  ConfigParam,
+  MeasureSelection,
+  ResultFileNode,
+  ResultManifest,
+  SavedJobSummary,
+  TimelineAsset,
+  ViewControllerState,
+  WaveAsset
+} from "./types";
 import { startWavRecorder, type WavRecorderSession } from "./recorder";
 
-type LoadState = "idle" | "processing" | "loading-results" | "ready" | "error";
+type LoadState = "idle" | "loading-input" | "processing" | "loading-results" | "ready" | "error";
+type SavedAction = "idle" | "saving" | "exporting" | "importing";
 type OverallResultContent = {
   main: string;
   partial: string[];
@@ -19,7 +40,9 @@ type OverallResultContent = {
 
 export function App() {
   const recorderRef = useRef<WavRecorderSession | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const [inputFile, setInputFile] = useState<File | null>(null);
+  const [inputFileName, setInputFileName] = useState<string | null>(null);
   const [sessionName, setSessionName] = useState("");
   const [state, setState] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -35,14 +58,29 @@ export function App() {
   const [blockStartSamples, setBlockStartSamples] = useState<number[]>([]);
   const [blockIndex, setBlockIndex] = useState(0);
   const [hasProcessedResult, setHasProcessedResult] = useState(false);
+  const [showConfigTable, setShowConfigTable] = useState(false);
   const [measureEnabled, setMeasureEnabled] = useState(false);
   const [measureSelection, setMeasureSelection] = useState<MeasureSelection | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedDownloadUrl, setRecordedDownloadUrl] = useState<string | null>(null);
   const [recordedFileName, setRecordedFileName] = useState<string | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
+  const [savedJobs, setSavedJobs] = useState<SavedJobSummary[]>([]);
+  const [selectedSavedJobId, setSelectedSavedJobId] = useState("");
+  const [savedAction, setSavedAction] = useState<SavedAction>("idle");
 
-  const canProcess = inputFile !== null && !isRecording && state !== "processing" && state !== "loading-results";
+  const canProcess = inputFile !== null
+    && !isRecording
+    && state !== "loading-input"
+    && state !== "processing"
+    && state !== "loading-results"
+    && savedAction === "idle";
+  const resultActionDisabled = state === "loading-input"
+    || state === "processing"
+    || state === "loading-results"
+    || savedAction !== "idle";
+  const canSave = manifest !== null && !manifest.saved && !resultActionDisabled;
+  const canExport = manifest !== null && !resultActionDisabled;
   const measurementSampleRate = inputWave?.sampleRate ?? resultWaves[0]?.sampleRate ?? null;
   const measurementText = formatMeasurement(measureSelection, measurementSampleRate);
 
@@ -59,6 +97,26 @@ export function App() {
       .catch((caught) => {
         if (!cancelled) {
           setError(caught instanceof Error ? caught.message : "Could not load configuration.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getSavedJobs()
+      .then((jobs) => {
+        if (!cancelled) {
+          setSavedJobs(jobs);
+        }
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(caught instanceof Error ? caught.message : "Could not load saved results.");
         }
       });
 
@@ -91,13 +149,13 @@ export function App() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [manualOpen]);
 
-  async function handleProcess() {
-    if (!inputFile) {
-      return;
-    }
+  async function refreshSavedJobList() {
+    const jobs = await getSavedJobs();
+    setSavedJobs(jobs);
+    return jobs;
+  }
 
-    setState("processing");
-    setError(null);
+  function clearDisplayedResult() {
     setManifest(null);
     setResultWaves([]);
     setTimeline(null);
@@ -106,7 +164,75 @@ export function App() {
     setBlockStartSamples([]);
     setBlockIndex(0);
     setHasProcessedResult(false);
+    setShowConfigTable(false);
     setMeasureSelection(null);
+  }
+
+  async function applyResult(result: ResultManifest, restoreInput: boolean) {
+    const files = flattenFiles(result.files);
+    const waveFiles = files
+      .filter((file) => file.name.toLowerCase().endsWith(".wav"))
+      .sort(compareProcessingFiles);
+    const timelineFile = files.find((file) => file.name.toLowerCase() === "timeline.json");
+    const resultFile = pickDeepestFile(files, "result.txt");
+    const logFile = pickDeepestFile(files, "combined log file.txt");
+
+    const loadedResultWaves = await Promise.all(
+      waveFiles.map((file) => loadWaveAsset(file, false))
+    );
+    const restoredInputWave = restoreInput
+        && result.inputFile
+        && result.inputFile.name.toLowerCase().endsWith(".wav")
+      ? await loadWaveAsset(result.inputFile, true)
+      : restoreInput
+        ? null
+        : inputWave;
+    const primaryWave = restoredInputWave ?? loadedResultWaves[0];
+    const blockWave = loadedResultWaves.find(isBlockWave);
+    const blocks = blockWave ? loadBlocks(blockWave.samples) : [];
+    const resultText = resultFile?.url ? await getTextFile(resultFile.url) : "";
+    const logText = logFile?.url ? await getTextFile(logFile.url) : result.messages.join("\n");
+
+    if (restoreInput) {
+      setInputFile(null);
+      setInputFileName(result.inputFile?.name ?? null);
+      setInputWave(restoredInputWave);
+      setSessionName(result.sessionName);
+    }
+
+    setManifest(result);
+    setOverallResult(formatOverallResult(resultText, result.winningBranchName, result.branchCount));
+    setCompleteLog(logText);
+    setConfigParams(
+      result.configParams.length > 0
+        ? result.configParams
+        : defaultConfigParams?.map((param) => ({ ...param })) ?? []
+    );
+    setResultWaves(loadedResultWaves);
+    setBlockStartSamples(blocks);
+    setBlockIndex(0);
+    setHasProcessedResult(true);
+    setShowConfigTable(true);
+    setTimeline(timelineFile ? await loadTimelineAsset(timelineFile) : null);
+
+    if (restoreInput) {
+      setController(primaryWave
+        ? createInitialController(primaryWave.samples.length, 1200)
+        : null);
+    } else if (!controller && primaryWave) {
+      setController(createInitialController(primaryWave.samples.length, 1200));
+    }
+  }
+
+  async function handleProcess() {
+    if (!inputFile) {
+      return;
+    }
+
+    setState("processing");
+    setError(null);
+    setSelectedSavedJobId("");
+    clearDisplayedResult();
 
     try {
       const session = sessionName.trim() || inputFile.name.replace(/\.[^.]+$/, "");
@@ -114,39 +240,112 @@ export function App() {
       setState("loading-results");
 
       const result = await getResult(job.resultUrl);
-      const files = flattenFiles(result.files);
-      const waveFiles = files
-        .filter((file) => file.name.toLowerCase().endsWith(".wav"))
-        .sort(compareProcessingFiles);
-      const timelineFile = files.find((file) => file.name.toLowerCase() === "timeline.json");
-      const resultFile = pickDeepestFile(files, "result.txt");
-      const logFile = pickDeepestFile(files, "combined log file.txt");
-
-      const loadedResultWaves = await Promise.all(waveFiles.map((file) => loadWaveAsset(file, false)));
-      const primaryWave = inputWave ?? loadedResultWaves[0];
-      const blockWave = loadedResultWaves.find(isBlockWave);
-      const blocks = blockWave ? loadBlocks(blockWave.samples) : [];
-      const resultText = resultFile?.url ? await getTextFile(resultFile.url) : "";
-      const logText = logFile?.url ? await getTextFile(logFile.url) : result.messages.join("\n");
-
-      setManifest(result);
-      setOverallResult(formatOverallResult(resultText, result.winningBranchName, result.branchCount));
-      setCompleteLog(logText);
-      if (result.configParams.length > 0) {
-        setConfigParams(result.configParams);
-      }
-      setResultWaves(loadedResultWaves);
-      setBlockStartSamples(blocks);
-      setBlockIndex(0);
-      setHasProcessedResult(true);
-      setTimeline(timelineFile ? await loadTimelineAsset(timelineFile) : null);
-      if (!controller && primaryWave) {
-        setController(createInitialController(primaryWave.samples.length, 1200));
-      }
+      await applyResult(result, false);
       setState("ready");
     } catch (caught) {
       setState("error");
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
+    }
+  }
+
+  async function loadSavedJob(jobId: string) {
+    setState("loading-results");
+    setError(null);
+    clearDisplayedResult();
+    setInputFile(null);
+    setInputFileName(null);
+    setInputWave(null);
+    setController(null);
+
+    try {
+      const result = await getSavedResult(jobId);
+      await applyResult(result, true);
+      setSelectedSavedJobId(jobId);
+      setState("ready");
+    } catch (caught) {
+      setState("error");
+      setError(caught instanceof Error ? caught.message : "Could not load the saved result.");
+    }
+  }
+
+  async function handleSavedJobChange(event: ChangeEvent<HTMLSelectElement>) {
+    const jobId = event.target.value;
+    setSelectedSavedJobId(jobId);
+    if (jobId) {
+      await loadSavedJob(jobId);
+    }
+  }
+
+  async function handleSaveResult() {
+    if (!manifest || manifest.saved) {
+      return;
+    }
+
+    setSavedAction("saving");
+    setError(null);
+
+    try {
+      const savedJob = await saveJob(manifest.jobId);
+      setManifest((current) => current?.jobId === savedJob.jobId
+        ? {
+            ...current,
+            saved: true,
+            sessionName: savedJob.sessionName
+          }
+        : current);
+      setSessionName(savedJob.sessionName);
+      setSelectedSavedJobId(savedJob.jobId);
+      await refreshSavedJobList();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not save the result.");
+    } finally {
+      setSavedAction("idle");
+    }
+  }
+
+  async function handleExportResult() {
+    if (!manifest) {
+      return;
+    }
+
+    setSavedAction("exporting");
+    setError(null);
+
+    try {
+      const archive = await exportJob(manifest.jobId);
+      const url = URL.createObjectURL(archive.blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = archive.fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not export the result.");
+    } finally {
+      setSavedAction("idle");
+    }
+  }
+
+  async function handleImportResult(event: ChangeEvent<HTMLInputElement>) {
+    const archiveFile = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!archiveFile) {
+      return;
+    }
+
+    setSavedAction("importing");
+    setError(null);
+
+    try {
+      const importedJob = await importSavedJob(archiveFile);
+      await refreshSavedJobList();
+      await loadSavedJob(importedJob.jobId);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not import the saved result.");
+    } finally {
+      setSavedAction("idle");
     }
   }
 
@@ -198,7 +397,9 @@ export function App() {
   }
 
   async function loadInputFile(file: File | null, updateSessionName: boolean) {
-    setInputFile(file);
+    setInputFile(null);
+    setInputFileName(file?.name ?? null);
+    setSelectedSavedJobId("");
     if (defaultConfigParams) {
       setConfigParams(defaultConfigParams.map((param) => ({ ...param })));
     }
@@ -210,6 +411,7 @@ export function App() {
     setBlockStartSamples([]);
     setBlockIndex(0);
     setHasProcessedResult(false);
+    setShowConfigTable(false);
     setMeasureSelection(null);
     setInputWave(null);
     setController(null);
@@ -220,17 +422,26 @@ export function App() {
       setSessionName(file.name.replace(/\.[^.]+$/, ""));
     }
 
-    if (!file || !file.name.toLowerCase().endsWith(".wav")) {
+    if (!file) {
       return;
     }
 
+    if (file.name.toLowerCase().endsWith(".txt")) {
+      setInputFile(file);
+      return;
+    }
+
+    setState("loading-input");
+
     try {
-      const loadedInputWave = await loadLocalWaveAsset(file);
-      setInputWave(loadedInputWave);
-      setController(createInitialController(loadedInputWave.samples.length, 1200));
+      const prepared = await prepareAudioInput(file);
+      setInputFile(prepared.file);
+      setInputWave(prepared.wave);
+      setController(createInitialController(prepared.wave.samples.length, 1200));
+      setState("idle");
     } catch (caught) {
       setState("error");
-      setError(caught instanceof Error ? caught.message : "Could not load the selected WAV file.");
+      setError(caught instanceof Error ? caught.message : "Could not load the selected audio file.");
     }
   }
 
@@ -299,22 +510,94 @@ export function App() {
       </header>
 
       <section className="upload-panel">
-        <label className="file-drop">
-          <input type="file" accept=".wav,.txt,audio/wav,text/plain" disabled={isRecording} onChange={handleFileChange} />
-          <FileAudio size={22} aria-hidden="true" />
-          <span>{inputFile ? inputFile.name : "Choose a .wav or .txt file"}</span>
-        </label>
+        <div className="saved-job-tools">
+          <select
+            className="saved-job-select"
+            value={selectedSavedJobId}
+            disabled={resultActionDisabled}
+            onChange={handleSavedJobChange}
+            onFocus={() => {
+              void refreshSavedJobList().catch((caught) => {
+                setError(caught instanceof Error ? caught.message : "Could not refresh saved results.");
+              });
+            }}
+            aria-label="Saved results"
+            title="Load a saved result"
+          >
+            <option value="">
+              {savedJobs.length > 0 ? "Saved results..." : "No saved results"}
+            </option>
+            {savedJobs.map((job) => (
+              <option key={job.jobId} value={job.jobId}>{job.sessionName}</option>
+            ))}
+          </select>
 
-        <label className="session-field">
-          <span>Session</span>
-          <input value={sessionName} onChange={(event) => setSessionName(event.target.value)} placeholder="Session name" />
+          <div className="saved-job-actions">
+            <button
+              type="button"
+              className="saved-job-button"
+              disabled={!canSave}
+              onClick={handleSaveResult}
+              title={manifest?.saved ? "This result is saved" : "Save this result on the server"}
+            >
+              {savedAction === "saving"
+                ? <Loader2 className="spin" size={15} aria-hidden="true" />
+                : <Save size={15} aria-hidden="true" />}
+              <span>{manifest?.saved ? "Saved" : "Save"}</span>
+            </button>
+
+            <button
+              type="button"
+              className="saved-job-button"
+              disabled={!canExport}
+              onClick={handleExportResult}
+              title="Export this result"
+            >
+              {savedAction === "exporting"
+                ? <Loader2 className="spin" size={15} aria-hidden="true" />
+                : <FileDown size={15} aria-hidden="true" />}
+              <span>Export</span>
+            </button>
+
+            <button
+              type="button"
+              className="saved-job-button"
+              disabled={resultActionDisabled || isRecording}
+              onClick={() => importInputRef.current?.click()}
+              title="Import a shared result"
+            >
+              {savedAction === "importing"
+                ? <Loader2 className="spin" size={15} aria-hidden="true" />
+                : <FileUp size={15} aria-hidden="true" />}
+              <span>Import</span>
+            </button>
+
+            <input
+              ref={importInputRef}
+              className="saved-job-import"
+              type="file"
+              accept=".zip,.digitc2,application/zip"
+              onChange={handleImportResult}
+            />
+          </div>
+        </div>
+
+        <label className="file-drop">
+          <input
+            type="file"
+            accept="audio/*,.txt,text/plain"
+            disabled={isRecording || state === "loading-input"}
+            onChange={handleFileChange}
+          />
+          <FileAudio size={22} aria-hidden="true" />
+          <span>{inputFileName ?? "Choose an audio file"}</span>
         </label>
 
         <div className="recording-tools">
           <button
             type="button"
             className={isRecording ? "record-button is-recording" : "record-button"}
-            disabled={state === "processing" || state === "loading-results"}
+            disabled={state === "loading-input" || state === "processing" || state === "loading-results"}
             onClick={isRecording ? handleStopRecording : handleStartRecording}
             title={isRecording ? "Stop recording" : "Record audio"}
           >
@@ -334,9 +617,22 @@ export function App() {
           </a>
         </div>
 
+        <label className="session-field">
+          <span>Session</span>
+          <input value={sessionName} onChange={(event) => setSessionName(event.target.value)} placeholder="" />
+        </label>
+
         <button className="primary-button" disabled={!canProcess} onClick={handleProcess}>
-          {state === "processing" || state === "loading-results" ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
-          <span>{state === "processing" ? "Processing" : state === "loading-results" ? "Loading" : "Process"}</span>
+          {state === "loading-input" || state === "processing" || state === "loading-results"
+            ? <Loader2 className="spin" size={18} />
+            : <Play size={18} />}
+          <span>{state === "loading-input"
+            ? "Loading audio"
+            : state === "processing"
+              ? "Processing"
+              : state === "loading-results"
+                ? "Loading"
+                : "Process"}</span>
         </button>
       </section>
 
@@ -356,7 +652,7 @@ export function App() {
 
       <section className="workspace">
         {!inputWave && resultWaves.length === 0 && state === "idle" && (
-          <div className="empty-state">Select a file to inspect it, then run the processor when you are ready.</div>
+          <div className="empty-state">Open an audio file (or click Record), then click Process.</div>
         )}
 
         {inputWave && controller && (
@@ -372,11 +668,13 @@ export function App() {
           />
         )}
 
-        <ConfigTable
-          params={configParams}
-          disabled={state === "processing" || state === "loading-results"}
-          onChange={setConfigParams}
-        />
+        {showConfigTable && (
+          <ConfigTable
+            params={configParams}
+            disabled={state === "loading-input" || state === "processing" || state === "loading-results"}
+            onChange={setConfigParams}
+          />
+        )}
 
         {resultWaves.length === 0 && state === "ready" && (
           <div className="empty-state">No visible waveform files were returned for this result.</div>

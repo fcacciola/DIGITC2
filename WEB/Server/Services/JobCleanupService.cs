@@ -4,71 +4,59 @@ namespace DigitC2.Server.Services;
 
 public sealed class JobCleanupService : BackgroundService
 {
-    private readonly IWebHostEnvironment _environment;
-    private readonly ILogger<JobCleanupService> _logger;
-    private readonly ProcessingWorkspaceOptions _options;
+  private readonly ILogger<JobCleanupService> _logger;
+  private readonly ProcessingWorkspaceOptions _options;
+  private readonly SavedJobService _savedJobs;
 
-    public JobCleanupService(
-        IWebHostEnvironment environment,
-        IOptions<ProcessingWorkspaceOptions> options,
-        ILogger<JobCleanupService> logger)
+  public JobCleanupService(
+    IOptions<ProcessingWorkspaceOptions> options,
+    ILogger<JobCleanupService> logger,
+    SavedJobService savedJobs)
+  {
+    _options = options.Value;
+    _logger = logger;
+    _savedJobs = savedJobs;
+  }
+
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+  {
+    await CleanupOnce(stoppingToken);
+
+    using var timer = new PeriodicTimer(
+      TimeSpan.FromMinutes(Math.Max(5, _options.CleanupIntervalMinutes)));
+
+    while (await timer.WaitForNextTickAsync(stoppingToken))
     {
-        _environment = environment;
-        _options = options.Value;
-        _logger = logger;
+      await CleanupOnce(stoppingToken);
+    }
+  }
+
+  private async Task CleanupOnce(CancellationToken cancellationToken)
+  {
+    if (_options.JobRetentionDays <= 0 || !Directory.Exists(_savedJobs.JobsRoot))
+    {
+      return;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    var cutoff = DateTime.UtcNow.AddDays(-_options.JobRetentionDays);
+    foreach (var jobFolder in Directory.GetDirectories(_savedJobs.JobsRoot))
     {
-        await CleanupOnce(stoppingToken);
+      cancellationToken.ThrowIfCancellationRequested();
 
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(Math.Max(5, _options.CleanupIntervalMinutes)));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+      try
+      {
+        if (await _savedJobs.TryDeleteExpiredUnsavedJobAsync(
+            jobFolder,
+            cutoff,
+            cancellationToken))
         {
-            await CleanupOnce(stoppingToken);
+          _logger.LogInformation("Deleted expired job folder {JobFolder}.", jobFolder);
         }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogWarning(ex, "Could not delete expired job folder {JobFolder}.", jobFolder);
+      }
     }
-
-    private Task CleanupOnce(CancellationToken cancellationToken)
-    {
-        if (_options.JobRetentionDays <= 0)
-        {
-            return Task.CompletedTask;
-        }
-
-        var jobsRoot = Path.Combine(GetWorkspaceRoot(), "jobs");
-        if (!Directory.Exists(jobsRoot))
-        {
-            return Task.CompletedTask;
-        }
-
-        var cutoff = DateTime.UtcNow.AddDays(-_options.JobRetentionDays);
-        foreach (var jobFolder in Directory.GetDirectories(jobsRoot))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                var created = Directory.GetCreationTimeUtc(jobFolder);
-                if (created < cutoff)
-                {
-                    Directory.Delete(jobFolder, recursive: true);
-                    _logger.LogInformation("Deleted expired job folder {JobFolder}.", jobFolder);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not delete expired job folder {JobFolder}.", jobFolder);
-            }
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private string GetWorkspaceRoot()
-    {
-        return string.IsNullOrWhiteSpace(_options.WorkspaceRoot)
-            ? Path.Combine(_environment.ContentRootPath, "App_Data")
-            : _options.WorkspaceRoot;
-    }
+  }
 }

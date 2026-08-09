@@ -80,7 +80,7 @@ public class BinarizeFromTapCode : FileLexicalFilter
 
     foreach( var lDecoded in lDecodedList)
     {
-      bool lIsSeparator = lDecoded.IsSeparator || lCurrRawDecodedBag.Count >= 8 ;
+      bool lIsSeparator = lDecoded.IsSeparator ;
       if ( lIsSeparator )
       {
         if ( ! lDecoded.IsSeparator )

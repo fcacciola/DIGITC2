@@ -19,13 +19,24 @@ export type ResultManifest = {
   jobId: string;
   sessionName: string;
   status: string;
+  saved: boolean;
   createdAt: string;
   winningBranchName: string;
   branchCount: number;
+  inputFile: ResultFileNode | null;
   files: ResultFileNode[];
   configParams: ConfigParam[];
   messages: string[];
   errors: string[];
+};
+
+export type SavedJobSummary = {
+  jobId: string;
+  sessionName: string;
+};
+
+export type SavedJobResponse = SavedJobSummary & {
+  resultUrl: string;
 };
 
 export type ConfigParam = {

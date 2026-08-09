@@ -212,7 +212,7 @@ public static class ExactPercentile
 
       //lGated.Sanitize();
 
-      string lLabel = $"NoiseGate-{(int)(lFloor*100000)}";
+      string lLabel = $"NoiseGate";
 
       Save(lGated, $"{lLabel}.wav") ;
 

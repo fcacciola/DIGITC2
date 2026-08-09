@@ -1,0 +1,55 @@
+Run the un-published sever:
+***************************
+
+1) Open the solution on VS and run the server as usual
+ 
+ OR
+
+2) 
+ 
+
+Run the client:
+***************
+ 
+1) Open Visual Studio code at rhe REPO root, the choose Run Client
+
+
+OR
+
+2) execute 
+
+runserver.ps1 
+
+
+  
+
+
+----
+
+Publish and run the published server:
+
+On a PS shell at the REPO root:
+
+1 - Re-publish
+
+powershell -ExecutionPolicy Bypass -File WEB\Publish-Web.ps1
+
+
+2 - Run published
+
+powershell -ExecutionPolicy Bypass -File WEB\Start-Published.ps1 -WorkspaceRoot "C:\Users\User\AppData\Local\Varanormal\Transgraphier\WebData" -SharedPassword "ITC"
+
+----
+
+Sharing it via Cloudfare:
+
+1 - From a PS shell at the REPO root:
+
+cloudflared tunnel --url http://localhost:5188
+
+
+locate the URL provided, like:
+
+ https://stopped-quiet-everybody-ssl.trycloudflare.com      
+ 
+ 

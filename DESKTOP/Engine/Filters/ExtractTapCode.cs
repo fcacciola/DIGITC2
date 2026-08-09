@@ -22,7 +22,7 @@ namespace ENGINE
       Source     = aSource;
       Gap        = aGap; 
       Time       = aTime; 
-      GapIsIntra = false ; 
+      GapIsIntra = false ;
     }
 
     public enum TapType { Row, Col, Separator, IntraGap, OuterGap };
@@ -59,6 +59,7 @@ namespace ENGINE
 
     public override string ToString() => $"[Gap: {(Gap)} s | Time: {Time}s { ( GapIsIntra ? "I" : "X" ) } ]";
   }
+
 
   // Each TapGroup corresponds to a sequence of closely together Taps.
   // The number of elements in each group is THE TAP COUNT
@@ -283,16 +284,16 @@ namespace ENGINE
 
       List<string> lPartialResultMessages = new List<string>();
 
-      WriteLine("Getting Raw Taps..");
-      var lTaps = GetTaps(lPulses);
-      if ( lTaps.Count < mOptions.MinNumberOfTaps && Session.QuitEnabled )
-      {
-        WriteLine2GUI("Not enough Taps. Quitting.");
-        return CreateQuitOutput();
-      }
+        WriteLine("Getting Raw Taps..");
+        var lTaps = GetTaps(lPulses);
+        if ( lTaps.Count < mOptions.MinNumberOfTaps && Session.QuitEnabled )
+        {
+          WriteLine2GUI("Not enough Taps. Quitting.");
+          return CreateQuitOutput();
+        }
 
-      WriteDetailLine("Raw Taps:");
-      lTaps.ForEach( t => WriteDetailLine(t.ToString()));
+        WriteDetailLine("Raw Taps:");
+        lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
       WriteDetailLine("Classifying Raw Taps...");
       double lIntraTapGap_HighBound = ComputeIntraCountGap_HighBound( lTaps.ConvertAll( t => t.Gap ).Skip(1).ToList() );
@@ -301,9 +302,9 @@ namespace ENGINE
         return CreateQuitOutput();
       }
 
-      WriteLine2GUI($"IntraTap Gap High Bound: {lIntraTapGap_HighBound:F2}s");
-      lTaps.ForEach( t => t.GapIsIntra = t.Gap <= lIntraTapGap_HighBound );
-      Session.MarkTime("Taps classified");
+        WriteLine2GUI($"IntraTap Gap High Bound: {lIntraTapGap_HighBound:F2}s");
+        lTaps.ForEach( t => t.GapIsIntra = t.Gap <= lIntraTapGap_HighBound );
+        Session.MarkTime("Taps classified");
 
       List<float> lTapSamples = new List<float>();
       lTaps.ForEach( t => t.DumpSample(lTapSamples,  t.GapIsIntra ? Tap.TapType.IntraGap: Tap.TapType.OuterGap )) ;
@@ -313,22 +314,23 @@ namespace ENGINE
       WriteDetailLine("Classified Taps:");
       lTaps.ForEach( t => WriteDetailLine(t.ToString()));
 
-      WriteLine("Building Tap Counts...");
+        WriteLine("Building Tap Counts...");
       List<TapCount> lRawCounts = new List<TapCount>();
 
-      TapCount lCurrTC = new TapCount() ;
+        TapCount lCurrTC = new TapCount() ;
 
-      foreach( var lTap in lTaps )
-      {
-        if ( !lTap.GapIsIntra )
+
+        foreach ( var lTap in lTaps )
+        {
+          if ( !lTap.GapIsIntra )
         {
           if ( lCurrTC != null && lCurrTC.Taps.Count > 0 )
             lRawCounts.Add(lCurrTC);
 
           lCurrTC = new TapCount();  
         }
-        lCurrTC.Taps.Add(lTap);
-      }
+          lCurrTC.Taps.Add(lTap);
+        }
       if ( lCurrTC != null && lCurrTC.Taps.Count > 0 )
         lRawCounts.Add(lCurrTC);
 
@@ -338,7 +340,7 @@ namespace ENGINE
         return CreateQuitOutput();
       }
 
-      Session.MarkTime("Raw Tap Counts built");
+        Session.MarkTime("Raw Tap Counts built");
 
       // A TapCount Bag contains a sequence of Tap Counts that should
       // correspond to a byte. It can contain at most 16 counts (for 8 bits)
@@ -418,7 +420,7 @@ namespace ENGINE
       int lIdx = 0 ;
       var lSymbols = lAllCodes.ConvertAll( c => new TapCodeSymbol(lIdx++,c) ); 
 
-      SaveSymbolsAsWAV(lSymbols, "1_TapCode-ColorCoded-Blocks");
+      SaveAsWAV(lSymbols, "1_TapCode-ColorCoded-Blocks");
 
       string lTapCodeFile = Session.OutputFile("TapCode.txt");
 

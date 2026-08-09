@@ -272,7 +272,7 @@ namespace ENGINE
 
       Session.MarkTime($"Short Pulses Filtered.");
 
-      SaveSymbolsAsWAV(CurrPulses,"Pulses");
+      SaveAsWAV(CurrPulses,"Pulses");
     }
 
     class Options

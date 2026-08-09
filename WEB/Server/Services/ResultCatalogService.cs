@@ -51,15 +51,18 @@ public sealed class ResultCatalogService {
         ? metadata.OutputFolder
         : Directory.GetDirectories(outputRoot).OrderBy(path => path).FirstOrDefault() ?? outputRoot;
     var winningBranch = ResolveWinningBranch(sessionFolder);
+    var inputFile = GetInputFileNode(jobId, jobRoot);
     var files = EnumerateDirectory(jobId, sessionFolder, sessionFolder, winningBranch, request);
 
     return new ResultManifest(
         jobId,
         metadata.SessionName,
         metadata.Status,
+        metadata.Saved,
         metadata.CreatedAt,
         winningBranch.Name,
         winningBranch.BranchCount,
+        inputFile,
         files,
         GetWinningConfigParams(winningBranch),
         metadata.Messages,
@@ -84,6 +87,45 @@ public sealed class ResultCatalogService {
     }
 
     return (fullPath, contentType, Path.GetFileName(fullPath));
+  }
+
+  public (string Path, string ContentType, string DownloadName) GetInputFile(string jobId) {
+    var jobRoot = GetJobRoot(jobId);
+    var inputRoot = Path.Combine(jobRoot, "input");
+    var inputFile = Directory.Exists(inputRoot)
+        ? Directory.GetFiles(inputRoot).OrderBy(path => path, StringComparer.OrdinalIgnoreCase).FirstOrDefault()
+        : null;
+
+    if (inputFile == null) {
+      throw new FileNotFoundException("Job input file was not found.");
+    }
+
+    if (!_contentTypes.TryGetContentType(inputFile, out var contentType)) {
+      contentType = "application/octet-stream";
+    }
+
+    return (inputFile, contentType, Path.GetFileName(inputFile));
+  }
+
+  private ResultFileNode? GetInputFileNode(string jobId, string jobRoot) {
+    var inputRoot = Path.Combine(jobRoot, "input");
+    var inputFile = Directory.Exists(inputRoot)
+        ? Directory.GetFiles(inputRoot).OrderBy(path => path, StringComparer.OrdinalIgnoreCase).FirstOrDefault()
+        : null;
+
+    if (inputFile == null) {
+      return null;
+    }
+
+    _contentTypes.TryGetContentType(inputFile, out var contentType);
+    return new ResultFileNode(
+        Path.GetFileName(inputFile),
+        $"input/{Path.GetFileName(inputFile)}",
+        "file",
+        new FileInfo(inputFile).Length,
+        contentType ?? "application/octet-stream",
+        $"/api/jobs/{jobId}/input",
+        null);
   }
 
   private IReadOnlyList<ResultFileNode> EnumerateDirectory(
