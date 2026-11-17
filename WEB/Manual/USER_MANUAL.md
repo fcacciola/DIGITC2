@@ -16,46 +16,59 @@ This is a research tool. It does not prove that a message is paranormal, spiritu
 
 The first step is to, either **Choose an audio file** from your computer, or **Record** the audio directly in the app.
 
-![Welcome](welcome.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{welcome.png}
+\caption{Welcome}
+\end{figure}
 
 After that, the Waveform of the input file is shown:
 
-![Audio loaded](loaded.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{loaded.png}
+\caption{Input Audio loaded}
+\end{figure}
 
 The next step is to press **Process**.
 
-The app then processes the audio in an attempt to extract a *TapCode-encoded* text message (processing, downloading and displaying the result can take a while, depending on the length of the file).
+The app then processes the audio in an attempt to extract a *TapCode-encoded Text Message* (processing, downloading and displaying the result can take a while, depending on the length of the file).
 
 The processing result is made of several parts:
 
  - The decoded message (on the top left box).
-
-    If a message was decoded, it is displayed in a *bold, blue text*.
-    
-    If no message was decoded, is is indicated in a *red text*.
-    
-    The decoded text or the failure message is followed by a *Score*.
-    
-    The score followed by a *Branch Name*: processing may eventually branch out in order to try different parameters. The branch with the highest score is the result.
+    \begin{quote}
+    If a message was decoded, it is displayed in a \textbf{\textcolor{blue}{bold, blue text}}.
+  
+    If no message was decoded, is is indicated in a \textcolor{red}{red text}.
+  
+    The decoded text or the failure message is followed by a \emph{Score}.
+  
+    The score is followed by a \emph{Branch Name}: processing may eventually branch out in order to try different parameters. The branch with the highest score is the result.
+    \end{quote}
 
  - A sequence of intermediate text results (on the top right box)
    
  - A sequence of *signals* (right below the Waveform of the input)
- 
-   There are two types of result signals: **Audio Signals** and **Lexical Signals**.
-   
-   A Lexical Signal contains a sequence of **Symbols**, such that each symbol is located at a specific point in time, aligned with the corresponding point in time on the input sound. For example, sequences of *bits, bytes, letters and words* are all coming out as Lexical Signals.
-   
-   Both audio and lexical signals are displayed as Waveforms in the order in which the are produced.
-   
+    \begin{quote}
+     There are two types of result signals: \textbf{Audio Signals} and \textbf{Lexical Signals}.
+     
+     A Lexical Signal contains a sequence of \textbf{Symbols}, such that each symbol is located at a specific point in time along the input sound. For example, sequences of \emph{bits, bytes, letters and words} are all coming out as Lexical Signals.
+     
+     Both audio and lexical signals are displayed as Waveforms in the order in which they are produced.
+     
    Depending on how far the processing went, some or all of the signals will be produced and displayed.
+    \end{quote}
    
  - A full detailed text log (at the very bottom).
 
-All of the displayed waveforms are _in sync_. You can place the cursor over _any_ of them and use the mouse wheel to Zoom In or Out _ALL_ of them at once (centered at the position of the cursor). You can also click and drag in order to pan the signals left or right. 
+All of the displayed waveforms are _in sync_. You can place the cursor over _any_ of them and use the mouse to Pan and Zoom _All of them at once_ (centered at the position of the cursor)In or Out.  
 
 
-Below is a screen capture of an artificial _"successful"_ example:
+Below is a screen capture of an artificial _"successful"_ example.
+
+**NOTE:** The input sound file used to illustrated a positive result is totally artificial. It was produced by an IA agent instructed to create a sound file containing the desired text and encoding.\
+Transgraphier then took this file and followed the processing as usual, but the input file itself is artificial.
 
 \begin{figure}[H]
 \centering
@@ -79,7 +92,7 @@ And below an Unsuccessful one:
 
 The algorithm does, roughly, the following:
 
- - Preprocess, detect and isolate **Pulses** within the input audio. A Pulse is any isolated amplitud burst above the noise floor. The duration or shape of the pulse is not important, only its **Onset**: the time it ocurrs.
+ - Preprocess, detect and isolate **Pulses** within the input audio. A Pulse is any isolated amplitude burst above the noise floor. The duration or shape of the pulse is not important, only its **Onset**: the time at which it ocurrs.
  
  - Compute *Pulse to Pulse* time gaps.
  
@@ -89,38 +102,41 @@ The algorithm does, roughly, the following:
  
  - Within each Block:
  
-   - Use the *Gap to Previous* time of each pulse to classify it as an **Intra-Count** pulse or not.
+   - Classify each pulse as **Intra-Count**, or not. This is decided upon the duration of the Gap to the Previous Pulse.
    
    - Group pulses into so-called **Tap Codes** (based on their Intra-Count classification).
    
    - Convert each *Tap Code* into a **Binary Symbol**: `0, 1, or ? (for bits that are uncertain)`.
    
-   - Convert each binary sequence into a **Scored-byte Symbols** (taking uncertain bits into account).
+   - Group and convert the sequence of binary symbols into **Scored byte Symbols** (taking uncertain bits into account).
    
-   - Convert each scored-byte into a **Scored-ASCII Letter Symbols**.
+   - Convert each scored-byte symbol into a **Scored ASCII Symbols**.
    
- - Each partial result has a Score which is combined into the overall result score displayed in the top-left box. 
+ - Each partial result has a Score which is combined into the overall result score displayed on the top-left box. 
 
 ## Branching
 
 There are certain steps along the processing pipeline at which alternative paths, with different parameters, might be taken. These are called **Branches**.
 
-At the very end, there will be, _internally_ one or more results, each corresponding to a separate processing branch. 
+At the very end, there will be one or more results, each corresponding to a separate processing branch. 
 
 Each branch gets an overall Score, and the winning branch is the one effectively selected as final result.
 
 ## Noise Gate
 
 The first major step is a noise floor gate. This steps calculates the so-called **Noise Floor** and subtracts that from the entire signal.
-The result is that only those *Amplitud Peaks* that are *above* the noise floor remain.
+The result is that only those *Amplitude Peaks* that are *above* the noise floor remain.
 
-In a well-formed signal: one with the text nicely encoded as "correctly-timed, isolated energy bursts", each remaining peaks roughly maps to a single **"Tap"**
+Ideally, each remaining peak roughly maps to a single **"Tap"** (for instance, when a text message was nicely encoded as "correctly-timed, isolated energy bursts", as with the artificial example from before). 
 
 The gated signal is shown right below the input signal.
 
-The calculated noise floor is shown, *after processing*, in the parameters section. You can inspect the Noise Get waveform result, calculate a better noise floor, and enter it manually in the noise floor parameter. After changing the parameter, you can click on Process again. It will re-do all the processing but using the new parameter.
 
-![Noise Gated](noise.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{noise.png}
+\caption{Noise gate}
+\end{figure}
 
 ## Envelope And Upward Compression
 
@@ -130,7 +146,11 @@ These steps help equalize levels so that weaker but potentially meaningful burst
 
 The results of the envelope and upward compression is shown in the waveform right below the noise gate.
 
-![Envelope + Upward Compressed](compressed.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{compressed.png}
+\caption{Upward-compressed signal (after Envelope)}
+\end{figure}
 
 ## Discretization
 
@@ -138,47 +158,69 @@ The signal is then converted into a square wave. This is shown in the **Discreti
 
 At this stage, every square matches a single Tap.
 
-The upward-compressed signal from the previous step can be seen as being a sequence of *"Hills and Valleys"*. Discretization converts every "hill" into square of a fixed, flat height. What separates two distinct Hills is a Valley between them, but a valley is only such when its amplitude is significantly lower than that of the neighboring hills. The discretization, then, has to measure the amplitude variation across Hill->Valley->Hill, and decide whether that's two separate hills, or a single "merged" hill. This decision is controlled by the **"Discretize Merge Prominence"** parameter. You can change this if you notice that hills have been wrongly merged.
+The signal from the previous step can be seen as being a sequence of **"Hills and Valleys"**. Discretization converts every "hill" into a square of a fixed, flat height.\
+A Valley is the portion of the signal that separates two distinct Hills. That is the case when its amplitude is significantly lower than that of the neighboring hills.
 
-![Discretized](discretized.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{discretized.png}
+\caption{Discretized signal}
+\end{figure}
+
 
 ## Pulse Extraction
 
-Each square-wave whose width (in Seconds) is larger than the **"Minimum Pulse Width"** is now converted into a **"Pulse"**.
+Each square-wave whose width (in Seconds) is larger than a given **"Minimum Pulse Width"** is now converted into a **"Pulse"**.
 
 The pulses are shown as square-waves in the Waveform right below Discretized.
 
-Internally, however, the pulses are *NOT* an audio signal. They are a so-called **"Lexical Signal"** instead (which is just Rendered as square waves so you can see the pulses.
+Internally, however, the pulses are *NOT* an audio signal. Instead, they are a so-called **"Lexical Signal"**, which is just Rendered as square waves so you can see the pulses (as all the following waveforms showing symbols rendered as squares).
 
-![Pulses](pulses.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{pulses.png}
+\caption{Pulses}
+\end{figure}
 
 ## Taps
 
-Every Pulse is now converted into a **"Tap"**. From Tap to Tap there is a distance, in Seconds, thus every Tap has a *"Gap"* that corresponds to its distance to the previous Tap.
+Every Pulse is now converted into a **"Tap"**. 
 
-The app now makes an statistical analysis of the gaps, and finds the amount of time, in seconds, known as the **"Intra Count Gap"**. Every Tap that is separated from its previous Tap no more than this distance (in seconds) is *classified* as a **"Intra-Count Tap"**.
+Every Tap has a **"Gap"**, which is the distance, in Seconds, to the previous Tap.
 
-All Taps are shown in a Waveform in which each Tap is shown as a square wave of a given color, either above or below the center line.
-Every Tap whose gap is larger than the intra-count threshold is shown in **Yellow**. Every Tap that is an "intra-count" tap is shown in **Green**.
+From the sequence of Gaps, the processing calculates, via statistical analysis, a specific duration known as the **"Intra-Count Gap"**.
 
-Every Yellow Tap *starts a new* formal count of 1. If it is followed by one or more Green Taps, the total count of the "Run" is the number of Green taps plus 1.
+Then, every Tap with a Gap no larger than this value is *classified* as an **"Intra-Count Tap"**.
 
-For example, consider the following sequence of Taps:
+All Taps are shown, color coded, in the next waveform.
 
-They correspond to the following sequence of Counts:
+The taps classified as Intra-Count are drawn in **Green**. The rest in **Yellow**.
 
-```1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 7```
+With all taps classified (Green or Yellow, Intra-Count or not), a **Tap Counting** is calculated in the following way:
 
-![Taps](taps.png){placement=H}
+Every Yellow Tap *starts a new* formal count of 1. If, for example, there are only yellow taps, then all counts are simply 1.
+
+Every sequence of `N` Green Taps, precedded by a Yellow Tap, corrresponds to a count of `N+1` (+1 because of the yellow that started the count)
+
+For example, the figure below corresponds to the following sequence of Counts:
+
+```1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 6```
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{taps.png}
+\caption{Taps}
+\end{figure}
 
 ## Tap-Codes
 
-The classified Taps from the previous filter, that is, the sequence of formal **"Counts"** are grouped as Tap-Codes and Separators:
+The **"Counts"** from the previous step are now grouped as Tap-Codes and Separators:
 
-Every count of 5 or more is a **Separator**
-Within separators, counts are paired into the so-called **"Tap Code"**. Each Tap Code has a Row Count and a Column Count.
+Every count of 5 or more is a **Separator**.\
+Within separators, counts are paired into a so-called **"Tap Code"**.\
+Each Tap Code has a **Row Count** and a **Column Count**, in that order.
 
-Tap Codes and Separators are shown, color-coded, in the next Waveform. Row counts are Red, Column counts are Blue, and Separators are black:
+Tap Codes and Separators are shown, color-coded, in the next Waveform. Row counts are Blue, Column counts are Red, and Separators are black:
 
 For example, the Waveform below shows the following groups of tap codes (the separator is represented by (0,0))
 
@@ -187,17 +229,26 @@ For example, the Waveform below shows the following groups of tap codes (the sep
 (1,1),(1,2),(1,2),(1,1),(1,2),(1,1),(1,1),(1,1),(0,0)
 ```
 
-![Tap Codes](tapcodes.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{tapcodes.png}
+\caption{Tap Codes}
+\end{figure}
 
 ## Text Decoding and Scoring
 
 Each tap code is a pair of counts that corresponds to the *Row* and *Column* indices into a special matrix known as a **"Polybius Square"**. The square has *Symbols* into each possible cell.
 
-Here is a simple binary Polybius Square:
+Here is a simple _binary_ Polybius Square:
 
-![Binary Polybius Square](binary_square.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics{binary_square.png}
+\caption{Binary Polybius Square}
+\end{figure}
 
-As you can see, using the simple binary square, the tap-code `(1,1)` corresponds to the very first Cell, at the top-left, and it contains the symbol **0**. Likewise, `(1,2)` maps to `**1**`, while `(2,2)` maps to `**?**`.
+
+As you can see, using the simple binary square, the tap-code `(1,1)` corresponds to the very first Cell, at the top-left, and it contains the symbol `0`. Likewise, `(1,2)` maps to `1`, while `(2,2)` maps to `?`.
 
 Therefore, each extracted tap code, if any, is converted into a **Uncertain Binary Digit**: `0, 1 or ?`
 
@@ -218,7 +269,11 @@ For example, the fuzzy-byte: `**0101**` maps into the actual byte `**01010000**`
 
 If separators where found, so it was possible to extract blocks, the *Block Navigation Buttons*, at the very top, will be enabled. You can then *Zoom* into *One* block at a time, and move forward or backwards across all detected blocks:
 
-![Blocks](block.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{block.png}
+\caption{Blocks}
+\end{figure}
 
 
 ## Text Timeline
@@ -227,6 +282,37 @@ If the processing was able to extract bytes, then each block corresponds to a by
 
 The letters are shown in the **Timeline** view, at bottom. Each letter is aligned with its block.
 
-![Text Timeline](timeline.png){placement=H}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{timeline.png}
+\caption{Text Timeline}
+\end{figure}
 
+## Parameters ad Re-processing
+
+Right below the Input File waveform, there is a table with some processing parameters:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{params.png}
+\caption{Parameters}
+\end{figure}
+
+These are calculated during processing and displayed along with the results.
+
+If no text was decoded, or is too noisy, you can change any of these and click on Process another time. The modified parameters will be used instead of getting automatically calculated as it was the first time.
+
+  - Noise floor (`0.0 to 1.0` value)
+
+    If the signal has too much noise, the automated noise floor calculation can get it wrong.\
+    You might see that by inspecting the Noise Gate waveform in the result: if there aren't lots of \textbf{isolated} pulses, the noise floor might need to to be higher. Counterwise, if there are too few pulses, then noise floor might need to be lowered.
+    
+  - Discretize Merge Prominence (`0.0 to 1.0` value)
+
+    Discretization is based on measuring the \emph{amplitude variations} to detect Hill->Valley->Hill sequences. It has to decide whether two initially separate hills are actually one single "merged" hill. The decision is controlled by this parameter. 
+    If a text message is somewhat correctly decoded but some or several letters seem wrong, or separator missing, you can closely inspect the correlation between the upward-compress signal and the discretized square-wave (zooming and panning along the signals). If you spot pulses that are either separated when they should be merged, or the opposite, you can fine tune this parameter and try again in order to get a cleaner text result.
+    
+  - Mimimun Pulse Width (seconds)
+
+  - Intra-Count gap (seconds)
 
