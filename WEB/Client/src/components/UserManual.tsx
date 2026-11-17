@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import manualPdfUrl from "../../../MANUAL/USER_MANUAL.pdf?url";
+import manualPdfUrl from "../../../Manual/USER_MANUAL.pdf?url";
 
 type UserManualProps = {
   onClose: () => void;

@@ -1,0 +1,25 @@
+services:
+  transgraphier:
+    build:
+      context: ../..
+      dockerfile: WEB/Dockerfile
+    image: digitc2-web:local
+    container_name: transgraphier
+    restart: unless-stopped
+    stop_grace_period: 5m
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 8080
+      DigitC2__WorkspaceRoot: /data
+      DigitC2__SharedPassword: ${DIGITC2_SHARED_PASSWORD:?Set DIGITC2_SHARED_PASSWORD in WEB/Deploy/.env}
+      DigitC2__MaxUploadBytes: 104857600
+      DigitC2__JobRetentionDays: 14
+      DigitC2__CleanupIntervalMinutes: 60
+    ports:
+      - "127.0.0.1:5188:8080"
+    volumes:
+      - digitc2-data:/data
+
+volumes:
+  digitc2-data:
+    name: digitc2-data

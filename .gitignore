@@ -9,3 +9,4 @@ WEB/Server/App_Data/
 /WEB/publish
 /WEB/data
 /WEB/LocalHost
+/WEB/Deploy/.env

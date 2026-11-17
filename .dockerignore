@@ -1,0 +1,14 @@
+.git
+.vs
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+WEB/Client/dist
+WEB/Server/App_Data
+WEB/Server/wwwroot
+WEB/publish
+WEB/data
+WEB/LocalHost
+WEB/Deploy/.env
+tmp
