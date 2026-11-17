@@ -31,7 +31,7 @@ docker compose build
 docker compose up -d
 ```
 
-The application is exposed only on the Hetzner server's loopback interface:
+The application is exposed on the Hetzner server's loopback interface and joins the existing external `digitc-net` Docker network so Caddy can reach it by container name:
 
 ```text
 http://127.0.0.1:5188
@@ -52,7 +52,7 @@ The health endpoint should return:
 
 ## 4. Connect Caddy
 
-After the local health check succeeds, add the contents of `Caddyfile.example` to the server's Caddy configuration and replace `transgraphier.example.com` with the real hostname.
+After the local health check succeeds, add the contents of `Caddyfile.example` to the server's Caddy configuration and replace `transgraphier.example.com` with the real hostname. The upstream is `transgraphier:8080`, resolved through `digitc-net`.
 
 Validate and reload Caddy using the paths and service already configured on the server. A typical package installation uses:
 
