@@ -81,7 +81,7 @@ public class Session
     InputFolder      = aSettings.GetPath("InputFolder");  
     RootOutputFolder = aSettings.GetPath("OutputFolder");
 
-    SetCurrentOutputFolder( $"{RootOutputFolder}\\{aName}" );
+    SetCurrentOutputFolder(Path.Combine(RootOutputFolder, aName));
 
     mLogger.SetDriverApp(DApp);
 
@@ -196,13 +196,13 @@ public class Session
     WriteLine2DriverApp(mElapsedTime.Check(aCheckpoint));
   }
 
-  public string ReferenceFile ( string aFilename ) => $"{InputFolder}/References/{aFilename}";
+  public string ReferenceFile ( string aFilename ) => Path.Combine(InputFolder, "References", aFilename);
 
-  public string OutputFile    ( string aFilename ) => $"{CurrentOutputFolder}/{aFilename}";
+  public string OutputFile    ( string aFilename ) => Path.Combine(CurrentOutputFolder, aFilename);
 
-  public string PrevOutputFile( string aFilename ) => $"{ComputePrevOutputFolder()}/{aFilename}";
+  public string PrevOutputFile( string aFilename ) => Path.Combine(ComputePrevOutputFolder(), aFilename);
 
-  string ComputePrevOutputFolder() => CurrentOutputFolder.Remove(CurrentOutputFolder.LastIndexOf('\\'));
+  string ComputePrevOutputFolder() => Path.GetDirectoryName(CurrentOutputFolder) ?? CurrentOutputFolder;
 
   public bool QuitDisabled => Settings.GetBool("CalibrateScores");
   public bool QuitEnabled  => !QuitDisabled;

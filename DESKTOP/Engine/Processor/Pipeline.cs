@@ -47,7 +47,7 @@ public class OutputBucket
     {
       string lBaseFolder = CurrSlot()?.FullOutputFolder ?? mSession.RootOutputFolder ;
 
-      aSlot.FullOutputFolder = $"{lBaseFolder}\\{aSlot.SubFolder}";
+      aSlot.FullOutputFolder = Path.Combine(lBaseFolder, aSlot.SubFolder);
     }
 
     mSlots.Add(aSlot); 
