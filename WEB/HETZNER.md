@@ -1,6 +1,6 @@
 # Hetzner Deployment
 
-The production container builds the React client, publishes the ASP.NET Core server in Release mode, and runs both as one web application. Job data is kept in the `digitc2-data` Docker volume.
+The production container builds the React client, publishes the ASP.NET Core server in Release mode, and runs both as one web application. Job data is kept in `/opt/digitc/data` on the host and mounted into the container at `/data`.
 
 ## 1. Prepare The Server Checkout
 
@@ -73,7 +73,7 @@ docker compose build
 docker compose up -d
 ```
 
-Docker Compose replaces the application container but preserves the `digitc2-data` volume.
+Docker Compose replaces the application container but preserves the host data under `/opt/digitc/data`.
 
 ## Operations
 
@@ -101,4 +101,4 @@ Start it again:
 docker compose up -d
 ```
 
-Do not run `docker compose down -v` unless the persistent job data should also be deleted.
+`docker compose down` does not delete the persistent job data under `/opt/digitc/data`.

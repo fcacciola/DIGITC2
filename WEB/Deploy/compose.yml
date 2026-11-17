@@ -18,14 +18,10 @@ services:
     ports:
       - "127.0.0.1:5188:8080"
     volumes:
-      - digitc2-data:/data
+      - /opt/digitc/data:/data
     networks:
       - default
       - caddy
-
-volumes:
-  digitc2-data:
-    name: digitc2-data
 
 networks:
   caddy:
