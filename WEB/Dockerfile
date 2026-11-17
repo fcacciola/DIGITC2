@@ -9,7 +9,7 @@ COPY WEB/Client/ ./
 COPY WEB/Manual/ /src/WEB/Manual/
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS server-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS server-build
 
 WORKDIR /src
 
@@ -27,7 +27,7 @@ RUN dotnet publish WEB/Server/DigitC2.Server.csproj \
   --no-restore \
   --output /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
