@@ -83,6 +83,7 @@ export function App() {
   const canExport = manifest !== null && !resultActionDisabled;
   const measurementSampleRate = inputWave?.sampleRate ?? resultWaves[0]?.sampleRate ?? null;
   const measurementText = formatMeasurement(measureSelection, measurementSampleRate);
+  const isLocalServer = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(window.location.hostname);
 
   useEffect(() => {
     let cancelled = false;
@@ -505,7 +506,7 @@ export function App() {
             <BookOpen size={16} aria-hidden="true" />
             <span>Manual</span>
           </button>
-          <div className="server-pill">Local server</div>
+          <div className="server-pill">{isLocalServer ? "Local server" : "Hosted server"}</div>
         </div>
       </header>
 

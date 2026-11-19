@@ -237,7 +237,7 @@ For example, the Waveform below shows the following groups of tap codes (the sep
 
 ## Text Decoding and Scoring
 
-Each tap code is a pair of counts that corresponds to the *Row* and *Column* indices into a special matrix known as a **"Polybius Square"**. The square has *Symbols* into each possible cell.
+Each tap code is a pair of counts that corresponds to the *Row* and *Column* indices of a special matrix known as a **"Polybius Square"**. The square has *Symbols* into each possible cell.
 
 Here is a simple _binary_ Polybius Square:
 
@@ -247,34 +247,42 @@ Here is a simple _binary_ Polybius Square:
 \caption{Binary Polybius Square}
 \end{figure}
 
-
 As you can see, using the simple binary square, the tap-code `(1,1)` corresponds to the very first Cell, at the top-left, and it contains the symbol `0`. Likewise, `(1,2)` maps to `1`, while `(2,2)` maps to `?`.
 
-Therefore, each extracted tap code, if any, is converted into a **Uncertain Binary Digit**: `0, 1 or ?`
+Since the Polybius square has the `?` symbol, each extracted tap code (if any) is converted into a so-called **"Fuzzy Bit"**: `0, 1 or ?`. A fuzzy-bit that is either `0` or `1` is called **Certain**. If it is `?`, it is **Uncertain**.
 
-Each tap-code *group* corresponds to a so-called **"Fuzzy Byte"** such as `**010?01??**`. This a byte in which certain bits are unknown.  Every fuzzy byte is converted into a **"Scored Resolved Byte"**. That is well-formed byte, in which every '?' is resolved as a '0', *but*, the bye is given a *Score* based on the ratio of certain vs uncertain bits.  For example, the fuzzy-byte: `**00000000**` maps to a value of 0 with a score of 1 (100%), but `**????????**` maps to a value which is also 0 but with a score of 0.
+Each tap-code *group* corresponds to a so-called **"Fuzzy Byte"**, that is, a byte whose bits are fuzzy: certain or uncertain (as in **`010?01??`**).  Every fuzzy byte is converted into a **"Scored Resolved Byte"**: every uncertain bit (`?`) is resolved as a `0`, *but*, the whole byte is given a *Score* based on the ratio of certain vs uncertain bits.  For example, the fuzzy-byte: **`010?01??`** maps to `68` with score `0.625 (5/8)`, **`00000000`** maps to `0` with a score `1` (100%), whereas **`????????`** maps to a value which is also `0` but with score `0`.
 
-Each resolved byte is then mapped into an ASCII letter, if any, or into the letter "!". Separator letters (such as a Space) are found, and the entire letters stream split into words. Each word is looked up into an English dictionary and given a score.
+Each resolved byte is then mapped into an ASCII letter, or into the letter "!" if no letter matches the byte value.
 
-Each individual score along the process is combined into a unified overall score.
+The full sequence of letters (which would include `!` for every unmatched byte) is then split into **"Tokens"** based on **delimiter** letters (such as a Space). Each token (roughly, a *Word*) is looked up into an **English** dictionary and given a score.
+
+Along the entire process, each step has a given score. For example, during the resolution of tap-codes into bytes, the score of each fuzzy byte is averaged into a single score for this step. 
+The score of each step is finally combined into a unified overall score.
+
+As it turns out, a fuzzy byte, such as **`1??????1`**, gets resolved into a definitive byte (along with a score), such as **`10000001`** (because each `?` maps to a `0`). That in turn gets resolved into an ASCII letter, such as `A`. Letters are then grouped into tokens (Words) at the delimiters, which are then scored by dictionary lookup. Therefore, the word `Are` gets itself a score of 100% (at this step), *but*, the tap-code mapping step might have a score of, say, just `0.25` for that `A` letter. Thus, even if the overall result might contain an actual word, the total score might be lower than `100%`.
 
 ## Blocks
 
-Depending on the successful extraction of separators, the entire audio is split up into Blocks. Within each block, the tap-codes are converted into Uncertain Binary Digits and these grouped into a Fuzzy Byte, which is then mapped into a Resolved Byte.
+Depending on the successful extraction of separators (5 or more consecutive taps, drawn Black), the entire audio is split up into **"Blocks"**. Within each block, the tap-codes are converted into Uncertain Bits, and these are grouped into a Fuzzy Byte, which is then mapped into a Resolved Byte and finally a Letter (or `!`). Thus, _**One** block gets map into **One** letter_.
 
-Since it is the separators which mark the block boundaries, it can very well happen that a given block has less or more than 8 Uncertain Bits.
-If it has less than 8, it is just paired. If it has more, the ones with the highest score, in their order, are kept, and any additional excess is trimmed.
+Separators determine the block boundaries, and it can very well happen that a given block has less or more than 8 Uncertain Bits.
 
-For example, the fuzzy-byte: `**0101**` maps into the actual byte `**01010000**`. The fuzzy-byte: `**0?1?0?0?1?1????01**` maps to `**01001101**` because the certain bits win over the uncertain ones in this case of excess. Likewise, the fuzzy-byte `**10100101111111**` becomes just `**10100101**` (the trailing ones are just trimmed).
+A byte is made of exactly 8 (certain) bits, so the resolving works in the following way: 
 
-If separators where found, so it was possible to extract blocks, the *Block Navigation Buttons*, at the very top, will be enabled. You can then *Zoom* into *One* block at a time, and move forward or backwards across all detected blocks:
+If there are less than 8 fuzzy bits in the block, it it just padded with uncertain bits (`?`). For example, the fuzzy block: **`0101`** is turned into **`0101????`** (which then resolves to the actual byte **`01010000`**). 
+
+If it has more than 8, the uncertain bits are removed, as needed, **Right to Left** (least to most significant bit). For example, the fuzzy block: **`????0?0?1?1????01`** maps to **`??001101`**.
+
+**Certain** bits in excess of 8 are trimmed from the right (least significant bit first). For example, **`10100101111111`** becomes just **`10100101`**.
+
+Since separators are given by 5 or more consecutive taps, there might very well be the case that no separators are found at all. In such a case, the signal is interpreted as *not* containing any message. If, on other other hand, they are found, the *Block Navigation Buttons*, at the very top, are enabled. When enabled, you can then *Zoom* into *One* block at a time, and move forward or backwards across all detected blocks:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{block.png}
 \caption{Blocks}
 \end{figure}
-
 
 ## Text Timeline
 
